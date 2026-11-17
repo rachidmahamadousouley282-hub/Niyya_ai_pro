@@ -1,3 +1,4 @@
+"use strict";
 
 const { Pool } = require("pg");
 
@@ -16,7 +17,10 @@ const pool = new Pool({
 });
 
 pool.on("error", (error) => {
-  console.error("Erreur inattendue de connexion à PostgreSQL :", error.message);
+  console.error(
+    "Erreur inattendue de connexion à PostgreSQL :",
+    error.message
+  );
 });
 
 async function query(text, params = []) {
@@ -28,9 +32,13 @@ async function testConnection() {
   return result.rows[0];
 }
 
+async function closeDatabase() {
+  await pool.end();
+}
+
 module.exports = {
   pool,
   query,
-  testConnection
+  testConnection,
+  closeDatabase
 };
-
