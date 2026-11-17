@@ -1,3 +1,4 @@
+"use strict";
 
 const crypto = require("crypto");
 const { query } = require("../config/database");
@@ -5,9 +6,7 @@ const { query } = require("../config/database");
 function getSessionToken(req) {
   const cookieHeader = req.headers.cookie || "";
 
-  const cookies = cookieHeader.split(";");
-
-  for (const cookie of cookies) {
+  for (const cookie of cookieHeader.split(";")) {
     const separator = cookie.indexOf("=");
 
     if (separator === -1) continue;
@@ -31,7 +30,11 @@ async function requireAuth(req, res, next) {
   try {
     const token = getSessionToken(req);
 
-    if (!token || token.length < 32 || token.length > 512) {
+    // Le service de session génère un jeton de 64 caractères hexadécimaux.
+    if (
+      typeof token !== "string" ||
+      !/^[a-f0-9]{64}$/i.test(token)
+    ) {
       return res.status(401).json({
         error: "Authentification requise."
       });
@@ -48,8 +51,9 @@ async function requireAuth(req, res, next) {
          u.id AS user_id,
          u.role,
          u.is_guest
-       FROM user_sessions s
-       JOIN users u ON u.id = s.user_id
+       FROM public.user_sessions AS s
+       INNER JOIN public.users AS u
+         ON u.id = s.user_id
        WHERE s.refresh_token_hash = $1
          AND s.is_revoked = FALSE
          AND s.is_compromised = FALSE
@@ -64,16 +68,22 @@ async function requireAuth(req, res, next) {
       });
     }
 
+    const session = result.rows[0];
+
     req.user = {
-      id: result.rows[0].user_id,
-      role: result.rows[0].role,
-      isGuest: result.rows[0].is_guest,
-      sessionId: result.rows[0].session_id
+      id: session.user_id,
+      role: session.role,
+      isGuest: session.is_guest,
+      sessionId: session.session_id
     };
 
-    next();
+    return next();
+
   } catch (error) {
-    console.error("Erreur d'authentification :", error.message);
+    console.error(
+      "Erreur de vérification de session :",
+      error.message
+    );
 
     return res.status(500).json({
       error: "Impossible de vérifier la session."
