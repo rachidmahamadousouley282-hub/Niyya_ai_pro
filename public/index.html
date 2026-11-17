@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#050505">
+    <title>NIYYA AI — Application Officielle</title>
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #050505;
+            --surface: #111;
+            --surface2: #141414;
+            --line: #1f1f1f;
+            --text: #fff;
+            --muted: #a1a1aa;
+            --blue: #2563eb;
+            --blue-text: #3b82f6;
+            --nav: 56px;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px 8px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--line);
+        }
+        .brand {
+            font-weight: 800;
+            letter-spacing: .04em;
+            font-size: 19px;
+        }
+        .brand b { color: var(--blue-text); }
+        .pill {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: var(--blue);
+            color: #fff;
+            text-decoration: none;
+        }
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 16px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .msgs {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 16px;
+        }
+        .b {
+            max-width: 84%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 15px;
+            line-height: 1.45;
+        }
+        .u { align-self: flex-end; background: var(--blue); border-bottom-right-radius: 4px; }
+        .a { align-self: flex-start; background: var(--surface2); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+        .comp {
+            display: flex;
+            gap: 10px;
+            padding: 10px 0;
+            flex: none;
+        }
+        input.f {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 24px;
+            border: 1px solid #262626;
+            background: var(--surface2);
+            color: #fff;
+            font: inherit;
+            outline: none;
+        }
+        .send {
+            border: 0;
+            border-radius: 24px;
+            padding: 0 20px;
+            background: #fff;
+            color: #050505;
+            font: 700 15px inherit;
+            cursor: pointer;
+        }
+        .note {
+            text-align: center;
+            color: var(--muted);
+            font-size: 11px;
+            padding-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top">
+        <div class="brand">NIYYA <b>AI</b></div>
+        <a href="/admin" class="pill">🔑 Admin</a>
+    </div>
+
+    <div class="chat-container">
+        <div class="msgs" id="chatMsgs">
+            <div class="b a">Bonjour ! Je suis NIYYA AI. Comment puis-je t'aider aujourd'hui ?</div>
+        </div>
+        
+        <div class="comp">
+            <input class="f" id="userInput" type="text" placeholder="Écris ton message..." autocomplete="off">
+            <button class="send" id="sendBtn">Envoyer</button>
+        </div>
+        <div class="note">Personnage fictif généré par IA.</div>
+    </div>
+
+    <script>
+        const msgs = document.getElementById('chatMsgs');
+        const input = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function appendMsg(text, type) {
+            const div = document.createElement('div');
+            div.className = `b ${type}`;
+            div.textContent = text;
+            msgs.appendChild(div);
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        function handleSend() {
+            const val = input.value.trim();
+            if (!val) return;
+            appendMsg(val, 'u');
+            input.value = '';
+
+            setTimeout(() => {
+                appendMsg("J'ai bien reçu ton message ! Le backend et la base de données répondent parfaitement.", 'a');
+            }, 800);
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleSend();
+        });
+    </script>
+</body>
+</html>
