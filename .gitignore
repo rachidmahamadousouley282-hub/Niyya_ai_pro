@@ -1,0 +1,22 @@
+# Variables d'environnement et secrets
+.env
+.env.*
+!.env.example
+
+# Dépendances
+node_modules/
+
+# Journaux
+*.log
+logs/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers temporaires
+.tmp/
+.temp/
+
+# Couverture des tests
+coverage/
