@@ -1,1 +1,139 @@
 
+/* NIYYA AI V2 — PREMIUM COMPONENTS */
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #b69aff;
+  outline-offset: 3px;
+}
+
+/* SEARCH */
+
+.search-box:focus-within {
+  border-color: #9565f5;
+  box-shadow: 0 0 0 4px rgba(149,101,245,.12);
+}
+
+/* CATEGORY FILTERS */
+
+.category {
+  white-space: nowrap;
+}
+
+.category:active,
+.chat-button:active,
+.creator-banner button:active {
+  transform: scale(.97);
+}
+
+/* CHARACTER CARDS */
+
+.character-card {
+  position: relative;
+}
+
+.character-art {
+  isolation: isolate;
+}
+
+.character-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(11,9,18,.45),
+    transparent 65%
+  );
+  pointer-events: none;
+}
+
+.character-symbol {
+  transition: transform .35s ease;
+}
+
+.character-card:hover .character-symbol {
+  transform: scale(1.1) rotate(-4deg);
+}
+
+.character-info {
+  position: relative;
+}
+
+/* BUTTONS */
+
+.chat-button,
+.creator-banner button {
+  transition: background .2s ease, transform .2s ease,
+              box-shadow .2s ease;
+}
+
+.chat-button:hover {
+  box-shadow: 0 5px 18px rgba(149,101,245,.15);
+}
+
+.creator-banner button:hover {
+  box-shadow: 0 8px 28px rgba(149,101,245,.35);
+  transform: translateY(-2px);
+}
+
+/* NAVIGATION */
+
+.nav-item {
+  transition: color .2s ease, transform .2s ease;
+}
+
+.nav-item:hover {
+  color: #b69aff;
+}
+
+.nav-item:active {
+  transform: scale(.94);
+}
+
+/* EMPTY AND LOADING STATES */
+
+.empty-state {
+  padding: 35px 15px;
+  text-align: center;
+  border: 1px dashed rgba(182,154,255,.25);
+  border-radius: 18px;
+  color: #9992aa;
+}
+
+.loading-card {
+  min-height: 220px;
+  border-radius: 20px;
+  background: linear-gradient(
+    100deg,
+    #171321 20%,
+    #272034 40%,
+    #171321 60%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+/* REDUCED MOTION */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+
