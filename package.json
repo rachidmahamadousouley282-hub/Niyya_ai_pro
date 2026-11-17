@@ -1,9 +1,11 @@
-
 {
   "name": "niyya-ai-pro",
   "version": "2.0.0",
   "description": "NIYYA AI V2 - Character chat platform",
   "main": "src/server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "node src/server.js"
   },
