@@ -1,4 +1,3 @@
-
 "use strict";
 
 const express = require("express");
@@ -9,13 +8,12 @@ const { setSessionCookie } = require("../utils/cookies");
 
 const router = express.Router();
 
-/**
- * Création atomique d'un compte invité et de sa session.
- */
 router.post("/guest", async (req, res) => {
-  const client = await pool.connect();
+  let client;
 
   try {
+    client = await pool.connect();
+
     await client.query("BEGIN");
 
     const result = await client.query(
@@ -46,10 +44,12 @@ router.post("/guest", async (req, res) => {
     });
 
   } catch (error) {
-    try {
-      await client.query("ROLLBACK");
-    } catch (rollbackError) {
-      console.error("Erreur rollback :", rollbackError.message);
+    if (client) {
+      try {
+        await client.query("ROLLBACK");
+      } catch (rollbackError) {
+        console.error("Erreur rollback :", rollbackError.message);
+      }
     }
 
     console.error("Erreur création invité :", error.message);
@@ -59,7 +59,9 @@ router.post("/guest", async (req, res) => {
     });
 
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
   }
 });
 
