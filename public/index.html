@@ -1,163 +1,141 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#050505">
-    <title>NIYYA AI — Application Officielle</title>
-    <style>
-        :root {
-            color-scheme: dark;
-            --bg: #050505;
-            --surface: #111;
-            --surface2: #141414;
-            --line: #1f1f1f;
-            --text: #fff;
-            --muted: #a1a1aa;
-            --blue: #2563eb;
-            --blue-text: #3b82f6;
-            --nav: 56px;
-        }
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font: 16px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-        .top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px 8px;
-            background: var(--surface);
-            border-bottom: 1px solid var(--line);
-        }
-        .brand {
-            font-weight: 800;
-            letter-spacing: .04em;
-            font-size: 19px;
-        }
-        .brand b { color: var(--blue-text); }
-        .pill {
-            font-size: 12px;
-            font-weight: 700;
-            padding: 5px 12px;
-            border-radius: 20px;
-            background: var(--blue);
-            color: #fff;
-            text-decoration: none;
-        }
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            max-width: 800px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 16px;
-            box-sizing: border-box;
-            overflow: hidden;
-        }
-        .msgs {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding-bottom: 16px;
-        }
-        .b {
-            max-width: 84%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            font-size: 15px;
-            line-height: 1.45;
-        }
-        .u { align-self: flex-end; background: var(--blue); border-bottom-right-radius: 4px; }
-        .a { align-self: flex-start; background: var(--surface2); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
-        .comp {
-            display: flex;
-            gap: 10px;
-            padding: 10px 0;
-            flex: none;
-        }
-        input.f {
-            flex: 1;
-            padding: 12px 16px;
-            border-radius: 24px;
-            border: 1px solid #262626;
-            background: var(--surface2);
-            color: #fff;
-            font: inherit;
-            outline: none;
-        }
-        .send {
-            border: 0;
-            border-radius: 24px;
-            padding: 0 20px;
-            background: #fff;
-            color: #050505;
-            font: 700 15px inherit;
-            cursor: pointer;
-        }
-        .note {
-            text-align: center;
-            color: var(--muted);
-            font-size: 11px;
-            padding-bottom: 8px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d0b14">
+  <title>NIYYA AI — Discover your world</title>
+  <link rel="stylesheet" href="/styles/main.css">
+  <link rel="stylesheet" href="/styles/components.css">
+  <link rel="stylesheet" href="/styles/responsive.css">
 </head>
 <body>
+  <div class="app-shell">
 
-    <div class="top">
-        <div class="brand">NIYYA <b>AI</b></div>
-        <a href="/admin" class="pill">🔑 Admin</a>
-    </div>
+    <header class="topbar">
+      <a class="brand" href="#">
+        <span class="brand-icon">N</span>
+        <span>NIYYA<span class="brand-ai"> AI</span></span>
+      </a>
+      <div class="header-actions">
+        <button class="icon-button" aria-label="Notifications">♧</button>
+        <button class="profile-button" aria-label="Profil">U</button>
+      </div>
+    </header>
 
-    <div class="chat-container">
-        <div class="msgs" id="chatMsgs">
-            <div class="b a">Bonjour ! Je suis NIYYA AI. Comment puis-je t'aider aujourd'hui ?</div>
+    <main>
+      <section class="hero">
+        <span class="eyebrow">YOUR AI UNIVERSE</span>
+        <h1>Un monde entier.<br><span>Une infinité d'histoires.</span></h1>
+        <p>Découvre des personnages, crée tes univers et commence une nouvelle aventure.</p>
+        <div class="search-box">
+          <span>⌕</span>
+          <input id="character-search" type="search"
+            placeholder="Rechercher un personnage...">
         </div>
-        
-        <div class="comp">
-            <input class="f" id="userInput" type="text" placeholder="Écris ton message..." autocomplete="off">
-            <button class="send" id="sendBtn">Envoyer</button>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">EXPLORE</span>
+            <h2>Catégories</h2>
+          </div>
+          <a href="#discover">Tout voir →</a>
         </div>
-        <div class="note">Personnage fictif généré par IA.</div>
-    </div>
+        <div class="category-list">
+          <button class="category active" data-category="all">✦ Tout</button>
+          <button class="category" data-category="anime">◈ Anime</button>
+          <button class="category" data-category="fantasy">✧ Fantasy</button>
+          <button class="category" data-category="romance">♡ Romance</button>
+          <button class="category" data-category="adventure">⚔ Aventure</button>
+        </div>
+      </section>
 
-    <script>
-        const msgs = document.getElementById('chatMsgs');
-        const input = document.getElementById('userInput');
-        const sendBtn = document.getElementById('sendBtn');
+      <section class="section" id="discover">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">HANDPICKED FOR YOU</span>
+            <h2>À découvrir</h2>
+          </div>
+          <a href="#discover">Explorer →</a>
+        </div>
 
-        function appendMsg(text, type) {
-            const div = document.createElement('div');
-            div.className = `b ${type}`;
-            div.textContent = text;
-            msgs.appendChild(div);
-            msgs.scrollTop = msgs.scrollHeight;
-        }
+        <div class="character-grid" id="character-grid">
+          <article class="character-card" data-category="anime">
+            <div class="character-art art-one">
+              <span class="art-label">ANIME</span>
+              <span class="character-symbol">月</span>
+            </div>
+            <div class="character-info">
+              <h3>Akira</h3>
+              <p>Un esprit mystérieux au passé oublié.</p>
+              <span class="character-tag">Mystère · Anime</span>
+              <button class="chat-button" data-character="Akira">Découvrir</button>
+            </div>
+          </article>
 
-        function handleSend() {
-            const val = input.value.trim();
-            if (!val) return;
-            appendMsg(val, 'u');
-            input.value = '';
+          <article class="character-card" data-category="fantasy">
+            <div class="character-art art-two">
+              <span class="art-label">FANTASY</span>
+              <span class="character-symbol">✧</span>
+            </div>
+            <div class="character-info">
+              <h3>Elena</h3>
+              <p>Une exploratrice d'un royaume oublié.</p>
+              <span class="character-tag">Fantasy · Aventure</span>
+              <button class="chat-button" data-character="Elena">Découvrir</button>
+            </div>
+          </article>
 
-            setTimeout(() => {
-                appendMsg("J'ai bien reçu ton message ! Le backend et la base de données répondent parfaitement.", 'a');
-            }, 800);
-        }
+          <article class="character-card" data-category="adventure">
+            <div class="character-art art-three">
+              <span class="art-label">ADVENTURE</span>
+              <span class="character-symbol">⚡</span>
+            </div>
+            <div class="character-info">
+              <h3>Kael</h3>
+              <p>Un voyageur qui cherche sa destinée.</p>
+              <span class="character-tag">Aventure · Action</span>
+              <button class="chat-button" data-character="Kael">Découvrir</button>
+            </div>
+          </article>
 
-        sendBtn.addEventListener('click', handleSend);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') handleSend();
-        });
-    </script>
+          <article class="character-card" data-category="anime">
+            <div class="character-art art-four">
+              <span class="art-label">ANIME</span>
+              <span class="character-symbol">夜</span>
+            </div>
+            <div class="character-info">
+              <h3>Yuna</h3>
+              <p>Une artiste pleine de surprises.</p>
+              <span class="character-tag">Créativité · Anime</span>
+              <button class="chat-button" data-character="Yuna">Découvrir</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="creator-banner">
+        <span class="eyebrow">CREATE YOUR UNIVERSE</span>
+        <h2>Ton imagination<br>n'a pas de limites.</h2>
+        <p>Donne vie à tes propres personnages et invente leurs histoires.</p>
+        <button id="create-character">＋ Créer un personnage</button>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navigation principale">
+      <a class="nav-item selected" href="#"><span>⌂</span>Accueil</a>
+      <a class="nav-item" href="#discover"><span>⌕</span>Explorer</a>
+      <a class="nav-item" href="#create"><span>＋</span>Créer</a>
+      <a class="nav-item" href="#favorites"><span>♡</span>Favoris</a>
+      <a class="nav-item" href="#profile"><span>◉</span>Profil</a>
+    </nav>
+
+  </div>
+  <script src="/scripts/api.js"></script>
+  <script src="/scripts/navigation.js"></script>
+  <script src="/scripts/app.js"></script>
 </body>
 </html>
