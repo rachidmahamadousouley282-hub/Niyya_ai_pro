@@ -18,8 +18,9 @@ function hashToken(token) {
 
 /**
  * Crée une nouvelle session sécurisée.
+ * Peut utiliser une connexion PostgreSQL transactionnelle.
  */
-async function createSession(userId) {
+async function createSession(userId, db = { query }) {
   if (!userId) {
     throw new Error("Identifiant utilisateur manquant.");
   }
@@ -28,7 +29,7 @@ async function createSession(userId) {
   const tokenHash = hashToken(token);
   const familyId = crypto.randomUUID();
 
-  const result = await query(
+  const result = await db.query(
     `INSERT INTO public.user_sessions (
        user_id,
        refresh_token_hash,
