@@ -1,1 +1,88 @@
 
+"use strict";
+
+const { query } = require("../config/database");
+
+/**
+ * Consomme un message pour un utilisateur.
+ * Le calcul des quotas est effectue dans PostgreSQL.
+ */
+async function consumeMessage(userId) {
+  if (!userId) {
+    throw new Error("Identifiant utilisateur manquant.");
+  }
+
+  const result = await query(
+    `SELECT * FROM public.consume_message($1)`,
+    [userId]
+  );
+
+  if (!result.rows.length) {
+    throw new Error("Aucun resultat de consommation.");
+  }
+
+  const quota = result.rows[0];
+
+  return {
+    allowed: quota.allowed,
+    reason: quota.reason,
+    remaining: quota.remaining,
+    tier: quota.tier
+  };
+}
+
+/**
+ * Rembourse un message en cas d'echec de generation.
+ */
+async function refundMessage(userId, tier) {
+  if (!userId || !["free", "vip"].includes(tier)) {
+    throw new Error("Parametres de remboursement invalides.");
+  }
+
+  await query(
+    `SELECT public.refund_message($1, $2)`,
+    [userId, tier]
+  );
+
+  return { refunded: true };
+}
+
+/**
+ * Attribution d'une recompense apres validation serveur
+ * de l'evenement par le fournisseur publicitaire.
+ *
+ * Ne jamais appeler cette fonction depuis une route
+ * accessible directement au navigateur.
+ */
+async function grantRewardedVideoAfterVerification(event) {
+  if (
+    !event ||
+    event.verified !== true ||
+    !event.userId ||
+    !event.provider ||
+    !event.providerEventId
+  ) {
+    throw new Error("Evenement publicitaire non valide.");
+  }
+
+  const result = await query(
+    `SELECT * FROM public.grant_rewarded_video($1, $2, $3)`,
+    [
+      event.userId,
+      event.provider,
+      event.providerEventId
+    ]
+  );
+
+  if (!result.rows.length) {
+    throw new Error("Aucun resultat de recompense.");
+  }
+
+  return result.rows[0];
+}
+
+module.exports = {
+  consumeMessage,
+  refundMessage,
+  grantRewardedVideoAfterVerification
+};
