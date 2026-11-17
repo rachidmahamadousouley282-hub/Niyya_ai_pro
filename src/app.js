@@ -14,9 +14,7 @@ app.use(express.urlencoded({
 }));
 
 // Fichiers du site NIYYA AI
-app.use(express.static(
-  path.join(__dirname, "../../public")
-));
+app.use(express.static(path.join(__dirname, "../public")));
 
 // Vérification du serveur
 app.get("/api/health", (req, res) => {
