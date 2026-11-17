@@ -1,6 +1,10 @@
 
+"use strict";
+
 const express = require("express");
 const path = require("path");
+
+const authRoutes = require("./routes/auth.routes");
 
 const app = express();
 
@@ -25,7 +29,10 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Route inconnue
+// Authentification NIYYA AI V2
+app.use("/api/auth", authRoutes);
+
+// Route API inconnue
 app.use("/api", (req, res) => {
   res.status(404).json({
     error: "Route API introuvable."
