@@ -1,83 +1,110 @@
 
 "use strict";
 
+/**
+ * NIYYA.ai V2
+ * Provider Engine
+ *
+ * Mode gratuit par défaut.
+ * Aucun fournisseur payant n'est activé automatiquement.
+ */
+
 const SUPPORTED_PROVIDERS = Object.freeze([
+  "mock",
   "openai",
   "anthropic",
   "google"
 ]);
 
-const DEFAULT_PROVIDER = "openai";
+const DEFAULT_PROVIDER = "mock";
+
+const PROVIDER_ENV = Object.freeze({
+  openai: {
+    apiKey: "OPENAI_API_KEY",
+    model: "OPENAI_MODEL",
+    defaultModel: "gpt-4o-mini"
+  },
+  anthropic: {
+    apiKey: "ANTHROPIC_API_KEY",
+    model: "ANTHROPIC_MODEL",
+    defaultModel: "claude-sonnet"
+  },
+  google: {
+    apiKey: "GOOGLE_API_KEY",
+    model: "GOOGLE_MODEL",
+    defaultModel: "gemini-2.5-flash"
+  }
+});
 
 function normalizeProvider(provider) {
-  if (typeof provider !== "string") {
+  if (typeof provider !== "string" || !provider.trim()) {
     return DEFAULT_PROVIDER;
   }
 
   const normalized = provider.trim().toLowerCase();
 
-  return SUPPORTED_PROVIDERS.includes(normalized)
-    ? normalized
-    : DEFAULT_PROVIDER;
+  if (!SUPPORTED_PROVIDERS.includes(normalized)) {
+    throw new Error("Fournisseur IA non pris en charge.");
+  }
+
+  return normalized;
 }
 
 function getProviderConfig() {
-  const provider = normalizeProvider(process.env.AI_PROVIDER);
+  const provider = normalizeProvider(
+    process.env.AI_PROVIDER || DEFAULT_PROVIDER
+  );
 
-  const configurations = {
-    openai: {
-      name: "openai",
-      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      apiKey: process.env.OPENAI_API_KEY
-    },
+  if (provider === "mock") {
+    return {
+      provider: "mock",
+      model: "niyya-mock-v1",
+      mode: "free",
+      apiKey: null
+    };
+  }
 
-    anthropic: {
-      name: "anthropic",
-      model: process.env.ANTHROPIC_MODEL || "claude-sonnet",
-      apiKey: process.env.ANTHROPIC_API_KEY
-    },
+  const settings = PROVIDER_ENV[provider];
+  const apiKey = process.env[settings.apiKey];
 
-    google: {
-      name: "google",
-      model: process.env.GOOGLE_MODEL || "gemini-2.5-flash",
-      apiKey: process.env.GOOGLE_API_KEY
-    }
-  };
-
-  const config = configurations[provider];
-
-  if (!config.apiKey) {
+  if (!apiKey) {
     throw new Error(
-      `Configuration API manquante pour le fournisseur ${provider}.`
+      `Le fournisseur ${provider} est sélectionné mais sa configuration est absente.`
     );
   }
 
   return {
-    provider: config.name,
-    model: config.model,
-    apiKey: config.apiKey
+    provider,
+    model: process.env[settings.model] || settings.defaultModel,
+    mode: "optional",
+    apiKey
   };
 }
 
 function getAvailableProviders() {
-  return SUPPORTED_PROVIDERS.map(provider => ({
-    name: provider,
-    available: Boolean(
-      process.env[
-        provider === "openai"
-          ? "OPENAI_API_KEY"
-          : provider === "anthropic"
-            ? "ANTHROPIC_API_KEY"
-            : "GOOGLE_API_KEY"
-      ]
-    )
-  }));
+  return SUPPORTED_PROVIDERS.map(provider => {
+    if (provider === "mock") {
+      return {
+        name: "mock",
+        configured: true,
+        mode: "free"
+      };
+    }
+
+    const settings = PROVIDER_ENV[provider];
+
+    return {
+      name: provider,
+      configured: Boolean(process.env[settings.apiKey]),
+      mode: "optional"
+    };
+  });
 }
 
 module.exports = {
   SUPPORTED_PROVIDERS,
+  DEFAULT_PROVIDER,
   normalizeProvider,
   getProviderConfig,
   getAvailableProviders
 };
-
