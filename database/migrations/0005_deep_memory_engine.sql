@@ -4,10 +4,10 @@ BEGIN;
 -- =========================================================
 -- NIYYA.ai V2
 -- MIGRATION 0005 : DEEP MEMORY ENGINE
+-- PostgreSQL 18+
 -- =========================================================
 
--- 1. Relation indépendante entre un utilisateur et un personnage.
--- Chaque utilisateur possède sa propre relation avec chaque personnage.
+-- 1. Relation indépendante utilisateur-personnage
 
 CREATE TABLE public.character_relationships (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -36,8 +36,7 @@ CREATE TABLE public.character_relationships (
         UNIQUE (user_id, character_id)
 );
 
--- 2. Mémoire narrative propre à chaque relation.
--- Les souvenirs ne peuvent pas être partagés entre utilisateurs.
+-- 2. Mémoire propre à chaque relation
 
 CREATE TABLE public.character_memories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -57,9 +56,7 @@ CREATE TABLE public.character_memories (
         ),
 
     content TEXT NOT NULL
-        CHECK (
-            LENGTH(BTRIM(content)) BETWEEN 1 AND 2000
-        ),
+        CHECK (LENGTH(BTRIM(content)) BETWEEN 1 AND 2000),
 
     importance INTEGER NOT NULL DEFAULT 3
         CHECK (importance BETWEEN 1 AND 5),
@@ -80,13 +77,13 @@ CREATE TABLE public.character_memories (
         ON DELETE CASCADE
 );
 
--- 3. Clé unique composite pour garantir que les résumés
--- correspondent exactement à leur utilisateur et personnage.
+-- 3. Clé composite nécessaire pour vérifier
+-- l'identité exacte des conversations.
 
 CREATE UNIQUE INDEX conversations_identity_uidx
 ON public.conversations (id, user_id, character_id);
 
--- 4. Résumés persistants des conversations.
+-- 4. Résumés persistants des conversations
 
 CREATE TABLE public.conversation_summaries (
     conversation_id UUID PRIMARY KEY,
@@ -116,16 +113,17 @@ CREATE TABLE public.conversation_summaries (
         ON DELETE CASCADE
 );
 
--- 5. Relier les souvenirs à une conversation existante.
--- La relation composite empêche les mélanges d'identités.
+-- 5. Source des souvenirs.
+-- Si une conversation est supprimée, le souvenir reste.
+-- Seul son lien vers cette conversation est effacé.
 
 ALTER TABLE public.character_memories
 ADD CONSTRAINT character_memories_conversation_fk
 FOREIGN KEY (source_conversation_id, user_id, character_id)
 REFERENCES public.conversations(id, user_id, character_id)
-ON DELETE CASCADE;
+ON DELETE SET NULL (source_conversation_id);
 
--- 6. Index pour accélérer la récupération des souvenirs.
+-- 6. Index de recherche
 
 CREATE INDEX character_memories_lookup_idx
 ON public.character_memories
@@ -142,7 +140,7 @@ ON public.conversation_summaries
 CREATE INDEX character_relationships_character_idx
 ON public.character_relationships(character_id);
 
--- 7. Mise à jour automatique des dates de modification.
+-- 7. Mise à jour automatique des dates
 
 CREATE OR REPLACE FUNCTION public.update_deep_memory_updated_at()
 RETURNS TRIGGER
@@ -169,7 +167,7 @@ BEFORE UPDATE ON public.conversation_summaries
 FOR EACH ROW
 EXECUTE FUNCTION public.update_deep_memory_updated_at();
 
--- 8. Permissions du rôle applicatif.
+-- 8. Permissions applicatives
 
 GRANT SELECT, INSERT, UPDATE, DELETE
 ON public.character_relationships TO niyya_app;
@@ -181,4 +179,3 @@ GRANT SELECT, INSERT, UPDATE, DELETE
 ON public.conversation_summaries TO niyya_app;
 
 COMMIT;
-
