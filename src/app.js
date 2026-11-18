@@ -5,45 +5,41 @@ const express = require("express");
 const path = require("path");
 
 const authRoutes = require("./routes/auth.routes");
+const characterRoutes = require("./routes/characters.routes");
 
 const app = express();
 
 app.disable("x-powered-by");
 
 app.use(express.json({ limit: "1mb" }));
-
 app.use(express.urlencoded({
   extended: false,
   limit: "1mb"
 }));
 
-// Fichiers du site NIYYA AI
 app.use(express.static(path.join(__dirname, "../public")));
 
-// Vérification du serveur
 app.get("/api/health", (req, res) => {
-  res.json({
+  return res.status(200).json({
     status: "ok",
-    application: "NIYYA AI V2",
+    application: "NIYYA.ai V2",
     message: "Le serveur fonctionne."
   });
 });
 
-// Authentification NIYYA AI V2
 app.use("/api/auth", authRoutes);
+app.use("/api/characters", characterRoutes);
 
-// Route API inconnue
 app.use("/api", (req, res) => {
-  res.status(404).json({
+  return res.status(404).json({
     error: "Route API introuvable."
   });
 });
 
-// Gestion générale des erreurs
 app.use((err, req, res, next) => {
   console.error("Erreur serveur :", err.message);
 
-  res.status(500).json({
+  return res.status(500).json({
     error: "Une erreur interne est survenue."
   });
 });
