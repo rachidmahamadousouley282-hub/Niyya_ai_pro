@@ -1,0 +1,137 @@
+
+"use strict";
+
+const { generateReply } = require("../services/ai.service");
+
+const characterEngine = require("./character.engine");
+const emotionEngine = require("./emotion.engine");
+const memoryEngine = require("./memory.engine");
+
+const MAX_HISTORY = 30;
+const MAX_MESSAGE_LENGTH = 12000;
+
+function validateInput({ userId, characterId, message }) {
+  if (typeof userId !== "string" || !userId.trim()) {
+    throw new TypeError("Utilisateur invalide.");
+  }
+
+  if (typeof characterId !== "string" || !characterId.trim()) {
+    throw new TypeError("Personnage invalide.");
+  }
+
+  if (typeof message !== "string" || !message.trim()) {
+    throw new TypeError("Le message est obligatoire.");
+  }
+
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    throw new RangeError("Le message est trop long.");
+  }
+}
+
+function normalizeHistory(history = []) {
+  if (!Array.isArray(history)) {
+    return [];
+  }
+
+  return history
+    .filter(
+      item =>
+        item &&
+        ["user", "assistant"].includes(item.role) &&
+        typeof item.content === "string"
+    )
+    .slice(-MAX_HISTORY)
+    .map(item => ({
+      role: item.role,
+      content: item.content.slice(0, MAX_MESSAGE_LENGTH)
+    }));
+}
+
+async function processMessage({
+  userId,
+  characterId,
+  message,
+  history = [],
+  language = "fr"
+}) {
+  validateInput({ userId, characterId, message });
+
+  const character = await characterEngine.getCharacterForConversation({
+    characterId,
+    userId
+  });
+
+  if (!character) {
+    throw new Error("Personnage introuvable ou inaccessible.");
+  }
+
+  const safeHistory = normalizeHistory(history);
+
+  const detectedEmotion = emotionEngine.detectEmotion(message);
+
+  const emotionGuidance = emotionEngine.getResponseGuidance(
+    detectedEmotion.emotion
+  );
+
+  let memories = [];
+
+  if (typeof memoryEngine.retrieveRelevantMemories === "function") {
+    memories = await memoryEngine.retrieveRelevantMemories({
+      userId,
+      characterId,
+      message
+    });
+  }
+
+  const memoryContext = Array.isArray(memories)
+    ? memories
+        .slice(0, 10)
+        .map(memory => memory.fact_text)
+        .filter(text => typeof text === "string")
+        .join("\n")
+    : "";
+
+  const enrichedCharacter = {
+    ...character,
+    personality_prompt: [
+      character.personality_prompt,
+      `État émotionnel du message : ${detectedEmotion.emotion}.`,
+      emotionGuidance,
+      memoryContext
+        ? `Souvenirs pertinents à prendre en compte :\n${memoryContext}`
+        : ""
+    ]
+      .filter(Boolean)
+      .join("\n\n")
+  };
+
+  const reply = await generateReply({
+    character: enrichedCharacter,
+    history: [
+      ...safeHistory,
+      {
+        role: "user",
+        content: message.trim()
+      }
+    ],
+    language
+  });
+
+  if (!reply || typeof reply.reply !== "string" || !reply.reply.trim()) {
+    throw new Error("Le moteur IA n'a pas généré de réponse valide.");
+  }
+
+  return {
+    reply: reply.reply,
+    characterId: character.id,
+    emotion: detectedEmotion.emotion,
+    provider: reply.provider,
+    model: reply.model,
+    usage: reply.usage || null
+  };
+}
+
+module.exports = {
+  processMessage,
+  normalizeHistory
+};
