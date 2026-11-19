@@ -215,3 +215,13 @@ input:focus-visible {
   .chat-composer { flex-direction: column; }
   .chat-send { min-height: 44px; }
 }
+
+
+/* Interface language preferences */
+.language-settings { display:flex; flex-direction:column; gap:16px; }
+.language-settings h2 { font-size:22px; }
+.language-settings label { color:#c9c0d8; font-size:13px; }
+.language-select { width:100%; min-height:48px; padding:12px; border:1px solid rgba(182,154,255,.3); border-radius:12px; background:#0e0b15; color:#fff; }
+.language-saved { color:#9992aa; font-size:12px; }
+html[dir='rtl'] body { direction:rtl; }
+html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
