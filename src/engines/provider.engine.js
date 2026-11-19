@@ -55,14 +55,21 @@ function getProviderConfig() {
     process.env.AI_PROVIDER || DEFAULT_PROVIDER
   );
 
-  if (provider === "mock") {
-    return {
-      provider: "mock",
-      model: "niyya-mock-v1",
-      mode: "free",
-      apiKey: null
-    };
+  // NIYYA V2 démarre en mode 100 % gratuit.
+  // Aucun fournisseur facturé ne peut être activé par une variable
+  // d'environnement accidentelle : le mock reste le seul moteur actif.
+  if (provider !== "mock") {
+    throw new Error(
+      "Mode gratuit NIYYA actif : les fournisseurs payants sont désactivés."
+    );
   }
+
+  return {
+    provider: "mock",
+    model: "niyya-mock-v1",
+    mode: "free",
+    apiKey: null
+  };
 
   const settings = PROVIDER_ENV[provider];
   const apiKey = process.env[settings.apiKey];
