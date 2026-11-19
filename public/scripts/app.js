@@ -61,7 +61,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function ensureGuest() {
     if (guestReady) return;
-    await window.NiyyaAPI.createGuest();
+    try {
+      await window.NiyyaAPI.getSession();
+    } catch {
+      await window.NiyyaAPI.createGuest();
+    }
     guestReady = true;
   }
 
