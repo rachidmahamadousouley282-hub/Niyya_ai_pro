@@ -71,21 +71,6 @@ function getProviderConfig() {
     apiKey: null
   };
 
-  const settings = PROVIDER_ENV[provider];
-  const apiKey = process.env[settings.apiKey];
-
-  if (!apiKey) {
-    throw new Error(
-      `Le fournisseur ${provider} est sélectionné mais sa configuration est absente.`
-    );
-  }
-
-  return {
-    provider,
-    model: process.env[settings.model] || settings.defaultModel,
-    mode: "optional",
-    apiKey
-  };
 }
 
 function getAvailableProviders() {
@@ -98,12 +83,10 @@ function getAvailableProviders() {
       };
     }
 
-    const settings = PROVIDER_ENV[provider];
-
     return {
       name: provider,
-      configured: Boolean(process.env[settings.apiKey]),
-      mode: "optional"
+      configured: false,
+      mode: "disabled"
     };
   });
 }
