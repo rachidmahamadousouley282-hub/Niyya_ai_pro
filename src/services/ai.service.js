@@ -133,6 +133,11 @@ function generateMockReply({ character, history, language }) {
       `Estou ouvindo. Gostaria de entender melhor o teu ponto de vista. Podes contar-me mais?`,
       `Interessante. Vamos explorar essa ideia juntos.`
     ]
+,    ar: [
+      `أنا أستمع إليك. أريد أن أفهم وجهة نظرك أكثر، أخبرني ما الذي جعلك تفكر بهذه الطريقة؟`,
+      `هذا مثير للاهتمام! دعنا نستكشف الفكرة معًا.`,
+      `أفهم ما تقصده. هناك أكثر من طريقة للنظر إلى هذا الموضوع.`
+    ]
   };
 
   const languageKey = responses[normalizedLanguage]
