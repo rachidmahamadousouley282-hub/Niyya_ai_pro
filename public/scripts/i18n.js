@@ -18,7 +18,7 @@
       createTitle: "Ton imagination n'a pas de limites.",
       createText: "Donne vie à tes propres personnages et invente leurs histoires.",
       createButton: "＋ Créer un personnage", home: "Accueil",
-      exploreNav: "Explorer", createNav: "Créer", favorites: "Favoris", profile: "Profil"
+      exploreNav: "Explorer", createNav: "Créer", favorites: "Favoris", profile: "Profil", fictional: "PERSONNAGE FICTIF", demoNotice: "Les personnages NIYYA.ai sont fictifs. Le mode actuel utilise un moteur de démonstration local.", connecting: "Connexion à NIYYA.ai…", writeMessage: "Écris ton message…", send: "Envoyer", you: "TOI", niyya: "NIYYA", startConversation: "Commence la conversation. Le quota et les conditions d’accès sont vérifiés côté serveur.", preparing: "Le personnage prépare sa réponse…", createUnavailable: "La création de personnages n’est pas encore activée. Les profils et conversations existants sont chargés depuis la base V2.", noCharacters: "Aucun personnage disponible pour cette recherche.", officialTag: "Personnage officiel NIYYA.ai", discoverButton: "Découvrir", genericError: "Impossible d’ouvrir cette conversation."
     },
     en: {
       settings: "Settings", language: "Interface language",
@@ -33,7 +33,7 @@
       createTitle: "Your imagination has no limits.",
       createText: "Bring your own characters to life and invent their stories.",
       createButton: "＋ Create a character", home: "Home",
-      exploreNav: "Explore", createNav: "Create", favorites: "Favorites", profile: "Profile"
+      exploreNav: "Explore", createNav: "Create", favorites: "Favorites", profile: "Profile", fictional: "FICTIONAL CHARACTER", demoNotice: "NIYYA.ai characters are fictional. The current mode uses a local demonstration engine.", connecting: "Connecting to NIYYA.ai…", writeMessage: "Write your message…", send: "Send", you: "YOU", niyya: "NIYYA", startConversation: "Start the conversation. Quotas and access rules are checked by the server.", preparing: "The character is preparing a reply…", createUnavailable: "Character creation is not available yet. Existing profiles and conversations are loaded from the V2 database.", noCharacters: "No characters available for this search.", officialTag: "Official NIYYA.ai character", discoverButton: "Discover", genericError: "Unable to open this conversation."
     },
     es: {
       settings: "Configuración", language: "Idioma de la interfaz",
@@ -48,7 +48,7 @@
       createTitle: "Tu imaginación no tiene límites.",
       createText: "Da vida a tus personajes e inventa sus historias.",
       createButton: "＋ Crear un personaje", home: "Inicio",
-      exploreNav: "Explorar", createNav: "Crear", favorites: "Favoritos", profile: "Perfil"
+      exploreNav: "Explorar", createNav: "Crear", favorites: "Favoritos", profile: "Perfil", fictional: "PERSONAJE FICTICIO", demoNotice: "Los personajes de NIYYA.ai son ficticios. El modo actual utiliza un motor de demostración local.", connecting: "Conectando con NIYYA.ai…", writeMessage: "Escribe tu mensaje…", send: "Enviar", you: "TÚ", niyya: "NIYYA", startConversation: "Comienza la conversación. El servidor comprueba las cuotas y las condiciones de acceso.", preparing: "El personaje está preparando su respuesta…", createUnavailable: "La creación de personajes aún no está disponible. Los perfiles y conversaciones existentes se cargan desde la base de datos V2.", noCharacters: "No hay personajes disponibles para esta búsqueda.", officialTag: "Personaje oficial de NIYYA.ai", discoverButton: "Descubrir", genericError: "No se pudo abrir esta conversación."
     },
     ar: {
       settings: "الإعدادات", language: "لغة الواجهة",
@@ -63,7 +63,7 @@
       createTitle: "خيالك بلا حدود.",
       createText: "امنح الحياة لشخصياتك وابتكر قصصها.",
       createButton: "＋ أنشئ شخصية", home: "الرئيسية",
-      exploreNav: "استكشف", createNav: "إنشاء", favorites: "المفضلة", profile: "الملف الشخصي"
+      exploreNav: "استكشف", createNav: "إنشاء", favorites: "المفضلة", profile: "الملف الشخصي", fictional: "شخصية خيالية", demoNotice: "شخصيات NIYYA.ai خيالية. يستخدم الوضع الحالي محركًا تجريبيًا محليًا.", connecting: "جارٍ الاتصال بـ NIYYA.ai…", writeMessage: "اكتب رسالتك…", send: "إرسال", you: "أنت", niyya: "NIYYA", startConversation: "ابدأ المحادثة. يتحقق الخادم من الحصة وشروط الوصول.", preparing: "الشخصية تُحضّر ردها…", createUnavailable: "إنشاء الشخصيات غير متاح بعد. يتم تحميل الملفات الشخصية والمحادثات الحالية من قاعدة بيانات V2.", noCharacters: "لا توجد شخصيات متاحة لهذا البحث.", officialTag: "شخصية رسمية من NIYYA.ai", discoverButton: "اكتشف", genericError: "تعذّر فتح هذه المحادثة."
     }
   };
 
