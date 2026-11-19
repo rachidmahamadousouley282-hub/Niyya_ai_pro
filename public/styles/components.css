@@ -137,3 +137,81 @@ input:focus-visible {
   }
 }
 
+
+.niyya-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(4, 3, 8, .82);
+  backdrop-filter: blur(12px);
+}
+.niyya-modal .modal-panel {
+  width: min(100%, 720px);
+  max-height: min(86vh, 820px);
+  overflow: hidden;
+  padding: 22px;
+  border: 1px solid rgba(182,154,255,.2);
+  border-radius: 22px;
+  background: #14111e;
+  box-shadow: 0 24px 90px rgba(0,0,0,.55);
+}
+.niyya-modal .modal-close {
+  float: right;
+  border: 0;
+  background: transparent;
+  color: white;
+  font-size: 28px;
+}
+.chat-panel { display: flex; flex-direction: column; gap: 14px; }
+.chat-header { display: flex; justify-content: space-between; gap: 16px; }
+.chat-header h2 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; }
+.chat-subtitle, .chat-notice, .chat-status { color: #9992aa; font-size: 12px; line-height: 1.6; }
+.chat-messages {
+  min-height: 260px;
+  max-height: 52vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 16px;
+  background: #0e0b15;
+}
+.chat-notice { padding: 10px; text-align: center; }
+.chat-message { max-width: 88%; padding: 12px 14px; border-radius: 14px; }
+.chat-message.user { align-self: flex-end; background: rgba(149,101,245,.2); }
+.chat-message.assistant { align-self: flex-start; background: #211b2d; }
+.chat-message p { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px; line-height: 1.6; }
+.chat-role { display: block; margin-bottom: 5px; color: #b69aff; font-size: 9px; letter-spacing: 1px; }
+.chat-composer { display: flex; gap: 9px; }
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  resize: vertical;
+  max-height: 110px;
+  padding: 13px;
+  border: 1px solid rgba(182,154,255,.22);
+  border-radius: 12px;
+  background: #0e0b15;
+  color: white;
+}
+.chat-send {
+  padding: 0 17px;
+  border: 0;
+  border-radius: 12px;
+  background: #9565f5;
+  color: white;
+  font-weight: 700;
+}
+.chat-send:disabled, .chat-input:disabled { opacity: .55; cursor: not-allowed; }
+@media (max-width: 520px) {
+  .niyya-modal { padding: 8px; }
+  .niyya-modal .modal-panel { padding: 15px; border-radius: 17px; }
+  .chat-messages { min-height: 240px; }
+  .chat-composer { flex-direction: column; }
+  .chat-send { min-height: 44px; }
+}
