@@ -45,7 +45,7 @@ async function listDiscoverableCharacters({
     FROM (
       SELECT
         c.id, c.slug, c.name, c.tagline, c.avatar_url,
-        c.short_bio, c.backstory, c.personality_traits,
+        c.short_bio, c.backstory, c.profile_i18n, c.personality_traits,
         c.greeting, c.category, c.tags,
         'NIYYA.ai'::varchar AS creator_pseudonym,
         c.published_at, c.created_at
@@ -115,6 +115,7 @@ async function getCharacterForConversation({
       c.avatar_status,
       c.short_bio,
       c.backstory,
+      c.profile_i18n,
       c.personality_traits,
       c.greeting,
       c.category,
