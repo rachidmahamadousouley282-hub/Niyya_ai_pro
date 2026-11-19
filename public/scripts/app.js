@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeCategory = "all";
   let guestReady = false;
   let activeConversation = null;
+  let activeCharacterId = null;
 
   function element(tag, className, text) {
     const node = document.createElement(tag);
@@ -54,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
       );
       const button = element("button", "chat-button", t("discoverButton"));
       button.type = "button";
-      button.addEventListener("click", () => openChat(character, button));
+      button.addEventListener("click", () => openProfile(character, button));
       info.append(button);
       card.append(art, info);
       grid.append(card);
@@ -125,10 +126,15 @@ document.addEventListener("DOMContentLoaded", () => {
     titleWrap.append(element("span", "eyebrow", t("fictional")),
       element("h2", "", character.name),
       element("p", "chat-subtitle", character.tagline || ""));
+    const actions = element("div", "chat-header-actions");
+    const profile = element("button", "profile-link-button", t("profileTitle"));
+    profile.type = "button";
+    profile.disabled = true;
     const close = element("button", "modal-close", "×");
     close.type = "button";
     close.setAttribute("aria-label", t("close"));
-    header.append(titleWrap, close);
+    actions.append(profile, close);
+    header.append(titleWrap, actions);
 
     const messages = element("div", "chat-messages");
     messages.setAttribute("aria-live", "polite");
@@ -154,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (event.target === modal) closeModal();
     });
 
-    return { modal, messages, form, input, send };
+    return { modal, messages, form, input, send, profile };
   }
 
   function addMessage(container, role, content) {
@@ -165,17 +171,105 @@ document.addEventListener("DOMContentLoaded", () => {
     container.scrollTop = container.scrollHeight;
   }
 
-  async function openChat(character, trigger) {
+  async function openProfile(character, trigger, resumeConversationId = null) {
+    if (!character?.id) return;
+    if (trigger) trigger.disabled = true;
+    document.querySelector(".niyya-modal")?.remove();
+    const modal = element("div", "niyya-modal");
+    const panel = element("section", "modal-panel profile-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-label", t("profileTitle") + " " + character.name);
+
+    const top = element("div", "profile-top");
+    const art = element("div", "profile-art");
+    if (character.avatar_url) {
+      const image = element("img", "profile-avatar");
+      image.src = character.avatar_url;
+      image.alt = character.name;
+      image.loading = "lazy";
+      art.append(image);
+    } else {
+      art.append(element("span", "profile-monogram",
+        (character.name || "N").slice(0, 1).toUpperCase()));
+    }
+    const topInfo = element("div", "profile-top-info");
+    topInfo.append(
+      element("span", "eyebrow", String(character.category || "original").toUpperCase()),
+      element("h2", "", character.name),
+      element("p", "profile-tagline", character.tagline || "")
+    );
+    const close = element("button", "modal-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", t("close"));
+    top.append(art, topInfo, close);
+
+    const body = element("div", "profile-body");
+    const about = element("section", "profile-section");
+    about.append(element("h3", "", t("profileTitle")),
+      element("p", "", character.short_bio || t("noStory")));
+    const story = element("section", "profile-section");
+    story.append(element("h3", "", t("story")),
+      element("p", "", character.backstory || t("noStory")));
+    const personality = element("section", "profile-section");
+    personality.append(element("h3", "", t("personality")));
+    const traits = Array.isArray(character.personality_traits) ? character.personality_traits : [];
+    if (traits.length) {
+      const chips = element("div", "profile-traits");
+      traits.slice(0, 12).forEach(trait => chips.append(element("span", "profile-trait", trait)));
+      personality.append(chips);
+    } else {
+      personality.append(element("p", "", character.tagline || t("noStory")));
+    }
+    const tags = Array.isArray(character.tags) ? character.tags : [];
+    if (tags.length) {
+      const tagSection = element("section", "profile-section");
+      tagSection.append(element("h3", "", t("category")));
+      const chips = element("div", "profile-traits");
+      tags.slice(0, 12).forEach(tag => chips.append(element("span", "profile-trait", tag)));
+      tagSection.append(chips);
+      body.append(tagSection);
+    }
+    const greeting = element("section", "profile-greeting");
+    greeting.append(element("h3", "", t("greeting")),
+      element("p", "", character.greeting || t("noGreeting")));
+    const creator = element("p", "profile-creator",
+      t("creator") + ": " + (character.creator_pseudonym || "NIYYA.ai"));
+    body.append(about, story, personality, greeting, creator);
+
+    const footer = element("div", "profile-footer");
+    const start = element("button", "chat-send profile-start", t("startChat"));
+    start.type = "button";
+    start.addEventListener("click", () => {
+      openChat(character, start, resumeConversationId);
+    });
+    footer.append(start);
+    panel.append(top, body, footer);
+    modal.append(panel);
+    close.addEventListener("click", () => modal.remove());
+    modal.addEventListener("click", event => { if (event.target === modal) modal.remove(); });
+    document.body.append(modal);
+    if (trigger) trigger.disabled = false;
+  }
+
+  async function openChat(character, trigger, existingConversationId = null) {
     if (!character.id) return;
     if (trigger) trigger.disabled = true;
     const ui = openChatShell(character);
+    ui.profile.addEventListener("click", () => openProfile(character, ui.profile, activeCharacterId === character.id ? activeConversation : null));
     const status = element("p", "chat-status", t("connecting"));
     ui.messages.append(status);
 
     try {
       await ensureGuest();
-      const created = await window.NiyyaAPI.createConversation(character.id);
-      activeConversation = created.conversation.id;
+      if (existingConversationId) {
+        activeConversation = existingConversationId;
+      } else {
+        const created = await window.NiyyaAPI.createConversation(character.id);
+        activeConversation = created.conversation.id;
+      }
+      activeCharacterId = character.id;
+      ui.profile.disabled = false;
       const history = await window.NiyyaAPI.getMessages(activeConversation);
       status.remove();
       (history.messages || []).forEach(message =>
