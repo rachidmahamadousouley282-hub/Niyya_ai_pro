@@ -16,7 +16,6 @@ const PUBLIC_CHARACTER_FIELDS = [
   "name",
   "tagline",
   "avatar_url",
-  "scenario",
   "created_at"
 ];
 
