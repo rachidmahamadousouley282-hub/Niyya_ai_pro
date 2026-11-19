@@ -260,7 +260,7 @@ BEGIN
         WHERE id = p_user_id;
     END IF;
 
-    IF v_videos >= 5 OR v_bonus > 40 THEN
+    IF v_videos >= 5 OR v_bonus + 10 > 50 THEN
         RETURN QUERY SELECT FALSE, 0,
             GREATEST(30 + v_bonus - v_used, 0),
             'daily_cap'::TEXT;
