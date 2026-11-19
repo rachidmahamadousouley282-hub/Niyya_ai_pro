@@ -44,26 +44,30 @@ async function listDiscoverableCharacters({
     SELECT *
     FROM (
       SELECT
-        c.id,
-        c.name,
-        c.tagline,
-        c.avatar_url,
+        c.id, c.slug, c.name, c.tagline, c.avatar_url,
+        c.short_bio, c.backstory, c.personality_traits,
+        c.greeting, c.category, c.tags,
         'NIYYA.ai'::varchar AS creator_pseudonym,
-        c.published_at
-      FROM characters c
+        c.published_at, c.created_at
+      FROM public.characters c
       WHERE c.is_system = TRUE
         AND c.status = 'active'
 
       UNION ALL
 
       SELECT
-        id,
-        name,
-        tagline,
-        avatar_url,
-        creator_pseudonym,
-        published_at
-      FROM public.public_characters
+        c.id, c.slug, c.name, c.tagline,
+        CASE WHEN c.avatar_status = 'approved' THEN c.avatar_url ELSE NULL END AS avatar_url,
+        c.short_bio, c.backstory, c.personality_traits,
+        c.greeting, c.category, c.tags,
+        u.pseudonym AS creator_pseudonym,
+        c.published_at, c.created_at
+      FROM public.characters c
+      JOIN public.users u ON u.id = c.owner_user_id
+      WHERE c.visibility = 'public'
+        AND c.publication_status = 'approved'
+        AND c.status = 'active'
+        AND u.pseudonym IS NOT NULL
     ) AS discoverable
     ORDER BY published_at DESC NULLS LAST, name ASC
     LIMIT $1 OFFSET $2
@@ -95,23 +99,32 @@ async function getCharacterForConversation({
   const result = await query(
     `
     SELECT
-      id,
-      owner_user_id,
-      is_system,
-      slug,
-      name,
-      tagline,
-      personality_prompt,
-      scenario,
-      avatar_url,
-      status,
-      visibility,
-      publication_status,
-      published_at,
-      avatar_status
-    FROM characters
-    WHERE id = $1
-      AND status = 'active'
+      c.id,
+      c.owner_user_id,
+      c.is_system,
+      c.slug,
+      c.name,
+      c.tagline,
+      c.personality_prompt,
+      c.scenario,
+      c.avatar_url,
+      c.status,
+      c.visibility,
+      c.publication_status,
+      c.published_at,
+      c.avatar_status,
+      c.short_bio,
+      c.backstory,
+      c.personality_traits,
+      c.greeting,
+      c.category,
+      c.tags,
+      CASE WHEN c.is_system THEN 'NIYYA.ai'::varchar ELSE u.pseudonym END AS creator_pseudonym,
+      c.created_at
+    FROM public.characters c
+    LEFT JOIN public.users u ON u.id = c.owner_user_id
+    WHERE c.id = $1
+      AND c.status = 'active'
       AND (
         is_system = TRUE
         OR (
