@@ -178,7 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           const result = await window.NiyyaAPI.sendMessage(activeConversation, text);
           waiting.remove();
-          addMessage(ui.messages, "assistant", result.reply);\n          await refreshQuota();
+          addMessage(ui.messages, "assistant", result.reply);
+          await refreshQuota();
         } catch (error) {
           waiting.remove();
           addMessage(ui.messages, "assistant", error.message);
