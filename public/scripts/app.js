@@ -87,7 +87,13 @@ document.addEventListener("DOMContentLoaded", () => {
             : lang === "ar"
               ? `متبقّي ${data.rewardedVideosRemaining} فيديوهات مكافأة اليوم`
               : `${data.rewardedVideosRemaining} vidéos récompensées restantes aujourd'hui`;
-        badge.title = `${videoText} · +10 messages/video · 5 max/day`;
+        const rewardDetails = {
+          fr: "+10 messages/vidéo · 5 maximum/jour",
+          en: "+10 messages/video · 5 maximum/day",
+          es: "+10 mensajes/vídeo · 5 como máximo al día",
+          ar: "+10 رسائل لكل فيديو · 5 كحد أقصى يوميًا"
+        };
+        badge.title = `${videoText} · ${rewardDetails[lang] || rewardDetails.fr}`;
       }
     } catch {
       badge.textContent = "NIYYA";
