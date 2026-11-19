@@ -96,12 +96,12 @@
       );
     },
 
-    sendMessage(conversationId, message) {
+    sendMessage(conversationId, message, language = "fr") {
       return request(
         `/chat/${encodeURIComponent(conversationId)}/messages`,
         {
           method: "POST",
-          body: { message }
+          body: { message, language }
         }
       );
     }
