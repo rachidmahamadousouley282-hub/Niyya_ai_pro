@@ -58,7 +58,7 @@ async function listDiscoverableCharacters({
       SELECT
         c.id, c.slug, c.name, c.tagline,
         CASE WHEN c.avatar_status = 'approved' THEN c.avatar_url ELSE NULL END AS avatar_url,
-        c.short_bio, c.backstory, c.personality_traits,
+        c.short_bio, c.backstory, c.profile_i18n, c.personality_traits,
         c.greeting, c.category, c.tags,
         u.pseudonym AS creator_pseudonym,
         c.published_at, c.created_at
