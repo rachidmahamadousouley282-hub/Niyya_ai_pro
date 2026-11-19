@@ -52,6 +52,10 @@
       return request("/health");
     },
 
+    createGuest() {
+      return request("/auth/guest", { method: "POST" });
+    },
+
     getCharacters(params = {}) {
       const query = new URLSearchParams(params);
       const suffix = query.toString()
