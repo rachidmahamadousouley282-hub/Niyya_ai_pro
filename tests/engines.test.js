@@ -73,6 +73,10 @@ test("Provider Engine refuses paid providers in free mode", () => {
   }
 });
 
+// The conversation engine imports the database pool at module load time.
+// A local placeholder is sufficient because these unit tests never query PostgreSQL.
+process.env.DATABASE_URL ||= "postgres://niyya_test:niyya_test@127.0.0.1:5432/niyya_test";
+
 const conversation = require("../src/engines/conversation.engine");
 const emotion = require("../src/engines/emotion.engine");
 
