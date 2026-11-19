@@ -5,7 +5,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("character-search");
   const grid = document.getElementById("character-grid");
-  const categoryButtons = [...document.querySelectorAll(".category")];
+
   let characters = [];
   let activeCategory = "all";
   let guestReady = false;
@@ -29,7 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const category = (character.category || "all").toLowerCase();
       const matchesCategory = activeCategory === "all" ||
         category === activeCategory;
-      const matchesSearch = [character.name, character.tagline]
+      const searchable = [
+        character.name, character.tagline, character.short_bio,
+        character.backstory, character.category,
+        ...(Array.isArray(character.tags) ? character.tags : [])
+      ];
+      const matchesSearch = searchable
         .some(value => String(value || "").toLocaleLowerCase().includes(term));
       return matchesCategory && matchesSearch;
     });
@@ -59,6 +64,33 @@ document.addEventListener("DOMContentLoaded", () => {
       info.append(button);
       card.append(art, info);
       grid.append(card);
+    });
+  }
+
+  function renderCategories() {
+    const list = document.querySelector(".category-list");
+    if (!list) return;
+    list.replaceChildren();
+    const categories = ["all", ...new Set(
+      characters.map(character => String(character.category || "original").toLowerCase())
+    )];
+    categories.forEach(category => {
+      const key = category === "all" ? "all" :
+        category === "comedy" ? "categoryComedy" :
+        category === "friendship" ? "categoryFriendship" :
+        category === "mystery" ? "categoryMystery" :
+        "categoryOriginal";
+      const button = element("button", "category" + (activeCategory === category ? " active" : ""),
+        (category === "all" ? "✦ " : "") + t(key));
+      button.type = "button";
+      button.dataset.category = category;
+      button.addEventListener("click", () => {
+        activeCategory = category;
+        list.querySelectorAll(".category").forEach(item =>
+          item.classList.toggle("active", item === button));
+        renderCharacters();
+      });
+      list.append(button);
     });
   }
 
@@ -316,14 +348,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   searchInput.addEventListener("input", renderCharacters);
-  categoryButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      categoryButtons.forEach(item => item.classList.toggle("active", item === button));
-      activeCategory = button.dataset.category;
-      renderCharacters();
-    });
-  });
-
   document.getElementById("create-character").addEventListener("click", () => {
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal");
@@ -351,6 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.NiyyaAPI.getCharacters()
     .then(data => {
       characters = Array.isArray(data.characters) ? data.characters : [];
+      renderCategories();
       renderCharacters();
     })
     .catch(error => {
