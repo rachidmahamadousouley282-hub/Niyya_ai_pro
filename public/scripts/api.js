@@ -71,6 +71,13 @@
       return request("/chat/conversations");
     },
 
+    createConversation(characterId) {
+      return request("/chat/conversations", {
+        method: "POST",
+        body: { characterId }
+      });
+    },
+
     getMessages(conversationId) {
       return request(
         `/chat/${encodeURIComponent(conversationId)}/messages`
