@@ -3,7 +3,7 @@ BEGIN;
 
 -- =========================================================
 -- NIYYA.ai V2
--- MIGRATION 0005 : DEEP MEMORY ENGINE
+-- MIGRATION 0006 : DEEP MEMORY ENGINE
 -- PostgreSQL 18+
 -- =========================================================
 
@@ -177,5 +177,15 @@ ON public.character_memories TO niyya_app;
 
 GRANT SELECT, INSERT, UPDATE, DELETE
 ON public.conversation_summaries TO niyya_app;
+
+-- 9. SUIVI DE MIGRATION
+
+INSERT INTO public.schema_migrations (version, description)
+SELECT '0006', 'Deep memory engine and conversation summaries'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM public.schema_migrations
+    WHERE version = '0006'
+);
 
 COMMIT;
