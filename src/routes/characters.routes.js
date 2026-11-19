@@ -18,6 +18,7 @@ const PUBLIC_CHARACTER_FIELDS = [
   "avatar_url",
   "short_bio",
   "backstory",
+  "profile_i18n",
   "personality_traits",
   "greeting",
   "category",
