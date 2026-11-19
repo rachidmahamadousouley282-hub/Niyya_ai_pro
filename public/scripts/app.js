@@ -176,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const waiting = element("p", "chat-status", "Le personnage prépare sa réponse…");
         ui.messages.append(waiting);
         try {
-          const result = await window.NiyyaAPI.sendMessage(activeConversation, text);
+          const result = await window.NiyyaAPI.sendMessage(activeConversation, text, window.NiyyaI18n?.getLanguage() || "fr");
           waiting.remove();
           addMessage(ui.messages, "assistant", result.reply);
           await refreshQuota();
