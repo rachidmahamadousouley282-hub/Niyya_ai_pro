@@ -40,7 +40,7 @@
 
     if (!response.ok) {
       throw new Error(
-        data.message || "Une erreur est survenue."
+        data.error || data.message || "Une erreur est survenue."
       );
     }
 
