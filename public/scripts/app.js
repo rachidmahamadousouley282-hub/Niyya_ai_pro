@@ -69,6 +69,9 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.textContent = lang === "en" ? "VIP · Unlimited" :
           lang === "es" ? "VIP · Ilimitado" :
           lang === "ar" ? "VIP · غير محدود" : "VIP · Illimité";
+        badge.title = lang === "en" ? "VIP access is active." :
+          lang === "es" ? "El acceso VIP está activo." :
+          lang === "ar" ? "اشتراك VIP نشط." : "Accès VIP actif.";
       } else {
         const labels = {
           fr: `${data.remaining} messages`,
@@ -77,6 +80,14 @@ document.addEventListener("DOMContentLoaded", () => {
           ar: `${data.remaining} رسالة`
         };
         badge.textContent = labels[lang] || labels.fr;
+        const videoText = lang === "en"
+          ? `${data.rewardedVideosRemaining} rewarded videos left today`
+          : lang === "es"
+            ? `${data.rewardedVideosRemaining} vídeos recompensados restantes hoy`
+            : lang === "ar"
+              ? `متبقّي ${data.rewardedVideosRemaining} فيديوهات مكافأة اليوم`
+              : `${data.rewardedVideosRemaining} vidéos récompensées restantes aujourd'hui`;
+        badge.title = `${videoText} · +10 messages/video · 5 max/day`;
       }
     } catch {
       badge.textContent = "NIYYA";
