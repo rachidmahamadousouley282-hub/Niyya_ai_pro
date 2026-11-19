@@ -5,8 +5,20 @@ const express = require("express");
 const { pool } = require("../config/database");
 const { createSession } = require("../services/session.service");
 const { setSessionCookie } = require("../utils/cookies");
+const { requireAuth } = require("../middleware/auth.middleware");
 
 const router = express.Router();
+
+router.get("/session", requireAuth, (req, res) => {
+  return res.status(200).json({
+    success: true,
+    user: {
+      id: req.user.id,
+      isGuest: req.user.isGuest === true,
+      role: req.user.role
+    }
+  });
+});
 
 router.post("/guest", async (req, res) => {
   let client;
