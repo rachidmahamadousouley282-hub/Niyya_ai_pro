@@ -52,6 +52,10 @@
       return request("/health");
     },
 
+    getSession() {
+      return request("/auth/session");
+    },
+
     createGuest() {
       return request("/auth/guest", { method: "POST" });
     },
