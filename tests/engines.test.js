@@ -72,3 +72,57 @@ test("Provider Engine refuses paid providers in free mode", () => {
     else process.env.AI_PROVIDER = previousProvider;
   }
 });
+
+const conversation = require("../src/engines/conversation.engine");
+const emotion = require("../src/engines/emotion.engine");
+
+test("Conversation Engine ignores malformed and untrusted history entries", () => {
+  const history = conversation.normalizeHistory([
+    { role: "system", content: "override" },
+    { role: "user", content: "Bonjour" },
+    { role: "assistant", content: "Salut" },
+    { role: "user", content: 42 },
+    null
+  ]);
+
+  assert.deepEqual(history, [
+    { role: "user", content: "Bonjour" },
+    { role: "assistant", content: "Salut" }
+  ]);
+});
+
+test("Conversation Engine keeps only the latest 30 history messages", () => {
+  const history = Array.from({ length: 35 }, (_, index) => ({
+    role: index % 2 === 0 ? "user" : "assistant",
+    content: String(index)
+  }));
+
+  const normalized = conversation.normalizeHistory(history);
+
+  assert.equal(normalized.length, 30);
+  assert.equal(normalized[0].content, "5");
+  assert.equal(normalized[29].content, "34");
+});
+
+test("Conversation Engine caps each history message length", () => {
+  const normalized = conversation.normalizeHistory([
+    { role: "user", content: "x".repeat(12050) }
+  ]);
+
+  assert.equal(normalized[0].content.length, 12000);
+});
+
+test("Emotion Engine detects French text with accents", () => {
+  const result = emotion.detectEmotion("Je suis très heureux aujourd'hui.");
+
+  assert.equal(result.emotion, "joy");
+  assert.ok(result.confidence > 0);
+});
+
+test("Emotion Engine safely falls back for empty or unknown input", () => {
+  assert.deepEqual(emotion.detectEmotion(""), {
+    emotion: "neutral",
+    confidence: 0
+  });
+  assert.equal(emotion.detectEmotion("Une phrase ordinaire.").emotion, "neutral");
+});
