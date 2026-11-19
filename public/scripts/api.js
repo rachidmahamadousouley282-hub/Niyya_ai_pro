@@ -75,7 +75,11 @@
       );
     },
 
-    getQuota() {\n      return request("/quota");\n    },\n\n    getConversations() {
+    getQuota() {
+      return request("/quota");
+    },
+
+    getConversations() {
       return request("/chat/conversations");
     },
 
