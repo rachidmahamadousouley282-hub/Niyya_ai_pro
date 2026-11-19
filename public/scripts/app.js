@@ -1,144 +1,218 @@
-
 /* =================================
-   NIYYA AI V2 — MAIN APPLICATION
+   NIYYA.ai V2 — MAIN APPLICATION
 ================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("character-search");
-  const characterCards = [
-    ...document.querySelectorAll(".character-card")
-  ];
-  const categoryButtons = [
-    ...document.querySelectorAll(".category")
-  ];
-
+  const grid = document.getElementById("character-grid");
+  const categoryButtons = [...document.querySelectorAll(".category")];
+  let characters = [];
   let activeCategory = "all";
+  let guestReady = false;
+  let activeConversation = null;
 
-  // CHARACTER FILTER
-  function filterCharacters() {
-    const search = searchInput.value
-      .trim()
-      .toLowerCase();
+  function element(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
 
-    characterCards.forEach(card => {
-      const name = card.querySelector("h3")
-        .textContent.toLowerCase();
+  function renderCharacters() {
+    const term = searchInput.value.trim().toLocaleLowerCase();
+    grid.replaceChildren();
 
-      const description = card.querySelector("p")
-        .textContent.toLowerCase();
-
-      const category = card.dataset.category;
-
-      const matchesSearch =
-        name.includes(search) ||
-        description.includes(search);
-
-      const matchesCategory =
-        activeCategory === "all" ||
+    const filtered = characters.filter(character => {
+      const category = (character.category || "all").toLowerCase();
+      const matchesCategory = activeCategory === "all" ||
         category === activeCategory;
+      const matchesSearch = [character.name, character.tagline]
+        .some(value => String(value || "").toLocaleLowerCase().includes(term));
+      return matchesCategory && matchesSearch;
+    });
 
-      card.hidden = !(matchesSearch && matchesCategory);
+    if (!filtered.length) {
+      grid.append(element("p", "empty-state", "Aucun personnage disponible pour cette recherche."));
+      return;
+    }
+
+    filtered.forEach((character, index) => {
+      const card = element("article", "character-card");
+      card.dataset.category = character.category || "all";
+      const art = element("div", "character-art art-" + ["one","two","three","four"][index % 4]);
+      const label = element("span", "art-label", "NIYYA ORIGINAL");
+      const symbol = element("span", "character-symbol", (character.name || "N").slice(0,1).toUpperCase());
+      art.append(label, symbol);
+
+      const info = element("div", "character-info");
+      info.append(
+        element("h3", "", character.name),
+        element("p", "", character.tagline || "Un personnage à découvrir."),
+        element("span", "character-tag", "Personnage officiel NIYYA.ai")
+      );
+      const button = element("button", "chat-button", "Découvrir");
+      button.type = "button";
+      button.addEventListener("click", () => openChat(character, button));
+      info.append(button);
+      card.append(art, info);
+      grid.append(card);
     });
   }
 
-  // SEARCH
-  searchInput.addEventListener("input", filterCharacters);
+  async function ensureGuest() {
+    if (guestReady) return;
+    await window.NiyyaAPI.createGuest();
+    guestReady = true;
+  }
 
-  // CATEGORY SELECTION
-  categoryButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      categoryButtons.forEach(item => {
-        item.classList.remove("active");
-      });
+  function openChatShell(character) {
+    document.querySelector(".niyya-modal")?.remove();
+    const modal = element("div", "niyya-modal");
+    const panel = element("section", "modal-panel chat-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-label", "Conversation avec " + character.name);
 
-      button.classList.add("active");
-      activeCategory = button.dataset.category;
+    const header = element("div", "chat-header");
+    const titleWrap = element("div");
+    titleWrap.append(element("span", "eyebrow", "PERSONNAGE FICTIF"),
+      element("h2", "", character.name),
+      element("p", "chat-subtitle", character.tagline || ""));
+    const close = element("button", "modal-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Fermer");
+    header.append(titleWrap, close);
 
-      filterCharacters();
-    });
-  });
+    const messages = element("div", "chat-messages");
+    messages.setAttribute("aria-live", "polite");
+    messages.append(element("p", "chat-notice",
+      "Les personnages NIYYA.ai sont fictifs. Le mode actuel utilise un moteur de démonstration local."));
+    const form = element("form", "chat-composer");
+    const input = element("textarea", "chat-input");
+    input.rows = 1;
+    input.maxLength = 12000;
+    input.placeholder = "Écris ton message…";
+    input.setAttribute("aria-label", "Ton message");
+    const send = element("button", "chat-send", "Envoyer");
+    send.type = "submit";
+    form.append(input, send);
 
-  // MODAL
-  function openModal(title, message) {
-    const oldModal = document.querySelector(".niyya-modal");
+    panel.append(header, messages, form);
+    modal.append(panel);
+    document.body.append(modal);
 
-    if (oldModal) oldModal.remove();
-
-    const modal = document.createElement("div");
-    modal.className = "niyya-modal";
-
-    modal.innerHTML = `
-      <div class="modal-panel" role="dialog"
-           aria-modal="true" aria-labelledby="modal-title">
-        <button class="modal-close"
-                aria-label="Fermer">×</button>
-        <span class="eyebrow">NIYYA AI V2</span>
-        <h2 id="modal-title"></h2>
-        <p class="modal-message"></p>
-        <button class="modal-confirm">Compris</button>
-      </div>
-    `;
-
-    modal.querySelector("h2").textContent = title;
-    modal.querySelector(".modal-message").textContent = message;
-
-    document.body.appendChild(modal);
-
-    function closeModal() {
-      modal.remove();
-    }
-
-    modal.querySelector(".modal-close")
-      .addEventListener("click", closeModal);
-
-    modal.querySelector(".modal-confirm")
-      .addEventListener("click", closeModal);
-
+    const closeModal = () => modal.remove();
+    close.addEventListener("click", closeModal);
     modal.addEventListener("click", event => {
       if (event.target === modal) closeModal();
     });
 
-    document.addEventListener("keydown", function escape(event) {
-      if (event.key === "Escape") {
-        closeModal();
-        document.removeEventListener("keydown", escape);
-      }
-    });
+    return { modal, messages, form, input, send };
   }
 
-  // CHARACTER PREVIEW
-  document.querySelectorAll("[data-character]")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        const character = button.dataset.character;
+  function addMessage(container, role, content) {
+    const bubble = element("div", "chat-message " + role);
+    bubble.append(element("span", "chat-role", role === "user" ? "TOI" : "NIYYA"));
+    bubble.append(element("p", "", content));
+    container.append(bubble);
+    container.scrollTop = container.scrollHeight;
+  }
 
-        openModal(
-          character,
-          "Ce personnage est actuellement une démonstration. Son véritable profil et sa conversation IA seront connectés dans une prochaine étape."
-        );
+  async function openChat(character, trigger) {
+    if (!character.id) return;
+    if (trigger) trigger.disabled = true;
+    const ui = openChatShell(character);
+    const status = element("p", "chat-status", "Connexion à NIYYA.ai…");
+    ui.messages.append(status);
+
+    try {
+      await ensureGuest();
+      const created = await window.NiyyaAPI.createConversation(character.id);
+      activeConversation = created.conversation.id;
+      const history = await window.NiyyaAPI.getMessages(activeConversation);
+      status.remove();
+      (history.messages || []).forEach(message =>
+        addMessage(ui.messages, message.role, message.content));
+      if (!history.messages?.length) {
+        ui.messages.append(element("p", "chat-notice",
+          "Commence la conversation. Le quota et les conditions d'accès sont vérifiés côté serveur."));
+      }
+
+      ui.form.addEventListener("submit", async event => {
+        event.preventDefault();
+        const text = ui.input.value.trim();
+        if (!text || ui.send.disabled) return;
+        ui.input.value = "";
+        addMessage(ui.messages, "user", text);
+        ui.send.disabled = true;
+        const waiting = element("p", "chat-status", "Le personnage prépare sa réponse…");
+        ui.messages.append(waiting);
+        try {
+          const result = await window.NiyyaAPI.sendMessage(activeConversation, text);
+          waiting.remove();
+          addMessage(ui.messages, "assistant", result.reply);
+        } catch (error) {
+          waiting.remove();
+          addMessage(ui.messages, "assistant", error.message);
+          if (/quota|18 ans|profil|inscription/i.test(error.message)) {
+            ui.input.disabled = true;
+            ui.send.disabled = true;
+          }
+        } finally {
+          ui.send.disabled = ui.input.disabled;
+          ui.input.focus();
+        }
       });
+      ui.input.focus();
+    } catch (error) {
+      status.textContent = error.message || "Impossible d'ouvrir cette conversation.";
+    } finally {
+      if (trigger) trigger.disabled = false;
+    }
+  }
+
+  searchInput.addEventListener("input", renderCharacters);
+  categoryButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      categoryButtons.forEach(item => item.classList.toggle("active", item === button));
+      activeCategory = button.dataset.category;
+      renderCharacters();
     });
-
-  // CREATE CHARACTER
-  const createButton = document.getElementById("create-character");
-
-  createButton.addEventListener("click", () => {
-    openModal(
-      "Créer ton personnage",
-      "L'atelier de création de personnages sera bientôt disponible."
-    );
   });
 
-  // BOTTOM NAVIGATION
+  document.getElementById("create-character").addEventListener("click", () => {
+    document.querySelector(".niyya-modal")?.remove();
+    const modal = element("div", "niyya-modal");
+    const panel = element("section", "modal-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.append(element("button", "modal-close", "×"),
+      element("span", "eyebrow", "NIYYA.ai V2"),
+      element("h2", "", "Atelier de création"),
+      element("p", "modal-message",
+        "La création de personnages n'est pas encore activée. Les profils et conversations existants sont chargés depuis la base V2."));
+    panel.querySelector(".modal-close").addEventListener("click", () => modal.remove());
+    modal.append(panel);
+    modal.addEventListener("click", event => { if (event.target === modal) modal.remove(); });
+    document.body.append(modal);
+  });
+
   document.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", () => {
-      document.querySelectorAll(".nav-item")
-        .forEach(link => link.classList.remove("selected"));
-
-      item.classList.add("selected");
+      document.querySelectorAll(".nav-item").forEach(link =>
+        link.classList.toggle("selected", link === item));
     });
   });
 
-  console.log("NIYYA AI V2 — Interface initialisée.");
-});
+  window.NiyyaAPI.getCharacters()
+    .then(data => {
+      characters = Array.isArray(data.characters) ? data.characters : [];
+      renderCharacters();
+    })
+    .catch(error => {
+      grid.replaceChildren(element("p", "empty-state",
+        error.message || "Impossible de charger les personnages."));
+    });
 
+  console.log("NIYYA.ai V2 — Interface initialisée.");
+});
