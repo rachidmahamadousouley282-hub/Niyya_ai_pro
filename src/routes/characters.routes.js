@@ -16,6 +16,14 @@ const PUBLIC_CHARACTER_FIELDS = [
   "name",
   "tagline",
   "avatar_url",
+  "short_bio",
+  "backstory",
+  "personality_traits",
+  "greeting",
+  "category",
+  "tags",
+  "creator_pseudonym",
+  "published_at",
   "created_at"
 ];
 
