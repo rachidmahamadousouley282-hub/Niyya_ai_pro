@@ -76,11 +76,22 @@ async function processMessage({
   let memories = [];
 
   if (typeof memoryEngine.retrieveRelevantMemories === "function") {
-    memories = await memoryEngine.retrieveRelevantMemories({
-      userId,
-      characterId,
-      message
-    });
+    try {
+      memories = await memoryEngine.retrieveRelevantMemories({
+        userId,
+        characterId,
+        message
+      });
+    } catch (error) {
+      // La mémoire profonde est facultative tant que la migration 0006
+      // n'est pas appliquée sur la branche V2.
+      if (error && error.code === "42P01") {
+        console.warn("Mémoire profonde indisponible : migration 0006 requise.");
+        memories = [];
+      } else {
+        throw error;
+      }
+    }
   }
 
   const memoryContext = Array.isArray(memories)
