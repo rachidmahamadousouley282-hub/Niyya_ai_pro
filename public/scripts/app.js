@@ -59,6 +59,30 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  async function refreshQuota() {
+    const badge = document.getElementById("quota-balance");
+    if (!badge) return;
+    try {
+      const data = await window.NiyyaAPI.getQuota();
+      const lang = window.NiyyaI18n?.getLanguage() || "fr";
+      if (data.tier === "vip") {
+        badge.textContent = lang === "en" ? "VIP · Unlimited" :
+          lang === "es" ? "VIP · Ilimitado" :
+          lang === "ar" ? "VIP · غير محدود" : "VIP · Illimité";
+      } else {
+        const labels = {
+          fr: `${data.remaining} messages`,
+          en: `${data.remaining} messages`,
+          es: `${data.remaining} mensajes`,
+          ar: `${data.remaining} رسالة`
+        };
+        badge.textContent = labels[lang] || labels.fr;
+      }
+    } catch {
+      badge.textContent = "NIYYA";
+    }
+  }
+
   async function ensureGuest() {
     if (guestReady) return;
     try {
@@ -154,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           const result = await window.NiyyaAPI.sendMessage(activeConversation, text);
           waiting.remove();
-          addMessage(ui.messages, "assistant", result.reply);
+          addMessage(ui.messages, "assistant", result.reply);\n          await refreshQuota();
         } catch (error) {
           waiting.remove();
           addMessage(ui.messages, "assistant", error.message);
