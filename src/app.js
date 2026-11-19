@@ -15,6 +15,10 @@ const app = express();
 
 app.disable("x-powered-by");
 
+// Render termine TLS et transmet l'adresse cliente via X-Forwarded-For.
+// Un seul proxy de confiance évite l'erreur express-rate-limit sans faire confiance à toute la chaîne.
+app.set("trust proxy", 1);
+
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
