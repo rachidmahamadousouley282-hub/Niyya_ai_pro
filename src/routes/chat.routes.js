@@ -126,7 +126,7 @@ router.get("/:conversationId/messages", requireAuth, async (req, res) => {
 
 router.post("/:conversationId/messages", requireAuth, requireSameOrigin, async (req, res) => {
   const { conversationId } = req.params;
-  const message = req.body && req.body.message;
+  const message = req.body && req.body.message;\n  const requestedLanguage = req.body && req.body.language;\n  const supportedLanguages = ["fr", "en", "es", "ar", "de", "pt"];\n  const responseLanguage = supportedLanguages.includes(requestedLanguage)\n    ? requestedLanguage\n    : "fr";
 
   if (!validUUID(conversationId)) {
     return res.status(400).json({ error: "Identifiant de conversation invalide." });
@@ -186,7 +186,7 @@ router.post("/:conversationId/messages", requireAuth, requireSameOrigin, async (
       characterId,
       message: message.trim(),
       history,
-      language: "fr"
+      language: responseLanguage
     });
     const safety = safetyEngine.evaluateConversation({
       userMessage: message,
