@@ -205,12 +205,14 @@ document.addEventListener("DOMContentLoaded", () => {
     top.append(art, topInfo, close);
 
     const body = element("div", "profile-body");
+    const language = window.NiyyaI18n?.getLanguage() || "fr";
+    const localized = character.profile_i18n?.[language] || character.profile_i18n?.fr || {};
     const about = element("section", "profile-section");
     about.append(element("h3", "", t("profileTitle")),
-      element("p", "", character.short_bio || t("noStory")));
+      element("p", "", localized.short_bio || character.short_bio || t("noStory")));
     const story = element("section", "profile-section");
     story.append(element("h3", "", t("story")),
-      element("p", "", character.backstory || t("noStory")));
+      element("p", "", localized.backstory || character.backstory || t("noStory")));
     const personality = element("section", "profile-section");
     personality.append(element("h3", "", t("personality")));
     const traits = Array.isArray(character.personality_traits) ? character.personality_traits : [];
@@ -224,7 +226,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tags = Array.isArray(character.tags) ? character.tags : [];
     if (tags.length) {
       const tagSection = element("section", "profile-section");
-      tagSection.append(element("h3", "", t("category")));
+      tagSection.append(element("h3", "", t("categories")));
       const chips = element("div", "profile-traits");
       tags.slice(0, 12).forEach(tag => chips.append(element("span", "profile-trait", tag)));
       tagSection.append(chips);
@@ -232,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const greeting = element("section", "profile-greeting");
     greeting.append(element("h3", "", t("greeting")),
-      element("p", "", character.greeting || t("noGreeting")));
+      element("p", "", localized.greeting || character.greeting || t("noGreeting")));
     const creator = element("p", "profile-creator",
       t("creator") + ": " + (character.creator_pseudonym || "NIYYA.ai"));
     body.append(about, story, personality, greeting, creator);
