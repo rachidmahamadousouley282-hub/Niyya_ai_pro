@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const topInfo = element("div", "profile-top-info");
     topInfo.append(
-      element("span", "eyebrow", String(character.category || "original").toUpperCase()),
+      element("span", "eyebrow", localized.category || String(character.category || "original").toUpperCase()),
       element("h2", "", character.name),
       element("p", "profile-tagline", character.tagline || "")
     );
@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
       element("p", "", localized.backstory || character.backstory || t("noStory")));
     const personality = element("section", "profile-section");
     personality.append(element("h3", "", t("personality")));
-    const traits = Array.isArray(character.personality_traits) ? character.personality_traits : [];
+    const traits = Array.isArray(localized.traits) ? localized.traits : (Array.isArray(character.personality_traits) ? character.personality_traits : []);
     if (traits.length) {
       const chips = element("div", "profile-traits");
       traits.slice(0, 12).forEach(trait => chips.append(element("span", "profile-trait", trait)));
@@ -223,7 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       personality.append(element("p", "", character.tagline || t("noStory")));
     }
-    const tags = Array.isArray(character.tags) ? character.tags : [];
+    const tags = Array.isArray(localized.tags) ? localized.tags : (Array.isArray(character.tags) ? character.tags : []);
     if (tags.length) {
       const tagSection = element("section", "profile-section");
       tagSection.append(element("h3", "", t("categories")));
