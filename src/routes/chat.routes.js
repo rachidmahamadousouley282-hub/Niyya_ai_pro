@@ -8,6 +8,7 @@ const { processMessage } = require("../engines/conversation.engine");
 const safetyEngine = require("../engines/safety.engine");
 const quotaService = require("../services/quota.service");
 const characterEngine = require("../engines/character.engine");
+const memoryEngine = require("../engines/memory.engine");
 
 const router = express.Router();
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -218,6 +219,17 @@ router.post("/:conversationId/messages", requireAuth, requireSameOrigin, async (
       throw error;
     } finally {
       client.release();
+    }
+
+    try {
+      await memoryEngine.updateRelationship({
+        userId: req.user.id,
+        characterId,
+        familiarityDelta: 1,
+        rapportDelta: 1
+      });
+    } catch (relationshipError) {
+      console.warn("Mise à jour relationnelle différée :", relationshipError.message);
     }
 
     return res.status(200).json({
