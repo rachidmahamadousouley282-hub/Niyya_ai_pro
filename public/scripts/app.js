@@ -193,6 +193,8 @@ document.addEventListener("DOMContentLoaded", () => {
       art.append(element("span", "profile-monogram",
         (character.name || "N").slice(0, 1).toUpperCase()));
     }
+    const language = window.NiyyaI18n?.getLanguage() || "fr";
+    const localized = character.profile_i18n?.[language] || character.profile_i18n?.fr || {};
     const topInfo = element("div", "profile-top-info");
     topInfo.append(
       element("span", "eyebrow", localized.category || String(character.category || "original").toUpperCase()),
@@ -205,8 +207,6 @@ document.addEventListener("DOMContentLoaded", () => {
     top.append(art, topInfo, close);
 
     const body = element("div", "profile-body");
-    const language = window.NiyyaI18n?.getLanguage() || "fr";
-    const localized = character.profile_i18n?.[language] || character.profile_i18n?.fr || {};
     const about = element("section", "profile-section");
     about.append(element("h3", "", t("profileTitle")),
       element("p", "", localized.short_bio || character.short_bio || t("noStory")));
