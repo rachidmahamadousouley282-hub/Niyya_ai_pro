@@ -7,6 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const grid = document.getElementById("character-grid");
 
   let characters = [];
+  let favoriteIds = new Set();
+  let activeView = "discover";
   let activeCategory = "all";
   let guestReady = false;
   let activeConversation = null;
@@ -36,7 +38,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ];
       const matchesSearch = searchable
         .some(value => String(value || "").toLocaleLowerCase().includes(term));
-      return matchesCategory && matchesSearch;
+      const matchesView = activeView !== "favorites" || favoriteIds.has(character.id);
+      return matchesCategory && matchesSearch && matchesView;
     });
 
     if (!filtered.length) {
@@ -62,9 +65,40 @@ document.addEventListener("DOMContentLoaded", () => {
       button.type = "button";
       button.addEventListener("click", () => openProfile(character, button));
       info.append(button);
-      card.append(art, info);
+      const favorite = element("button", "favorite-toggle" + (favoriteIds.has(character.id) ? " is-favorite" : ""), favoriteIds.has(character.id) ? "♥" : "♡");
+      favorite.type = "button";
+      favorite.setAttribute("aria-label", favoriteIds.has(character.id) ? "Retirer des favoris" : "Ajouter aux favoris");
+      favorite.setAttribute("aria-pressed", favoriteIds.has(character.id) ? "true" : "false");
+      favorite.addEventListener("click", () => toggleFavorite(character, favorite));
+      card.append(art, info, favorite);
       grid.append(card);
     });
+  }
+
+  async function toggleFavorite(character, button) {
+    if (!character?.id || button?.disabled) return;
+    if (button) button.disabled = true;
+    try {
+      await ensureGuest();
+      if (favoriteIds.has(character.id)) {
+        await window.NiyyaAPI.removeFavorite(character.id);
+        favoriteIds.delete(character.id);
+      } else {
+        await window.NiyyaAPI.addFavorite(character.id);
+        favoriteIds.add(character.id);
+      }
+      renderCharacters();
+    } catch (error) {
+      showToast(error.message || t("genericError"));
+      if (button) button.disabled = false;
+    }
+  }
+
+  function showToast(message) {
+    document.querySelector(".niyya-toast")?.remove();
+    const toast = element("div", "niyya-toast", message);
+    document.body.append(toast);
+    window.setTimeout(() => toast.remove(), 3200);
   }
 
   function renderCategories() {
@@ -277,7 +311,11 @@ document.addEventListener("DOMContentLoaded", () => {
     start.addEventListener("click", () => {
       openChat(character, start, resumeConversationId);
     });
-    footer.append(start);
+    const favorite = element("button", "favorite-toggle profile-favorite" + (favoriteIds.has(character.id) ? " is-favorite" : ""), favoriteIds.has(character.id) ? "♥ Favori" : "♡ Ajouter aux favoris");
+    favorite.type = "button";
+    favorite.setAttribute("aria-pressed", favoriteIds.has(character.id) ? "true" : "false");
+    favorite.addEventListener("click", () => toggleFavorite(character, favorite));
+    footer.append(favorite, start);
     panel.append(top, body, footer);
     modal.append(panel);
     close.addEventListener("click", () => modal.remove());
@@ -366,9 +404,34 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelectorAll(".nav-item").forEach(item => {
-    item.addEventListener("click", () => {
+    item.addEventListener("click", async event => {
+      event.preventDefault();
       document.querySelectorAll(".nav-item").forEach(link =>
         link.classList.toggle("selected", link === item));
+      const target = (item.getAttribute("href") || "").replace("#", "");
+      if (target === "favorites") {
+        activeView = "favorites";
+        activeCategory = "all";
+        try {
+          await ensureGuest();
+          const data = await window.NiyyaAPI.getFavorites();
+          favoriteIds = new Set((data.favorites || []).map(character => character.id));
+        } catch (error) {
+          showToast(error.message || "Impossible de charger les favoris.");
+        }
+        renderCategories();
+        renderCharacters();
+        document.getElementById("discover")?.scrollIntoView({ behavior: "smooth" });
+      } else if (target === "discover" || target === "") {
+        activeView = "discover";
+        renderCategories();
+        renderCharacters();
+        document.getElementById("discover")?.scrollIntoView({ behavior: "smooth" });
+      } else if (target === "create") {
+        document.getElementById("create-character")?.click();
+      } else if (target === "profile") {
+        showToast("Le profil utilisateur sera activé avec l'inscription complète.");
+      }
     });
   });
 
