@@ -509,3 +509,60 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
 .chat-fullscreen-panel .chat-send {
   flex: 0 0 auto;
 }
+
+
+/* Character creator: accessible, scrollable on mobile, private drafts by default. */
+.creator-fullscreen-modal {
+  align-items: start;
+  overflow-y: auto;
+  padding: max(14px, env(safe-area-inset-top)) 14px max(18px, env(safe-area-inset-bottom));
+}
+.creator-panel {
+  width: min(100%, 760px) !important;
+  max-height: none !important;
+  margin: 0 auto;
+  overflow: visible !important;
+}
+.creator-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.creator-heading h2 { margin: 5px 0 7px; font: 700 24px 'Space Grotesk', sans-serif; }
+.creator-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.creator-field { display: grid; gap: 7px; min-width: 0; }
+.creator-field:has(textarea[name="backstory"]),
+.creator-field:has(textarea[name="personalityPrompt"]),
+.creator-field:has(textarea[name="greeting"]),
+.creator-field:has(textarea[name="shortBio"]),
+.creator-field:has(textarea[name="scenario"]),
+.creator-note, .creator-submit, .creator-form > .chat-status { grid-column: 1 / -1; }
+.creator-label { color: #d9d0e7; font-size: 12px; font-weight: 650; }
+.creator-control {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 12px 13px;
+  border: 1px solid rgba(182,154,255,.22);
+  border-radius: 12px;
+  outline: none;
+  background: #0e0b15;
+  color: #fff;
+  font: inherit;
+  font-size: 16px;
+}
+.creator-control:focus { border-color: #9565f5; box-shadow: 0 0 0 3px rgba(149,101,245,.12); }
+textarea.creator-control { min-height: 86px; resize: vertical; line-height: 1.55; }
+.creator-control::placeholder { color: #777080; }
+.creator-note { color: #aaa0b8; font-size: 12px; line-height: 1.65; }
+.creator-submit { width: 100%; min-height: 48px; }
+.creator-submit:disabled { opacity: .6; }
+@media(max-width: 600px) {
+  .creator-fullscreen-modal { padding: max(10px, env(safe-area-inset-top)) 8px max(14px, env(safe-area-inset-bottom)); }
+  .creator-panel { padding: 16px !important; border-radius: 17px !important; }
+  .creator-form { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .creator-heading h2 { font-size: 21px; }
+  .creator-field, .creator-note, .creator-submit, .creator-form > .chat-status { grid-column: 1; }
+}
