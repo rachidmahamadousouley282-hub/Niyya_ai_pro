@@ -296,7 +296,7 @@ router.get("/:characterId", optionalAuth, async (req, res) => {
            OR (c.visibility = 'public' AND c.publication_status = 'approved')
            OR c.owner_user_id = $2)
        LIMIT 1`,
-      [characterId, req.user.id]
+      [characterId, req.user ? req.user.id : null]
     );
     if (!result.rows.length) return res.status(404).json({ error: "Personnage introuvable ou inaccessible." });
     return res.status(200).json({ success: true, character: publicCharacter(result.rows[0]) });
