@@ -714,6 +714,11 @@ async function openCreator() {
     });
   });
 
+  document.addEventListener("niyya:language-changed", () => {
+    renderCategories();
+    renderCharacters();
+  });
+
   window.NiyyaAPI.getCharacters()
     .then(async data => {
       characters = Array.isArray(data.characters) ? data.characters : [];
