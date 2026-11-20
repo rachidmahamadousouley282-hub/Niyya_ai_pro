@@ -364,3 +364,14 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
   .chat-fullscreen-panel .chat-input { min-height: 48px; max-height: 120px; padding: 12px; }
   .chat-fullscreen-panel .chat-send { min-width: 70px; min-height: 48px; padding: 0 12px; }
 }
+
+/* Six-item bottom navigation stays usable on narrow phones */
+@media (max-width: 600px) {
+  .bottom-nav { gap: 2px; padding: 9px 5px; }
+  .bottom-nav .nav-item { flex: 1 1 0; min-width: 0; font-size: 9px; gap: 3px; white-space: nowrap; }
+  .bottom-nav .nav-item span { font-size: 19px; }
+}
+@media (max-width: 380px) {
+  .bottom-nav .nav-item { font-size: 8px; }
+  .bottom-nav .nav-item span { font-size: 18px; }
+}
