@@ -439,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await ensureGuest();
       const onboarding = await window.NiyyaAPI.getQuota();
       if (!onboarding.onboarded) {
-        status.textContent = "La messagerie NIYYA est actuellement réservée aux personnes de 18 ans et plus. L'inscription et les discussions ne sont donc pas disponibles pour les mineurs.";
+        status.textContent = "Termine le parcours d'inscription et vérifie que ton compte respecte les conditions d'accès de NIYYA avant de commencer une conversation.";
         ui.input.disabled = true;
         ui.send.disabled = true;
         return;
@@ -498,22 +498,124 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
 
   searchInput.addEventListener("input", renderCharacters);
-  document.getElementById("create-character").addEventListener("click", () => {
+  async function openCreator() {
     document.querySelector(".niyya-modal")?.remove();
-    const modal = element("div", "niyya-modal");
-    const panel = element("section", "modal-panel");
+    const modal = element("div", "niyya-modal creator-fullscreen-modal");
+    const panel = element("section", "modal-panel creator-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
-    panel.append(element("button", "modal-close", "×"),
-      element("span", "eyebrow", "NIYYA.ai V2"),
-      element("h2", "", "Atelier de création"),
-      element("p", "modal-message",
-        t("createUnavailable")));
-    panel.querySelector(".modal-close").addEventListener("click", () => modal.remove());
+    panel.setAttribute("aria-label", "Atelier de création de personnage");
+    const header = element("div", "creator-heading");
+    const titleWrap = element("div");
+    titleWrap.append(element("span", "eyebrow", "NIYYA.ai · ATELIER"),
+      element("h2", "", "Donne vie à ton personnage"),
+      element("p", "chat-subtitle", "Crée un personnage fictif. Il restera privé jusqu'à sa validation."));
+    const close = element("button", "modal-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", t("close"));
+    header.append(titleWrap, close);
+    const form = element("form", "creator-form");
+    const fields = [
+      ["name", "Nom du personnage", "Ex. : Mira", 40, true, "input"],
+      ["tagline", "Phrase de présentation", "En une phrase, qui est ce personnage ?", 100, true, "input"],
+      ["shortBio", "Présentation", "Décris brièvement son caractère et ce qui le rend intéressant…", 500, true, "textarea"],
+      ["backstory", "Histoire du personnage", "Son passé, ses objectifs et son univers…", 3000, true, "textarea"],
+      ["personalityPrompt", "Personnalité et façon de parler", "Décris sa personnalité, ses valeurs et son style de conversation…", 4000, true, "textarea"],
+      ["scenario", "Contexte de départ", "Dans quel univers ou quelle situation commence l'histoire ?", 1000, false, "textarea"],
+      ["greeting", "Premier message", "Que dit le personnage quand une conversation commence ?", 800, true, "textarea"],
+      ["traits", "Traits de personnalité", "Curieux, drôle, réfléchi (séparés par des virgules)", 256, false, "input"],
+      ["tags", "Mots-clés", "Aventure, mystère, fantasy… (séparés par des virgules)", 192, false, "input"]
+    ];
+    const controls = {};
+    fields.forEach(([key, labelText, placeholder, max, required, kind]) => {
+      const group = element("label", "creator-field");
+      group.append(element("span", "creator-label", labelText + (required ? " *" : "")));
+      const control = element(kind === "textarea" ? "textarea" : "input", "creator-control");
+      control.name = key;
+      control.placeholder = placeholder;
+      control.maxLength = max;
+      control.required = required;
+      if (kind === "textarea") control.rows = key === "personalityPrompt" || key === "backstory" ? 4 : 3;
+      controls[key] = control;
+      group.append(control);
+      form.append(group);
+    });
+    const categoryGroup = element("label", "creator-field");
+    categoryGroup.append(element("span", "creator-label", "Catégorie"));
+    const category = element("select", "creator-control");
+    category.name = "category";
+    [["original","Original"],["anime","Anime"],["fantasy","Fantasy"],["mystery","Mystère"],["comedy","Humour"],["friendship","Amitié"],["adventure","Aventure"],["science-fiction","Science-fiction"]].forEach(([value,label]) => {
+      const option = element("option", "", label);
+      option.value = value;
+      category.append(option);
+    });
+    categoryGroup.append(category);
+    form.append(categoryGroup);
+    const note = element("p", "creator-note", "Conseil : n'inclus pas de coordonnées personnelles, de contenu sexuel, de violence graphique ni de personnages présentés comme des personnes réelles.");
+    const status = element("p", "chat-status", "");
+    const submit = element("button", "chat-send creator-submit", "Enregistrer le brouillon");
+    submit.type = "submit";
+    form.append(note, status, submit);
+    panel.append(header, form);
     modal.append(panel);
-    modal.addEventListener("click", event => { if (event.target === modal) modal.remove(); });
     document.body.append(modal);
-  });
+    const dismiss = () => modal.remove();
+    close.addEventListener("click", dismiss);
+    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (submit.disabled) return;
+      submit.disabled = true;
+      status.textContent = "Vérification et enregistrement…";
+      const payload = {
+        name: controls.name.value,
+        tagline: controls.tagline.value,
+        shortBio: controls.shortBio.value,
+        backstory: controls.backstory.value,
+        personalityPrompt: controls.personalityPrompt.value,
+        scenario: controls.scenario.value,
+        greeting: controls.greeting.value,
+        category: category.value,
+        traits: controls.traits.value.split(",").map(value => value.trim()).filter(Boolean),
+        tags: controls.tags.value.split(",").map(value => value.trim()).filter(Boolean)
+      };
+      try {
+        await ensureGuest();
+        const access = await window.NiyyaAPI.getQuota();
+        if (!access.onboarded) {
+          throw new Error("L'atelier est accessible après le parcours d'inscription autorisé de NIYYA.");
+        }
+        const result = await window.NiyyaAPI.createCharacter(payload);
+        form.replaceChildren(
+          element("span", "eyebrow", "BROUILLON ENREGISTRÉ"),
+          element("h3", "", result.character.name),
+          element("p", "creator-note", "Ton personnage est privé. Tu peux demander sa vérification avant de le rendre visible dans Explorer.")
+        );
+        const review = element("button", "chat-send creator-submit", "Envoyer en vérification");
+        review.type = "button";
+        const reviewStatus = element("p", "chat-status", "");
+        form.append(review, reviewStatus);
+        review.addEventListener("click", async () => {
+          review.disabled = true;
+          reviewStatus.textContent = "Envoi de la demande…";
+          try {
+            await window.NiyyaAPI.submitCharacter(result.character.id);
+            reviewStatus.textContent = "Demande envoyée. Le personnage restera privé pendant sa vérification.";
+            review.textContent = "Demande envoyée";
+          } catch (error) {
+            review.disabled = false;
+            reviewStatus.textContent = error.message || "Impossible d'envoyer la demande.";
+          }
+        });
+      } catch (error) {
+        status.textContent = error.message || "Impossible d'enregistrer ce personnage.";
+        submit.disabled = false;
+      }
+    });
+  }
+
+  document.getElementById("create-character").addEventListener("click", openCreator);
 
   document.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", async event => {
