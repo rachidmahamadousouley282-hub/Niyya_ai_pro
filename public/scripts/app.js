@@ -436,8 +436,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   window.NiyyaAPI.getCharacters()
-    .then(data => {
+    .then(async data => {
       characters = Array.isArray(data.characters) ? data.characters : [];
+      try {
+        await window.NiyyaAPI.getSession();
+        const favorites = await window.NiyyaAPI.getFavorites();
+        favoriteIds = new Set((favorites.favorites || []).map(character => character.id));
+      } catch {
+        // Les visiteurs non connectés découvrent les personnages sans favoris chargés.
+      }
       renderCategories();
       renderCharacters();
     })
