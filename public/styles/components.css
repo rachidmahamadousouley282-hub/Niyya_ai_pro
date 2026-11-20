@@ -252,3 +252,12 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
  .profile-top-info h2 { font-size:21px; }
  .profile-panel { max-height:90vh !important; }
 }
+
+/* Persistent character favorites */
+.character-card { position:relative; }
+.favorite-toggle { min-height:38px; padding:8px 12px; border:1px solid rgba(182,154,255,.3); border-radius:11px; background:rgba(13,10,20,.88); color:#d7c8ff; font-size:13px; font-weight:700; cursor:pointer; }
+.character-card > .favorite-toggle { position:absolute; top:10px; right:10px; z-index:3; width:38px; min-height:38px; padding:0; font-size:20px; backdrop-filter:blur(10px); }
+.favorite-toggle.is-favorite { border-color:rgba(255,116,174,.45); color:#ff8fbd; background:rgba(91,24,55,.45); }
+.favorite-toggle:disabled { opacity:.55; cursor:wait; }
+.profile-favorite { width:100%; min-height:44px; margin-bottom:9px; }
+.niyya-toast { position:fixed; z-index:150; left:50%; bottom:92px; transform:translateX(-50%); max-width:calc(100% - 32px); padding:12px 16px; border:1px solid rgba(182,154,255,.28); border-radius:12px; background:#211a30; color:#f5efff; font-size:12px; line-height:1.5; box-shadow:0 12px 35px rgba(0,0,0,.4); }
