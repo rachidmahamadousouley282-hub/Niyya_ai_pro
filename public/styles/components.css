@@ -429,3 +429,83 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
   background: rgba(149,101,245,.1);
   font-size: 22px;
 }
+
+
+/* Mobile viewport and long character profiles */
+.niyya-modal:not(.chat-fullscreen-modal):not(.messages-fullscreen-modal) {
+  top: var(--niyya-viewport-top, 0px);
+  height: var(--niyya-viewport-height, 100dvh);
+  min-height: 0;
+  overflow: hidden;
+}
+.niyya-modal:not(.chat-fullscreen-modal):not(.messages-fullscreen-modal) > .profile-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 720px);
+  height: min(86%, 820px);
+  max-height: min(86%, 820px) !important;
+  min-height: 0;
+  overflow: hidden !important;
+}
+.profile-panel > .profile-top {
+  flex: 0 0 auto;
+}
+.profile-panel > .profile-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 3px 14px 0;
+}
+.profile-panel > .profile-footer {
+  flex: 0 0 auto;
+  position: sticky;
+  bottom: 0;
+  padding: 10px 0 max(8px, env(safe-area-inset-bottom));
+  background: #14111e;
+}
+@media (max-width: 520px) {
+  .niyya-modal:not(.chat-fullscreen-modal):not(.messages-fullscreen-modal) {
+    padding: 0;
+  }
+  .niyya-modal:not(.chat-fullscreen-modal):not(.messages-fullscreen-modal) > .profile-panel {
+    width: 100%;
+    height: var(--niyya-viewport-height, 100dvh);
+    max-height: var(--niyya-viewport-height, 100dvh) !important;
+    border-radius: 0;
+    padding: max(14px, env(safe-area-inset-top)) 15px max(12px, env(safe-area-inset-bottom));
+  }
+}
+
+/* iPhone keyboard: keep the chat composer visible and prevent Safari input zoom. */
+.niyya-modal.chat-fullscreen-modal {
+  top: var(--niyya-viewport-top, 0px);
+  height: var(--niyya-viewport-height, 100dvh);
+}
+.chat-fullscreen-panel {
+  height: var(--niyya-viewport-height, 100dvh);
+  min-height: 0;
+}
+.chat-fullscreen-panel .chat-header,
+.chat-fullscreen-panel .chat-composer {
+  flex-shrink: 0;
+}
+.chat-fullscreen-panel .chat-messages {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.chat-fullscreen-panel .chat-input {
+  min-height: 50px;
+  max-height: 120px;
+  resize: none;
+  overflow-y: auto;
+  font-size: 16px;
+  line-height: 1.4;
+  touch-action: manipulation;
+}
+.chat-fullscreen-panel .chat-send {
+  flex: 0 0 auto;
+}
