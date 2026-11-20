@@ -238,6 +238,91 @@ async function generateWithOpenAI({
 }
 
 /**
+ * Connexion à Cloudflare Workers AI via son endpoint OpenAI-compatible.
+ * Le jeton reste exclusivement côté serveur.
+ */
+async function generateWithCloudflare({
+  config,
+  systemPrompt,
+  history
+}) {
+  if (typeof fetch !== "function") {
+    throw new Error("Fetch n'est pas disponible sur ce serveur.");
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(),
+    REQUEST_TIMEOUT_MS
+  );
+
+  try {
+    const endpoint =
+      `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(config.accountId)}/ai/v1/chat/completions`;
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${config.apiKey}`
+      },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          ...history
+        ],
+        temperature: 0.85,
+        max_completion_tokens: 700,
+        stream: false,
+        options: {
+          rejectIfBusy: true
+        }
+      }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      // Ne jamais inclure le jeton ni le corps brut du fournisseur dans l'erreur.
+      if (response.status === 401 || response.status === 403) {
+        throw new Error(
+          "Cloudflare a refusé la requête. Vérifie les autorisations du jeton et l'accès au modèle."
+        );
+      }
+      if (response.status === 429) {
+        throw new Error(
+          "Cloudflare Workers AI est temporairement limité. Réessaie plus tard."
+        );
+      }
+      throw new Error(
+        `Cloudflare Workers AI a répondu avec le statut ${response.status}.`
+      );
+    }
+
+    const data = await response.json();
+    const reply = data?.choices?.[0]?.message?.content;
+
+    if (typeof reply !== "string" || !reply.trim()) {
+      throw new Error(
+        "Cloudflare Workers AI n'a retourné aucune réponse exploitable."
+      );
+    }
+
+    return {
+      reply: reply.trim(),
+      provider: "cloudflare",
+      model: config.model,
+      usage: data.usage || null
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/**
  * Point d'entrée principal.
  */
 async function generateReply({
@@ -264,8 +349,8 @@ async function generateReply({
 
   const systemPrompt = buildSystemPrompt(character, language);
 
-  if (config.provider === "openai") {
-    return generateWithOpenAI({
+  if (config.provider === "cloudflare") {
+    return generateWithCloudflare({
       config,
       systemPrompt,
       history: safeHistory
@@ -274,7 +359,7 @@ async function generateReply({
 
   // Pas de basculement automatique vers un autre fournisseur.
   throw new Error(
-    `L'adaptateur ${config.provider} n'est pas encore implémenté.`
+    `L'adaptateur ${config.provider} n'est pas activé.`
   );
 }
 
