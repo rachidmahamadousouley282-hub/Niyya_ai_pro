@@ -147,15 +147,14 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-label", "Mes conversations");
     const header = element("div", "history-heading");
-    header.append(element("div", "", ""),
-      element("span", "eyebrow", "NIYYA.ai"),
-      element("h2", "", "Mes conversations"));
+    header.append(element("span", "eyebrow", "NIYYA.ai"),
+      element("h2", "", t("history")));
     const close = element("button", "modal-close", "×");
     close.type = "button";
     close.setAttribute("aria-label", t("close"));
     header.append(close);
     const list = element("div", "history-list");
-    list.append(element("p", "chat-status", "Chargement de tes conversations…"));
+    list.append(element("p", "chat-status", t("historyLoading")));
     panel.append(header, list);
     modal.append(panel);
     document.body.append(modal);
@@ -169,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
       list.replaceChildren();
       const conversations = Array.isArray(data.conversations) ? data.conversations : [];
       if (!conversations.length) {
-        list.append(element("p", "empty-state", "Tes conversations apparaîtront ici après ton premier échange."));
+        list.append(element("p", "empty-state", t("historyEmpty")));
         return;
       }
       conversations.forEach(conversation => {
@@ -204,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
         list.append(row);
       });
     } catch (error) {
-      list.replaceChildren(element("p", "empty-state", error.message || "Impossible de charger tes conversations."));
+      list.replaceChildren(element("p", "empty-state", error.message || t("historyError")));
     }
   }
 
