@@ -343,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!character?.id) return;
     if (trigger) trigger.disabled = true;
     document.querySelector(".niyya-modal")?.remove();
-    const modal = element("div", "niyya-modal");
+    const modal = element("div", "niyya-modal profile-fullscreen-modal");
     const panel = element("section", "modal-panel profile-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
