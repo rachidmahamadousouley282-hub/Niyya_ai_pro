@@ -218,7 +218,7 @@ router.post("/:characterId/submit", requireAuth, requireSameOrigin, async (req, 
        WHERE id = $1 AND owner_user_id = $2 AND is_system = FALSE
          AND status = 'active' AND publication_status IN ('none', 'rejected')
        RETURNING id, name, publication_status, visibility, updated_at`,
-      [characterId, req.user.id]
+      [characterId, req.user ? req.user.id : null]
     );
     if (!result.rows.length) {
       return res.status(409).json({ error: "Ce personnage est introuvable ou déjà en cours de validation." });
