@@ -1,16 +1,18 @@
-
 "use strict";
 
 /**
  * NIYYA.ai V2
  * Provider Engine
  *
- * Mode gratuit par défaut.
- * Aucun fournisseur payant n'est activé automatiquement.
+ * Le mode mock reste le mode par défaut.
+ * Cloudflare Workers AI ne s'active que si le déploiement le demande
+ * explicitement et si ses deux paramètres secrets sont présents.
+ * Aucun fournisseur de secours payant n'est appelé automatiquement.
  */
 
 const SUPPORTED_PROVIDERS = Object.freeze([
   "mock",
+  "cloudflare",
   "openai",
   "anthropic",
   "google"
@@ -18,23 +20,7 @@ const SUPPORTED_PROVIDERS = Object.freeze([
 
 const DEFAULT_PROVIDER = "mock";
 
-const PROVIDER_ENV = Object.freeze({
-  openai: {
-    apiKey: "OPENAI_API_KEY",
-    model: "OPENAI_MODEL",
-    defaultModel: "gpt-4o-mini"
-  },
-  anthropic: {
-    apiKey: "ANTHROPIC_API_KEY",
-    model: "ANTHROPIC_MODEL",
-    defaultModel: "claude-sonnet"
-  },
-  google: {
-    apiKey: "GOOGLE_API_KEY",
-    model: "GOOGLE_MODEL",
-    defaultModel: "gemini-2.5-flash"
-  }
-});
+const CLOUDFLARE_DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash";
 
 function normalizeProvider(provider) {
   if (typeof provider !== "string" || !provider.trim()) {
@@ -55,22 +41,38 @@ function getProviderConfig() {
     process.env.AI_PROVIDER || DEFAULT_PROVIDER
   );
 
-  // NIYYA V2 démarre en mode 100 % gratuit.
-  // Aucun fournisseur facturé ne peut être activé par une variable
-  // d'environnement accidentelle : le mock reste le seul moteur actif.
-  if (provider !== "mock") {
-    throw new Error(
-      "Mode gratuit NIYYA actif : les fournisseurs payants sont désactivés."
-    );
+  if (provider === "mock") {
+    return {
+      provider: "mock",
+      model: "niyya-mock-v1",
+      mode: "free",
+      apiKey: null
+    };
   }
 
-  return {
-    provider: "mock",
-    model: "niyya-mock-v1",
-    mode: "free",
-    apiKey: null
-  };
+  if (provider === "cloudflare") {
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+    const apiKey = process.env.CLOUDFLARE_API_TOKEN;
 
+    if (!accountId || !apiKey) {
+      throw new Error(
+        "Cloudflare Workers AI n'est pas configuré : identifiant de compte ou jeton manquant."
+      );
+    }
+
+    return {
+      provider: "cloudflare",
+      model: process.env.CLOUDFLARE_MODEL || CLOUDFLARE_DEFAULT_MODEL,
+      mode: "cloudflare-free-tier",
+      accountId,
+      apiKey
+    };
+  }
+
+  // Les autres fournisseurs restent désactivés : aucun fallback payant.
+  throw new Error(
+    "Ce fournisseur IA n'est pas activé dans NIYYA.ai."
+  );
 }
 
 function getAvailableProviders() {
@@ -80,6 +82,17 @@ function getAvailableProviders() {
         name: "mock",
         configured: true,
         mode: "free"
+      };
+    }
+
+    if (provider === "cloudflare") {
+      return {
+        name: "cloudflare",
+        configured: Boolean(
+          process.env.CLOUDFLARE_ACCOUNT_ID &&
+          process.env.CLOUDFLARE_API_TOKEN
+        ),
+        mode: "explicit-opt-in"
       };
     }
 
