@@ -171,3 +171,39 @@ test("AI Service system prompt identifies the character as fictional", () => {
   assert.match(prompt, /Ne prétends pas être une personne réelle/);
   assert.match(prompt, /Réponds dans la langue suivante : fr/);
 });
+
+const authMiddleware = require("../src/middleware/auth.middleware");
+
+test("Optional authentication lets anonymous visitors continue without a session", async () => {
+  const req = { headers: {} };
+  let nextCalled = false;
+  const res = {
+    statusCode: null,
+    body: null,
+    status(code) { this.statusCode = code; return this; },
+    json(body) { this.body = body; return this; }
+  };
+
+  await authMiddleware.optionalAuth(req, res, () => { nextCalled = true; });
+
+  assert.equal(nextCalled, true);
+  assert.equal(req.user, null);
+  assert.equal(res.statusCode, null);
+});
+
+test("Required authentication still rejects visitors without a session", async () => {
+  const req = { headers: {} };
+  let nextCalled = false;
+  const res = {
+    statusCode: null,
+    body: null,
+    status(code) { this.statusCode = code; return this; },
+    json(body) { this.body = body; return this; }
+  };
+
+  await authMiddleware.requireAuth(req, res, () => { nextCalled = true; });
+
+  assert.equal(nextCalled, false);
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.body.error, "Authentification requise.");
+});
