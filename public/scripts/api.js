@@ -75,6 +75,18 @@
       );
     },
 
+    getMyCharacters() {
+      return request("/characters/mine");
+    },
+
+    createCharacter(character) {
+      return request("/characters", { method: "POST", body: character });
+    },
+
+    submitCharacter(characterId) {
+      return request(`/characters/${encodeURIComponent(characterId)}/submit`, { method: "POST" });
+    },
+
     getQuota() {
       return request("/quota");
     },
