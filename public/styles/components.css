@@ -432,13 +432,13 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
 
 
 /* Mobile viewport and long character profiles */
-.niyya-modal:not(.chat-fullscreen-modal):not(.messages-fullscreen-modal) {
+.niyya-modal.profile-fullscreen-modal {
   top: var(--niyya-viewport-top, 0px);
   height: var(--niyya-viewport-height, 100dvh);
   min-height: 0;
   overflow: hidden;
 }
-.niyya-modal:not(.chat-fullscreen-modal):not(.messages-fullscreen-modal) > .profile-panel {
+.niyya-modal.profile-fullscreen-modal > .profile-panel {
   display: flex;
   flex-direction: column;
   width: min(100%, 720px);
@@ -466,10 +466,10 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
   background: #14111e;
 }
 @media (max-width: 520px) {
-  .niyya-modal:not(.chat-fullscreen-modal):not(.messages-fullscreen-modal) {
+  .niyya-modal.profile-fullscreen-modal {
     padding: 0;
   }
-  .niyya-modal:not(.chat-fullscreen-modal):not(.messages-fullscreen-modal) > .profile-panel {
+  .niyya-modal.profile-fullscreen-modal > .profile-panel {
     width: 100%;
     height: var(--niyya-viewport-height, 100dvh);
     max-height: var(--niyya-viewport-height, 100dvh) !important;
