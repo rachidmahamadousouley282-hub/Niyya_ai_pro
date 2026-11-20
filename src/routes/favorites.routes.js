@@ -32,7 +32,8 @@ function requireSameOrigin(req, res, next) {
 router.get("/", requireAuth, async (req, res) => {
   try {
     const result = await query(
-      `SELECT c.id, c.slug, c.name, c.tagline, c.avatar_url,
+      `SELECT c.id, c.slug, c.name, c.tagline,
+              CASE WHEN c.is_system OR c.avatar_status = 'approved' THEN c.avatar_url ELSE NULL END AS avatar_url,
               c.short_bio, c.backstory, c.profile_i18n, c.personality_traits,
               c.greeting, c.category, c.tags, c.published_at, c.created_at,
               CASE WHEN c.is_system THEN 'NIYYA.ai'::varchar ELSE u.pseudonym END AS creator_pseudonym
