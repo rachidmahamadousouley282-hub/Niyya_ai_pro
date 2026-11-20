@@ -39,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCharacters() {
     const term = searchInput.value.trim().toLocaleLowerCase();
     grid.replaceChildren();
+    grid.setAttribute("aria-busy", "false");
 
     const filtered = characters.filter(character => {
       const category = (character.category || "all").toLowerCase();
@@ -726,6 +727,7 @@ async function openCreator() {
       renderCharacters();
     })
     .catch(error => {
+      grid.setAttribute("aria-busy", "false");
       grid.replaceChildren(element("p", "empty-state",
         error.message || "Impossible de charger les personnages."));
     });
