@@ -71,7 +71,7 @@ function getProviderConfig() {
 
   // Les autres fournisseurs restent désactivés : aucun fallback payant.
   throw new Error(
-    "Ce fournisseur IA n'est pas activé dans NIYYA.ai."
+    "Mode gratuit NIYYA actif : les fournisseurs payants sont désactivés."
   );
 }
 
