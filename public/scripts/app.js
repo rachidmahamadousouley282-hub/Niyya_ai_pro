@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const header = element("div", "history-heading");
     header.append(element("span", "eyebrow", "NIYYA.ai"),
       element("h2", "", t("history")));
-    const close = element("button", "modal-close", "×");
+    const close = element("button", "modal-close", "←");
     close.type = "button";
     close.setAttribute("aria-label", t("close"));
     header.append(close);
