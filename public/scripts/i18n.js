@@ -106,6 +106,11 @@
     [t.home, t.exploreNav, t.createNav, t.favorites, t.profile].forEach((label, i) => {
       if (nav[i]) nav[i].lastChild.textContent = label;
     });
+    const historyButton = document.getElementById("conversations-button");
+    if (historyButton) {
+      historyButton.setAttribute("aria-label", t.history);
+      historyButton.title = t.history;
+    }
     const button = document.getElementById("settings-button");
     if (button) {
       button.setAttribute("aria-label", t.settings);
