@@ -79,6 +79,18 @@
       return request("/quota");
     },
 
+    getFavorites() {
+      return request("/favorites");
+    },
+
+    addFavorite(characterId) {
+      return request(`/favorites/${encodeURIComponent(characterId)}`, { method: "POST" });
+    },
+
+    removeFavorite(characterId) {
+      return request(`/favorites/${encodeURIComponent(characterId)}`, { method: "DELETE" });
+    },
+
     getConversations() {
       return request("/chat/conversations");
     },
