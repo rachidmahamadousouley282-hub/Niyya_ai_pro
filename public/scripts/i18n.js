@@ -122,6 +122,7 @@
     const eyebrow = document.querySelectorAll(".section-heading .eyebrow");
     if (eyebrow[0]) eyebrow[0].textContent = t.explore;
     if (eyebrow[1]) eyebrow[1].textContent = t.handpicked;
+    document.dispatchEvent(new CustomEvent("niyya:language-changed", { detail: { language: current } }));
   }
 
   function openSettings() {
