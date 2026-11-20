@@ -154,8 +154,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function openConversationHistory() {
     document.querySelector(".niyya-modal")?.remove();
-    const modal = element("div", "niyya-modal");
-    const panel = element("section", "modal-panel history-panel");
+    const modal = element("div", "niyya-modal messages-fullscreen-modal");
+    const panel = element("section", "modal-panel history-panel messages-fullscreen-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-label", "Mes conversations");
