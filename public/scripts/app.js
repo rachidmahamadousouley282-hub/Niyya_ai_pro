@@ -23,6 +23,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const t = key => window.NiyyaI18n?.translate(key) || key;
 
+  // Keep overlays aligned with the visible iOS Safari viewport when the keyboard opens.
+  function syncVisibleViewport() {
+    const viewport = window.visualViewport;
+    const height = viewport?.height || window.innerHeight;
+    const top = viewport?.offsetTop || 0;
+    document.documentElement.style.setProperty("--niyya-viewport-height", height + "px");
+    document.documentElement.style.setProperty("--niyya-viewport-top", top + "px");
+  }
+  syncVisibleViewport();
+  window.addEventListener("resize", syncVisibleViewport, { passive: true });
+  window.visualViewport?.addEventListener("resize", syncVisibleViewport, { passive: true });
+  window.visualViewport?.addEventListener("scroll", syncVisibleViewport, { passive: true });
+
   function renderCharacters() {
     const term = searchInput.value.trim().toLocaleLowerCase();
     grid.replaceChildren();
@@ -424,6 +437,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await ensureGuest();
+      const onboarding = await window.NiyyaAPI.getQuota();
+      if (!onboarding.onboarded) {
+        status.textContent = "La messagerie NIYYA est actuellement réservée aux personnes de 18 ans et plus. L'inscription et les discussions ne sont donc pas disponibles pour les mineurs.";
+        ui.input.disabled = true;
+        ui.send.disabled = true;
+        return;
+      }
       if (existingConversationId) {
         activeConversation = existingConversationId;
       } else {
