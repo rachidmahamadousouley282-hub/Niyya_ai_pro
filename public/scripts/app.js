@@ -256,20 +256,13 @@ document.addEventListener("DOMContentLoaded", () => {
           ar: `${data.remaining} رسالة`
         };
         badge.textContent = labels[lang] || labels.fr;
-        const videoText = lang === "en"
-          ? `${data.rewardedVideosRemaining} rewarded videos left today`
-          : lang === "es"
-            ? `${data.rewardedVideosRemaining} vídeos recompensados restantes hoy`
-            : lang === "ar"
-              ? `متبقّي ${data.rewardedVideosRemaining} فيديوهات مكافأة اليوم`
-              : `${data.rewardedVideosRemaining} vidéos récompensées restantes aujourd'hui`;
-        const rewardDetails = {
-          fr: "+10 messages/vidéo · 5 maximum/jour",
-          en: "+10 messages/video · 5 maximum/day",
-          es: "+10 mensajes/vídeo · 5 como máximo al día",
-          ar: "+10 رسائل لكل فيديو · 5 كحد أقصى يوميًا"
+        const rewardNotice = {
+          fr: "Les récompenses publicitaires ne sont pas encore disponibles.",
+          en: "Rewarded ads are not available yet.",
+          es: "Los anuncios con recompensa todavía no están disponibles.",
+          ar: "الإعلانات ذات المكافآت غير متاحة بعد."
         };
-        badge.title = `${videoText} · ${rewardDetails[lang] || rewardDetails.fr}`;
+        badge.title = rewardNotice[lang] || rewardNotice.fr;
       }
     } catch {
       badge.textContent = "NIYYA";
