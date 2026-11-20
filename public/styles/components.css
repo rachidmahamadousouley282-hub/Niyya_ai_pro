@@ -566,3 +566,35 @@ textarea.creator-control { min-height: 86px; resize: vertical; line-height: 1.55
   .creator-heading h2 { font-size: 21px; }
   .creator-field, .creator-note, .creator-submit, .creator-form > .chat-status { grid-column: 1; }
 }
+
+
+/* Creator library: saved drafts and moderation status. */
+.creator-characters-list { display:grid; gap:10px; }
+.creator-character-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px;
+  border:1px solid rgba(182,154,255,.18);
+  border-radius:14px;
+  background:#0e0b15;
+}
+.creator-character-details { min-width:0; display:grid; gap:5px; }
+.creator-character-details h3 { margin:0; color:#f5efff; font:600 15px 'Space Grotesk',sans-serif; overflow-wrap:anywhere; }
+.creator-character-details p { margin:0; color:#aaa0b8; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.creator-character-status {
+  flex:0 0 auto;
+  max-width:45%;
+  padding:7px 9px;
+  border:1px solid rgba(182,154,255,.22);
+  border-radius:10px;
+  color:#d4c4ff;
+  background:rgba(149,101,245,.1);
+  font-size:11px;
+  text-align:center;
+}
+@media(max-width:520px) {
+  .creator-character-row { align-items:flex-start; flex-direction:column; gap:9px; }
+  .creator-character-status { max-width:100%; }
+}
