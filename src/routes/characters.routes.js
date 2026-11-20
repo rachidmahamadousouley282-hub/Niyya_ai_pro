@@ -2,7 +2,7 @@
 
 const express = require("express");
 const { query } = require("../config/database");
-const { requireAuth } = require("../middleware/auth.middleware");
+const { requireAuth, optionalAuth } = require("../middleware/auth.middleware");
 const safetyEngine = require("../engines/safety.engine");
 
 const router = express.Router();
@@ -279,7 +279,7 @@ router.patch("/:characterId/moderation", requireAuth, requireSameOrigin, async (
 });
 
 // GET /api/characters/:characterId — fiche publique ou personnage appartenant à l'utilisateur.
-router.get("/:characterId", requireAuth, async (req, res) => {
+router.get("/:characterId", optionalAuth, async (req, res) => {
   try {
     const { characterId } = req.params;
     if (!UUID_REGEX.test(characterId)) return res.status(400).json({ error: "Identifiant de personnage invalide." });
