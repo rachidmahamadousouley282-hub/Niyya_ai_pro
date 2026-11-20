@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
       info.append(button);
       const favorite = element("button", "favorite-toggle" + (favoriteIds.has(character.id) ? " is-favorite" : ""), favoriteIds.has(character.id) ? "♥" : "♡");
       favorite.type = "button";
+      favorite.dataset.favoriteId = character.id;
       favorite.setAttribute("aria-label", favoriteIds.has(character.id) ? "Retirer des favoris" : "Ajouter aux favoris");
       favorite.setAttribute("aria-pressed", favoriteIds.has(character.id) ? "true" : "false");
       favorite.addEventListener("click", () => toggleFavorite(character, favorite));
@@ -75,33 +76,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function paintFavorite(characterId, saved) {
+    document.querySelectorAll('[data-favorite-id="' + characterId + '"]').forEach(control => {
+      control.classList.toggle("is-favorite", saved);
+      control.setAttribute("aria-pressed", saved ? "true" : "false");
+      if (control.classList.contains("profile-favorite")) {
+        control.textContent = saved ? "♥ Favori" : "♡ Ajouter aux favoris";
+      } else {
+        control.textContent = saved ? "♥" : "♡";
+        control.setAttribute("aria-label", saved ? "Retirer des favoris" : "Ajouter aux favoris");
+      }
+    });
+    if (activeView === "favorites" && !saved) {
+      document.querySelectorAll('.character-card [data-favorite-id="' + characterId + '"]')
+        .forEach(control => control.closest(".character-card")?.remove());
+      if (!grid.querySelector(".character-card")) {
+        grid.append(element("p", "empty-state", t("noCharacters")));
+      }
+    }
+  }
+
   async function toggleFavorite(character, button) {
-    if (!character?.id || button?.disabled) return;
-    if (button) button.disabled = true;
+    if (!character?.id || button?.dataset.busy === "true") return;
+    const wasSaved = favoriteIds.has(character.id);
+    const saved = !wasSaved;
+    favoriteIds[saved ? "add" : "delete"](character.id);
+    document.querySelectorAll('[data-favorite-id="' + character.id + '"]')
+      .forEach(control => { control.dataset.busy = "true"; control.disabled = true; });
+    paintFavorite(character.id, saved);
     try {
       await ensureGuest();
-      if (favoriteIds.has(character.id)) {
-        await window.NiyyaAPI.removeFavorite(character.id);
-        favoriteIds.delete(character.id);
-      } else {
-        await window.NiyyaAPI.addFavorite(character.id);
-        favoriteIds.add(character.id);
-      }
-      if (button) {
-        const saved = favoriteIds.has(character.id);
-        button.classList.toggle("is-favorite", saved);
-        button.setAttribute("aria-pressed", saved ? "true" : "false");
-        if (button.classList.contains("profile-favorite")) {
-          button.textContent = saved ? "♥ Favori" : "♡ Ajouter aux favoris";
-        } else {
-          button.textContent = saved ? "♥" : "♡";
-          button.setAttribute("aria-label", saved ? "Retirer des favoris" : "Ajouter aux favoris");
-        }
-      }
-      renderCharacters();
+      if (saved) await window.NiyyaAPI.addFavorite(character.id);
+      else await window.NiyyaAPI.removeFavorite(character.id);
     } catch (error) {
+      favoriteIds[wasSaved ? "add" : "delete"](character.id);
+      paintFavorite(character.id, wasSaved);
       showToast(error.message || t("genericError"));
-      if (button) button.disabled = false;
+    } finally {
+      document.querySelectorAll('[data-favorite-id="' + character.id + '"]')
+        .forEach(control => { control.dataset.busy = "false"; control.disabled = false; });
     }
   }
 
@@ -260,8 +273,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function openChatShell(character) {
     document.querySelector(".niyya-modal")?.remove();
-    const modal = element("div", "niyya-modal");
-    const panel = element("section", "modal-panel chat-panel");
+    const modal = element("div", "niyya-modal chat-fullscreen-modal");
+    const panel = element("section", "modal-panel chat-panel chat-fullscreen-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-label", "Conversation avec " + character.name);
@@ -301,9 +314,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const closeModal = () => modal.remove();
     close.addEventListener("click", closeModal);
-    modal.addEventListener("click", event => {
-      if (event.target === modal) closeModal();
-    });
 
     return { modal, messages, form, input, send, profile };
   }
@@ -392,6 +402,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const favorite = element("button", "favorite-toggle profile-favorite" + (favoriteIds.has(character.id) ? " is-favorite" : ""), favoriteIds.has(character.id) ? "♥ Favori" : "♡ Ajouter aux favoris");
     favorite.type = "button";
+    favorite.dataset.favoriteId = character.id;
     favorite.setAttribute("aria-pressed", favoriteIds.has(character.id) ? "true" : "false");
     favorite.addEventListener("click", () => toggleFavorite(character, favorite));
     footer.append(favorite, start);
@@ -510,6 +521,8 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("discover")?.scrollIntoView({ behavior: "smooth" });
       } else if (target === "create") {
         document.getElementById("create-character")?.click();
+      } else if (target === "messages") {
+        openConversationHistory();
       } else if (target === "profile") {
         showToast("Le profil utilisateur sera activé avec l'inscription complète.");
       }
