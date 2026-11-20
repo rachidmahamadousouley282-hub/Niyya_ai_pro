@@ -60,58 +60,8 @@
           <a href="#discover">Explorer →</a>
         </div>
 
-        <div class="character-grid" id="character-grid">
-          <article class="character-card" data-category="anime">
-            <div class="character-art art-one">
-              <span class="art-label">ANIME</span>
-              <span class="character-symbol">月</span>
-            </div>
-            <div class="character-info">
-              <h3>Akira</h3>
-              <p>Un esprit mystérieux au passé oublié.</p>
-              <span class="character-tag">Mystère · Anime</span>
-              <button class="chat-button" data-character="Akira">Découvrir</button>
-            </div>
-          </article>
-
-          <article class="character-card" data-category="fantasy">
-            <div class="character-art art-two">
-              <span class="art-label">FANTASY</span>
-              <span class="character-symbol">✧</span>
-            </div>
-            <div class="character-info">
-              <h3>Elena</h3>
-              <p>Une exploratrice d'un royaume oublié.</p>
-              <span class="character-tag">Fantasy · Aventure</span>
-              <button class="chat-button" data-character="Elena">Découvrir</button>
-            </div>
-          </article>
-
-          <article class="character-card" data-category="adventure">
-            <div class="character-art art-three">
-              <span class="art-label">ADVENTURE</span>
-              <span class="character-symbol">⚡</span>
-            </div>
-            <div class="character-info">
-              <h3>Kael</h3>
-              <p>Un voyageur qui cherche sa destinée.</p>
-              <span class="character-tag">Aventure · Action</span>
-              <button class="chat-button" data-character="Kael">Découvrir</button>
-            </div>
-          </article>
-
-          <article class="character-card" data-category="anime">
-            <div class="character-art art-four">
-              <span class="art-label">ANIME</span>
-              <span class="character-symbol">夜</span>
-            </div>
-            <div class="character-info">
-              <h3>Yuna</h3>
-              <p>Une artiste pleine de surprises.</p>
-              <span class="character-tag">Créativité · Anime</span>
-              <button class="chat-button" data-character="Yuna">Découvrir</button>
-            </div>
-          </article>
+        <div class="character-grid" id="character-grid" aria-live="polite" aria-busy="true">
+          <p class="chat-status" role="status">Chargement des personnages…</p>
         </div>
       </section>
 
