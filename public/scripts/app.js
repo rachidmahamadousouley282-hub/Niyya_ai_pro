@@ -498,7 +498,65 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
 
   searchInput.addEventListener("input", renderCharacters);
-  async function openCreator() {
+  async function openMyCharacters() {
+    document.querySelector(".niyya-modal")?.remove();
+    const modal = element("div", "niyya-modal creator-fullscreen-modal");
+    const panel = element("section", "modal-panel creator-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-label", "Mes créations");
+    const header = element("div", "creator-heading");
+    const titleWrap = element("div");
+    titleWrap.append(
+      element("span", "eyebrow", "NIYYA.ai · ATELIER"),
+      element("h2", "", "Mes créations"),
+      element("p", "chat-subtitle", "Retrouve tes brouillons et le statut de leurs demandes de vérification.")
+    );
+    const close = element("button", "modal-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", t("close"));
+    header.append(titleWrap, close);
+    const content = element("div", "creator-characters-list");
+    content.append(element("p", "chat-status", "Chargement de tes créations…"));
+    panel.append(header, content);
+    modal.append(panel);
+    document.body.append(modal);
+    const dismiss = () => modal.remove();
+    close.addEventListener("click", dismiss);
+    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+
+    try {
+      await ensureGuest();
+      const data = await window.NiyyaAPI.getMyCharacters();
+      const characters = Array.isArray(data.characters) ? data.characters : [];
+      content.replaceChildren();
+      if (!characters.length) {
+        content.append(element("p", "empty-state", "Tu n'as pas encore créé de personnage."));
+        return;
+      }
+      characters.forEach(character => {
+        const row = element("article", "creator-character-row");
+        const details = element("div", "creator-character-details");
+        details.append(
+          element("h3", "", character.name || "Personnage sans nom"),
+          element("p", "", character.tagline || "Aucune description courte")
+        );
+        const statusLabels = {
+          none: "Brouillon privé",
+          pending: "En vérification",
+          approved: "Approuvé",
+          rejected: "À revoir"
+        };
+        const status = element("span", "creator-character-status", statusLabels[character.publication_status] || "Statut inconnu");
+        row.append(details, status);
+        content.append(row);
+      });
+    } catch (error) {
+      content.replaceChildren(element("p", "empty-state", error.message || "Impossible de charger tes créations."));
+    }
+  }
+
+async function openCreator() {
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal creator-fullscreen-modal");
     const panel = element("section", "modal-panel creator-panel");
@@ -513,7 +571,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const close = element("button", "modal-close", "×");
     close.type = "button";
     close.setAttribute("aria-label", t("close"));
-    header.append(titleWrap, close);
+    const myCharacters = element("button", "profile-link-button", "Mes créations");
+    myCharacters.type = "button";
+    myCharacters.addEventListener("click", openMyCharacters);
+    header.append(titleWrap, myCharacters, close);
     const form = element("form", "creator-form");
     const fields = [
       ["name", "Nom du personnage", "Ex. : Mira", 40, true, "input"],
