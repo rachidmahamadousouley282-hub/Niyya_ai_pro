@@ -87,6 +87,17 @@ document.addEventListener("DOMContentLoaded", () => {
         await window.NiyyaAPI.addFavorite(character.id);
         favoriteIds.add(character.id);
       }
+      if (button) {
+        const saved = favoriteIds.has(character.id);
+        button.classList.toggle("is-favorite", saved);
+        button.setAttribute("aria-pressed", saved ? "true" : "false");
+        if (button.classList.contains("profile-favorite")) {
+          button.textContent = saved ? "♥ Favori" : "♡ Ajouter aux favoris";
+        } else {
+          button.textContent = saved ? "♥" : "♡";
+          button.setAttribute("aria-label", saved ? "Retirer des favoris" : "Ajouter aux favoris");
+        }
+      }
       renderCharacters();
     } catch (error) {
       showToast(error.message || t("genericError"));
