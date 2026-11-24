@@ -598,3 +598,19 @@ textarea.creator-control { min-height: 86px; resize: vertical; line-height: 1.55
   .creator-character-row { align-items:flex-start; flex-direction:column; gap:9px; }
   .creator-character-status { max-width:100%; }
 }
+
+
+/* Age-aware onboarding */
+.onboarding-panel { width:min(100%, 520px) !important; max-height:90vh !important; overflow:auto !important; }
+.onboarding-header { display:flex; align-items:center; justify-content:space-between; }
+.onboarding-panel h2 { font:700 25px 'Space Grotesk',sans-serif; margin:10px 0; }
+.onboarding-intro, .onboarding-note { color:#a69db7; font-size:12px; line-height:1.7; }
+.onboarding-note { padding:10px 12px; border:1px solid rgba(182,154,255,.15); border-radius:11px; background:rgba(149,101,245,.07); }
+.onboarding-form { display:grid; gap:13px; margin-top:18px; }
+.onboarding-field { display:grid; gap:7px; color:#d8d0e5; font-size:12px; }
+.onboarding-label { font-weight:700; }
+.onboarding-consent { display:flex; align-items:flex-start; gap:10px; color:#c8c1d2; font-size:12px; line-height:1.6; }
+.onboarding-consent input { margin-top:3px; accent-color:#9565f5; }
+.onboarding-links { color:#b69aff; font-size:12px; }
+.onboarding-links a { text-decoration:underline; text-underline-offset:3px; }
+.onboarding-submit { min-height:46px; }
