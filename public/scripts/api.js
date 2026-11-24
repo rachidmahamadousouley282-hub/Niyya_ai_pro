@@ -60,6 +60,10 @@
       return request("/auth/guest", { method: "POST" });
     },
 
+    completeOnboarding(data) {
+      return request("/auth/onboarding", { method: "POST", body: data });
+    },
+
     getCharacters(params = {}) {
       const query = new URLSearchParams(params);
       const suffix = query.toString()
