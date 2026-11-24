@@ -102,9 +102,9 @@
     }
     set(".creator-banner p", t.createText);
     set("#create-character", t.createButton);
-    const nav = document.querySelectorAll(".nav-item");
+    const navLabels = document.querySelectorAll(".bottom-nav .nav-item > .nav-label");
     [t.home, t.exploreNav, t.createNav, t.messagesNav, t.profile].forEach((label, i) => {
-      if (nav[i]) nav[i].lastChild.textContent = label;
+      if (navLabels[i]) navLabels[i].textContent = label;
     });
     const historyButton = document.getElementById("conversations-button");
     if (historyButton) {
