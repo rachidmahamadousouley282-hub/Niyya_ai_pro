@@ -496,8 +496,156 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
+  document.getElementById("profile-button")?.addEventListener("click", openAccount);
 
   searchInput.addEventListener("input", renderCharacters);
+
+  async function openAccount() {
+    document.querySelector(".niyya-modal")?.remove();
+    const modal = element("div", "niyya-modal account-modal");
+    const panel = element("section", "modal-panel account-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "account-title");
+    const header = element("div", "account-heading");
+    const heading = element("div");
+    heading.append(element("span", "eyebrow", "NIYYA.ai · COMPTE"));
+    const title = element("h2", "", "Ton compte");
+    title.id = "account-title";
+    heading.append(title);
+    const close = element("button", "modal-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Fermer");
+    header.append(heading, close);
+    const content = element("div", "account-content");
+    content.append(element("p", "chat-status", "Chargement du compte…"));
+    panel.append(header, content);
+    modal.append(panel);
+    document.body.append(modal);
+    const dismiss = () => modal.remove();
+    close.addEventListener("click", dismiss);
+    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+
+    try {
+      await ensureGuest();
+      const session = await window.NiyyaAPI.getSession();
+      const user = session.user || {};
+      content.replaceChildren();
+      if (!user.isGuest && user.email) {
+        content.append(
+          element("p", "account-success", "Ton compte est enregistré et synchronisable sur tes autres appareils."),
+          element("span", "account-label", "Adresse e-mail"),
+          element("p", "account-email", user.email)
+        );
+        const logout = element("button", "account-secondary", "Se déconnecter");
+        logout.type = "button";
+        logout.addEventListener("click", async () => {
+          logout.disabled = true;
+          try {
+            await window.NiyyaAPI.logout();
+            guestReady = false;
+            window.location.reload();
+          } catch (error) {
+            logout.disabled = false;
+            showToast(error.message || "Impossible de se déconnecter.");
+          }
+        });
+        content.append(logout);
+        return;
+      }
+
+      content.append(element("p", "account-intro",
+        "Crée un compte pour retrouver tes conversations et tes favoris après un changement de téléphone. Si tu as déjà un compte, connecte-toi."));
+      const tabs = element("div", "account-tabs");
+      const registerTab = element("button", "account-tab active", "Créer un compte");
+      const loginTab = element("button", "account-tab", "Se connecter");
+      registerTab.type = loginTab.type = "button";
+      tabs.append(registerTab, loginTab);
+      const form = element("form", "account-form");
+      const emailLabel = element("label", "account-field");
+      emailLabel.append(element("span", "", "Adresse e-mail"));
+      const email = element("input", "account-input");
+      email.type = "email";
+      email.name = "email";
+      email.required = true;
+      email.maxLength = 254;
+      email.autocomplete = "email";
+      email.placeholder = "exemple@email.com";
+      emailLabel.append(email);
+      const passwordLabel = element("label", "account-field");
+      passwordLabel.append(element("span", "", "Mot de passe"));
+      const password = element("input", "account-input");
+      password.type = "password";
+      password.name = "password";
+      password.required = true;
+      password.minLength = 10;
+      password.maxLength = 128;
+      password.autocomplete = "new-password";
+      password.placeholder = "10 caractères minimum";
+      passwordLabel.append(password);
+      const confirmLabel = element("label", "account-field");
+      confirmLabel.append(element("span", "", "Confirmer le mot de passe"));
+      const confirm = element("input", "account-input");
+      confirm.type = "password";
+      confirm.name = "confirmPassword";
+      confirm.required = true;
+      confirm.minLength = 10;
+      confirm.maxLength = 128;
+      confirm.autocomplete = "new-password";
+      confirm.placeholder = "Répète ton mot de passe";
+      confirmLabel.append(confirm);
+      const note = element("p", "account-note",
+        "Ton compte invité actuel sera converti : tes conversations et favoris seront conservés. Utilise une adresse e-mail à laquelle tu as accès.");
+      const status = element("p", "chat-status", "");
+      status.setAttribute("role", "status");
+      const submit = element("button", "chat-send account-submit", "Créer mon compte");
+      submit.type = "submit";
+      form.append(emailLabel, passwordLabel, confirmLabel, note, status, submit);
+      content.append(tabs, form);
+
+      let mode = "register";
+      const setMode = next => {
+        mode = next;
+        const registering = mode === "register";
+        registerTab.classList.toggle("active", registering);
+        loginTab.classList.toggle("active", !registering);
+        confirmLabel.hidden = !registering;
+        note.hidden = !registering;
+        password.minLength = registering ? 10 : 1;
+        password.autocomplete = registering ? "new-password" : "current-password";
+        confirm.required = registering;
+        submit.textContent = registering ? "Créer mon compte" : "Se connecter";
+        status.textContent = "";
+      };
+      registerTab.addEventListener("click", () => setMode("register"));
+      loginTab.addEventListener("click", () => setMode("login"));
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (submit.disabled) return;
+        if (mode === "register" && password.value !== confirm.value) {
+          status.textContent = "Les deux mots de passe ne correspondent pas.";
+          return;
+        }
+        submit.disabled = true;
+        status.textContent = mode === "register" ? "Création du compte…" : "Connexion…";
+        try {
+          if (mode === "register") {
+            await window.NiyyaAPI.registerAccount({ email: email.value, password: password.value });
+          } else {
+            await window.NiyyaAPI.login({ email: email.value, password: password.value });
+          }
+          window.location.reload();
+        } catch (error) {
+          status.textContent = error.message || "Une erreur est survenue.";
+          submit.disabled = false;
+        }
+      });
+      setMode("register");
+    } catch (error) {
+      content.replaceChildren(element("p", "chat-status", error.message || "Impossible de charger ton compte."));
+    }
+  }
+
   async function openMyCharacters() {
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal creator-fullscreen-modal");
@@ -707,7 +855,7 @@ async function openCreator() {
       } else if (target === "messages") {
         openConversationHistory();
       } else if (target === "profile") {
-        showToast("Le profil utilisateur sera activé avec l'inscription complète.");
+        openAccount();
       }
     });
   });
