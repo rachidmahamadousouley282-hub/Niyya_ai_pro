@@ -103,7 +103,7 @@
     set(".creator-banner p", t.createText);
     set("#create-character", t.createButton);
     const nav = document.querySelectorAll(".nav-item");
-    [t.home, t.exploreNav, t.createNav, t.favorites, t.profile].forEach((label, i) => {
+    [t.home, t.exploreNav, t.createNav, t.favorites, t.history, t.profile].forEach((label, i) => {
       if (nav[i]) nav[i].lastChild.textContent = label;
     });
     const historyButton = document.getElementById("conversations-button");
