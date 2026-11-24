@@ -9,7 +9,6 @@
     const nav = document.querySelector(".bottom-nav");
     if (!nav) return;
 
-    // Keep exactly the five agreed destinations, in their intended order.
     const expected = [
       { href: "#", label: "Accueil" },
       { href: "#discover", label: "Explorer" },
@@ -18,54 +17,34 @@
       { href: "#profile", label: "Profil" }
     ];
 
-    const existing = Array.from(nav.querySelectorAll(":scope > .nav-item"));
-    expected.forEach((entry, index) => {
-      let item = existing.find(candidate => candidate.getAttribute("href") === entry.href);
-      if (!item) {
-        item = document.createElement("a");
-        item.className = "nav-item";
-        item.href = entry.href;
-        const icon = document.createElement("span");
-        icon.className = "nav-icon";
-        icon.setAttribute("aria-hidden", "true");
-        item.append(icon);
-      }
-      item.querySelectorAll(":scope > .nav-label").forEach((label, labelIndex) => {
-        if (labelIndex > 0) label.remove();
-      });
-      let label = item.querySelector(":scope > .nav-label");
-      if (!label) {
-        label = document.createElement("span");
-        label.className = "nav-label";
-        item.append(label);
-      }
+    // Rebuild the five items cleanly. Preserve each existing SVG, but discard
+    // every old label/extra child so each destination can display one label only.
+    const oldItems = Array.from(nav.children).filter(node => node.matches(".nav-item"));
+    const rebuilt = expected.map(entry => {
+      const old = oldItems.find(node => node.getAttribute("href") === entry.href);
+      const item = document.createElement("a");
+      item.className = "nav-item" + (entry.href === "#create" ? " nav-create" : "");
+      item.href = entry.href;
+
+      const icon = old?.querySelector(":scope > .nav-icon")?.cloneNode(true)
+        || document.createElement("span");
+      icon.className = "nav-icon";
+      icon.setAttribute("aria-hidden", "true");
+
+      const label = document.createElement("span");
+      label.className = "nav-label";
       label.textContent = entry.label;
+
+      item.append(icon, label);
       item.setAttribute("aria-label", entry.label);
       item.title = entry.label;
-      if (entry.href === "#create") item.classList.add("nav-create");
-      nav.append(item);
-    });
-
-    // Remove obsolete/duplicate entries (including the old Favorites tab).
-    const keep = new Set(expected.map(entry => entry.href));
-    const seen = new Set();
-    Array.from(nav.querySelectorAll(":scope > .nav-item")).forEach(item => {
-      const href = item.getAttribute("href");
-      if (!keep.has(href) || seen.has(href)) item.remove();
-      else seen.add(href);
-    });
-
-    nav.querySelectorAll(".nav-item").forEach(item => {
-      item.addEventListener("click", event => {
-        const target = item.getAttribute("href");
-        if (!target || target === "#") event.preventDefault();
-        nav.querySelectorAll(".nav-item").forEach(link => {
-          link.classList.remove("selected");
-          link.removeAttribute("aria-current");
-        });
+      if (entry.href === "#") {
         item.classList.add("selected");
         item.setAttribute("aria-current", "page");
-      });
+      }
+      return item;
     });
+
+    nav.replaceChildren(...rebuilt);
   });
 })();
