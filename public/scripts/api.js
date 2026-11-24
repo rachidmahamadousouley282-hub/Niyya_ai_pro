@@ -91,6 +91,10 @@
       );
     },
 
+    recordCharacterView(id) {
+      return request(`/characters/${encodeURIComponent(id)}/view`, { method: "POST" });
+    },
+
     getMyCharacters() {
       return request("/characters/mine");
     },
