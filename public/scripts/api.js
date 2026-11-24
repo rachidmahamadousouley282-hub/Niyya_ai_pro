@@ -60,6 +60,18 @@
       return request("/auth/guest", { method: "POST" });
     },
 
+    registerAccount(data) {
+      return request("/auth/register", { method: "POST", body: data });
+    },
+
+    login(data) {
+      return request("/auth/login", { method: "POST", body: data });
+    },
+
+    logout() {
+      return request("/auth/logout", { method: "POST" });
+    },
+
     completeOnboarding(data) {
       return request("/auth/onboarding", { method: "POST", body: data });
     },
