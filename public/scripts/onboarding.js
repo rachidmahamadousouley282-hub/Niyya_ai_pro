@@ -7,6 +7,7 @@
       title: "Bienvenue dans NIYYA.ai",
       intro: "Configure ton profil en quelques étapes. Nous ne demandons pas ta date de naissance : seule une tranche d’âge est enregistrée.",
       age: "Ta tranche d’âge déclarée",
+      agePlaceholder: "Choisis ta tranche d’âge",
       age13: "13 à 15 ans",
       age16: "16 à 17 ans",
       age18: "18 ans ou plus",
@@ -27,6 +28,7 @@
       title: "Welcome to NIYYA.ai",
       intro: "Set up your profile. We do not ask for your date of birth; only an age band is stored.",
       age: "Your self-declared age band",
+      agePlaceholder: "Select your age range",
       age13: "13 to 15",
       age16: "16 to 17",
       age18: "18 or older",
@@ -47,6 +49,7 @@
       title: "Te damos la bienvenida a NIYYA.ai",
       intro: "Configura tu perfil. No pedimos tu fecha de nacimiento; solo guardamos un rango de edad.",
       age: "Tu rango de edad declarado",
+      agePlaceholder: "Selecciona tu rango de edad",
       age13: "De 13 a 15 años",
       age16: "De 16 a 17 años",
       age18: "18 años o más",
@@ -67,6 +70,7 @@
       title: "مرحبًا بك في NIYYA.ai",
       intro: "أنشئ ملفك الشخصي. لا نطلب تاريخ ميلادك؛ نخزن فئة عمرية فقط.",
       age: "الفئة العمرية التي تصرّح بها",
+      agePlaceholder: "اختر فئتك العمرية",
       age13: "من 13 إلى 15 عامًا",
       age16: "من 16 إلى 17 عامًا",
       age18: "18 عامًا أو أكثر",
@@ -119,6 +123,11 @@
     const age = node("select", "language-select");
     age.name = "ageBand";
     age.required = true;
+    const agePlaceholder = node("option", "", t.agePlaceholder);
+    agePlaceholder.value = "";
+    agePlaceholder.selected = true;
+    agePlaceholder.disabled = true;
+    age.append(agePlaceholder);
     [["13_15", t.age13], ["16_17", t.age16], ["18_plus", t.age18]].forEach(([value, label]) => {
       const option = node("option", "", label);
       option.value = value;
