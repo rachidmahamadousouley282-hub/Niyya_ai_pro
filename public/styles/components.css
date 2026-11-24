@@ -256,7 +256,7 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
 /* Persistent character favorites */
 .character-card { position:relative; }
 .favorite-toggle { min-height:38px; padding:8px 12px; border:1px solid rgba(182,154,255,.3); border-radius:11px; background:rgba(13,10,20,.88); color:#d7c8ff; font-size:13px; font-weight:700; cursor:pointer; }
-.character-card > .favorite-toggle { position:absolute; top:10px; right:10px; z-index:3; width:38px; min-height:38px; padding:0; font-size:20px; backdrop-filter:blur(10px); }
+.character-card > .favorite-toggle { position:absolute; top:10px; right:10px; z-index:3; width:auto; min-width:42px; min-height:38px; padding:0 9px; font-size:14px; font-variant-numeric:tabular-nums; backdrop-filter:blur(10px); }
 .favorite-toggle.is-favorite { border-color:rgba(255,116,174,.45); color:#ff8fbd; background:rgba(91,24,55,.45); }
 .favorite-toggle:disabled { opacity:.55; cursor:wait; }
 .profile-favorite { width:100%; min-height:44px; margin-bottom:9px; }
