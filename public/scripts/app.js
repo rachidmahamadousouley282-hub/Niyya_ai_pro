@@ -597,7 +597,7 @@ document.addEventListener("DOMContentLoaded", () => {
       confirm.placeholder = "Répète ton mot de passe";
       confirmLabel.append(confirm);
       const note = element("p", "account-note",
-        "Ton compte invité actuel sera converti : tes conversations et favoris seront conservés. Utilise une adresse e-mail à laquelle tu as accès.");
+        "Ton compte invité actuel sera converti : tes conversations et favoris seront conservés. Vérifie bien ton adresse e-mail et garde ton mot de passe : la confirmation d’e-mail et la récupération du mot de passe ne sont pas encore activées.");
       const status = element("p", "chat-status", "");
       status.setAttribute("role", "status");
       const submit = element("button", "chat-send account-submit", "Créer mon compte");
