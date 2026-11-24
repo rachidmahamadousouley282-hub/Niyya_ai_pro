@@ -10,7 +10,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 const CATEGORIES = new Set(["original", "anime", "fantasy", "mystery", "comedy", "friendship", "adventure", "science-fiction"]);
 
 const PUBLIC_CHARACTER_FIELDS = [
-  "id", "slug", "name", "tagline", "avatar_url", "short_bio",
+  "id", "slug", "name", "tagline", "avatar_url", "short_bio", "view_count", "like_count",
   "backstory", "profile_i18n", "personality_traits", "greeting",
   "category", "tags", "creator_pseudonym", "published_at", "created_at"
 ];
@@ -115,6 +115,8 @@ router.get("/", async (req, res) => {
     const result = await query(
       `SELECT * FROM (
          SELECT c.id, c.slug, c.name, c.tagline, c.avatar_url, c.short_bio,
+                (SELECT COUNT(*)::bigint FROM public.character_view_events v WHERE v.character_id = c.id) AS view_count,
+                (SELECT COUNT(*)::bigint FROM public.user_favorite_characters f WHERE f.character_id = c.id) AS like_count,
                 c.backstory, c.profile_i18n, c.personality_traits, c.greeting,
                 c.category, c.tags, 'NIYYA.ai'::varchar AS creator_pseudonym,
                 c.published_at, c.created_at
@@ -278,6 +280,42 @@ router.patch("/:characterId/moderation", requireAuth, requireSameOrigin, async (
   }
 });
 
+// POST /api/characters/:characterId/view — comptabilise une consultation unique par utilisateur et par jour.
+router.post("/:characterId/view", requireAuth, requireSameOrigin, async (req, res) => {
+  const { characterId } = req.params;
+  if (!UUID_REGEX.test(characterId)) {
+    return res.status(400).json({ error: "Identifiant de personnage invalide." });
+  }
+  try {
+    const result = await query(
+      `INSERT INTO public.character_view_events (user_id, character_id)
+       SELECT $1, c.id
+       FROM public.characters c
+       WHERE c.id = $2 AND c.status = 'active'
+         AND (c.is_system = TRUE OR
+              (c.visibility = 'public' AND c.publication_status = 'approved'))
+       ON CONFLICT (user_id, character_id, view_date) DO NOTHING
+       RETURNING character_id`,
+      [req.user.id, characterId]
+    );
+    if (!result.rows.length) {
+      const accessible = await query(
+        `SELECT id FROM public.characters
+         WHERE id = $1 AND status = 'active'
+           AND (is_system = TRUE OR (visibility = 'public' AND publication_status = 'approved')) LIMIT 1`,
+        [characterId]
+      );
+      if (!accessible.rows.length) {
+        return res.status(404).json({ error: "Personnage public introuvable." });
+      }
+    }
+    return res.status(200).json({ success: true, counted: Boolean(result.rows.length) });
+  } catch (error) {
+    console.error("Erreur de comptage de consultation :", error.message);
+    return res.status(500).json({ error: "Impossible d'enregistrer cette consultation." });
+  }
+});
+
 // GET /api/characters/:characterId — fiche publique ou personnage appartenant à l'utilisateur.
 router.get("/:characterId", optionalAuth, async (req, res) => {
   try {
@@ -286,7 +324,10 @@ router.get("/:characterId", optionalAuth, async (req, res) => {
     const result = await query(
       `SELECT c.id, c.slug, c.name, c.tagline,
               CASE WHEN c.is_system OR c.avatar_status = 'approved' THEN c.avatar_url ELSE NULL END AS avatar_url,
-              c.short_bio, c.backstory, c.profile_i18n, c.personality_traits,
+              c.short_bio,
+              (SELECT COUNT(*)::bigint FROM public.character_view_events v WHERE v.character_id = c.id) AS view_count,
+              (SELECT COUNT(*)::bigint FROM public.user_favorite_characters f WHERE f.character_id = c.id) AS like_count,
+              c.backstory, c.profile_i18n, c.personality_traits,
               c.greeting, c.category, c.tags,
               CASE WHEN c.is_system THEN 'NIYYA.ai'::varchar ELSE u.pseudonym END AS creator_pseudonym,
               c.published_at, c.created_at
