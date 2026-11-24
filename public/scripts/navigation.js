@@ -46,5 +46,11 @@
     });
 
     nav.replaceChildren(...rebuilt);
+
+    // The language module runs earlier in DOMContentLoaded; reapply the saved
+    // language after rebuilding so non-French labels are not reset to French.
+    if (window.NiyyaI18n) {
+      window.NiyyaI18n.apply(window.NiyyaI18n.getLanguage());
+    }
   });
 })();
