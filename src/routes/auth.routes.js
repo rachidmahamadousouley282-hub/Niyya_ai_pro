@@ -1,23 +1,133 @@
 "use strict";
 
 const express = require("express");
+const crypto = require("crypto");
+const { promisify } = require("util");
+const scrypt = promisify(crypto.scrypt);
 
 const { pool, query } = require("../config/database");
 const { createSession } = require("../services/session.service");
-const { setSessionCookie } = require("../utils/cookies");
+const { setSessionCookie, clearSessionCookie } = require("../utils/cookies");
 const { requireAuth } = require("../middleware/auth.middleware");
 
 const router = express.Router();
 
-router.get("/session", requireAuth, (req, res) => {
+router.get("/session", requireAuth, async (req, res) => {
   return res.status(200).json({
     success: true,
     user: {
       id: req.user.id,
       isGuest: req.user.isGuest === true,
-      role: req.user.role
+      role: req.user.role,
+      email: req.user.email || null
     }
   });
+});
+
+
+const EMAIL_REGEX = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/;
+const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
+
+function normalizeEmail(value) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+async function hashPassword(password) {
+  const salt = crypto.randomBytes(16);
+  const derived = await scrypt(password, salt, 64, SCRYPT_OPTIONS);
+  return "scrypt$" + salt.toString("hex") + "$" + Buffer.from(derived).toString("hex");
+}
+
+async function verifyPassword(password, stored) {
+  if (typeof stored !== "string") return false;
+  const parts = stored.split("$");
+  if (parts.length !== 3 || parts[0] !== "scrypt" ||
+      !/^[a-f0-9]{32}$/i.test(parts[1]) || !/^[a-f0-9]{128}$/i.test(parts[2])) return false;
+  const expected = Buffer.from(parts[2], "hex");
+  const actual = Buffer.from(await scrypt(password, Buffer.from(parts[1], "hex"), 64, SCRYPT_OPTIONS));
+  return actual.length === expected.length && crypto.timingSafeEqual(actual, expected);
+}
+
+router.post("/register", requireAuth, requireSameOrigin, async (req, res) => {
+  const email = normalizeEmail(req.body?.email);
+  const password = req.body?.password;
+  if (!EMAIL_REGEX.test(email) || email.length > 254) {
+    return res.status(400).json({ error: "Saisis une adresse e-mail valide." });
+  }
+  if (typeof password !== "string" || password.length < 10 || password.length > 128) {
+    return res.status(400).json({ error: "Le mot de passe doit contenir entre 10 et 128 caractères." });
+  }
+  if (!req.user.isGuest) {
+    return res.status(409).json({ error: "Ce compte possède déjà un accès permanent. Utilise la connexion si nécessaire." });
+  }
+
+  try {
+    const passwordHash = await hashPassword(password);
+    const result = await query(
+      `UPDATE public.users
+       SET email = $2, password_hash = $3, is_guest = FALSE, updated_at = NOW()
+       WHERE id = $1 AND is_guest = TRUE AND email IS NULL
+       RETURNING id, email, is_guest`,
+      [req.user.id, email, passwordHash]
+    );
+    if (!result.rows.length) {
+      return res.status(409).json({ error: "Ce compte invité ne peut plus être converti. Déconnecte-toi puis crée un nouveau compte." });
+    }
+    return res.status(201).json({
+      success: true,
+      user: { id: result.rows[0].id, email: result.rows[0].email, isGuest: false },
+      message: "Compte créé. Tes conversations et tes favoris sont conservés."
+    });
+  } catch (error) {
+    if (error.code === "23505") {
+      return res.status(409).json({ error: "Cette adresse e-mail est déjà associée à un compte. Utilise « Se connecter »." });
+    }
+    console.error("Erreur création compte permanent :", error.message);
+    return res.status(500).json({ error: "Impossible de créer le compte pour le moment." });
+  }
+});
+
+router.post("/login", requireSameOrigin, async (req, res) => {
+  const email = normalizeEmail(req.body?.email);
+  const password = req.body?.password;
+  if (!EMAIL_REGEX.test(email) || email.length > 254 ||
+      typeof password !== "string" || password.length > 128) {
+    return res.status(400).json({ error: "Adresse e-mail ou mot de passe invalide." });
+  }
+
+  try {
+    const result = await query(
+      "SELECT id, email, password_hash, is_guest FROM public.users WHERE lower(email) = $1 AND is_guest = FALSE LIMIT 1",
+      [email]
+    );
+    const account = result.rows[0];
+    const valid = account ? await verifyPassword(password, account.password_hash) : false;
+    if (!valid) {
+      return res.status(401).json({ error: "Adresse e-mail ou mot de passe incorrect." });
+    }
+
+    const session = await createSession(account.id);
+    setSessionCookie(res, session.token);
+    return res.status(200).json({
+      success: true,
+      user: { id: account.id, email: account.email, isGuest: false },
+      session: { expiresAt: session.expiresAt }
+    });
+  } catch (error) {
+    console.error("Erreur de connexion :", error.message);
+    return res.status(500).json({ error: "Impossible de se connecter pour le moment." });
+  }
+});
+
+router.post("/logout", requireAuth, requireSameOrigin, async (req, res) => {
+  try {
+    await query("UPDATE public.user_sessions SET is_revoked = TRUE, updated_at = NOW() WHERE id = $1", [req.user.sessionId]);
+    clearSessionCookie(res);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Erreur de déconnexion :", error.message);
+    return res.status(500).json({ error: "Impossible de se déconnecter pour le moment." });
+  }
 });
 
 router.post("/guest", async (req, res) => {
