@@ -75,7 +75,11 @@ router.post("/:characterId", requireAuth, requireSameOrigin, async (req, res) =>
        VALUES ($1, $2) ON CONFLICT (user_id, character_id) DO NOTHING`,
       [req.user.id, characterId]
     );
-    return res.status(200).json({ success: true, favorite: true, characterId });
+    const count = await query(
+      "SELECT COUNT(*)::bigint AS like_count FROM public.user_favorite_characters WHERE character_id = $1",
+      [characterId]
+    );
+    return res.status(200).json({ success: true, favorite: true, characterId, likeCount: count.rows[0]?.like_count || 0 });
   } catch (error) {
     console.error("Erreur d'ajout aux favoris :", error.message);
     return res.status(500).json({ error: "Impossible d'enregistrer ce favori." });
@@ -92,7 +96,11 @@ router.delete("/:characterId", requireAuth, requireSameOrigin, async (req, res) 
       "DELETE FROM public.user_favorite_characters WHERE user_id = $1 AND character_id = $2",
       [req.user.id, characterId]
     );
-    return res.status(200).json({ success: true, favorite: false, characterId });
+    const count = await query(
+      "SELECT COUNT(*)::bigint AS like_count FROM public.user_favorite_characters WHERE character_id = $1",
+      [characterId]
+    );
+    return res.status(200).json({ success: true, favorite: false, characterId, likeCount: count.rows[0]?.like_count || 0 });
   } catch (error) {
     console.error("Erreur de retrait des favoris :", error.message);
     return res.status(500).json({ error: "Impossible de retirer ce favori." });
