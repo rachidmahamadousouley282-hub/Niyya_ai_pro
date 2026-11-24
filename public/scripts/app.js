@@ -250,12 +250,14 @@ document.addEventListener("DOMContentLoaded", () => {
           lang === "ar" ? "اشتراك VIP نشط." : "Accès VIP actif.";
       } else {
         const labels = {
-          fr: `${data.remaining} messages`,
-          en: `${data.remaining} messages`,
-          es: `${data.remaining} mensajes`,
-          ar: `${data.remaining} رسالة`
+          fr: `${data.remaining} messages restants`,
+          en: `${data.remaining} messages remaining`,
+          es: `${data.remaining} mensajes restantes`,
+          ar: `${data.remaining} رسالة متبقية`
         };
-        badge.textContent = labels[lang] || labels.fr;
+        badge.textContent = String(data.remaining);
+        badge.setAttribute("aria-label", labels[lang] || labels.fr);
+        badge.title = labels[lang] || labels.fr;
         const rewardNotice = {
           fr: "Les récompenses publicitaires ne sont pas encore disponibles.",
           en: "Rewarded ads are not available yet.",
