@@ -26,11 +26,26 @@ const PERSONAL_DATA_PATTERNS = [
  * Elles ne déterminent pas à elles seules l'intention réelle.
  */
 const REVIEW_PATTERNS = [
-  /\b(?:comment|how to|how can i|explique comment|montre-moi comment)\b.{0,100}\b(?:pirater|voler un compte|phishing|malware|contourner la sécurité)\b/i,
-  /\b(?:fabriquer|construire|utiliser)\b.{0,100}\b(?:bombe|explosif|arme)\b/i,
-  /\b(?:menacer|faire du mal|attaquer|blesser)\b/i,
-  /\b(?:suicide|me tuer|automutilation|me faire du mal|self[- ]harm)\b/i,
-  /\b(?:exploitation sexuelle de mineur|abus sexuel sur mineur|sexualisation de mineur)\b/i
+  {
+    reason: "cyber_abuse",
+    pattern: /\b(?:comment|how to|how can i|explique comment|montre-moi comment)\b.{0,100}\b(?:pirater|voler un compte|phishing|malware|contourner la sécurité)\b/i
+  },
+  {
+    reason: "weapon_instructions",
+    pattern: /\b(?:fabriquer|construire|utiliser)\b.{0,100}\b(?:bombe|explosif|arme)\b/i
+  },
+  {
+    reason: "violent_intent",
+    pattern: /\b(?:menacer|faire du mal|attaquer|blesser)\b/i
+  },
+  {
+    reason: "self_harm_concern",
+    pattern: /\b(?:suicide|me tuer|automutilation|me faire du mal|self[- ]harm)\b/i
+  },
+  {
+    reason: "minor_safety",
+    pattern: /\b(?:exploitation sexuelle de mineur|abus sexuel sur mineur|sexualisation de mineur)\b/i
+  }
 ];
 
 const BLOCKED_PATTERNS = [
@@ -92,11 +107,12 @@ function detectRisk(message) {
     };
   }
 
-  if (REVIEW_PATTERNS.some(pattern => pattern.test(message))) {
+  const reviewMatch = REVIEW_PATTERNS.find(item => item.pattern.test(message));
+  if (reviewMatch) {
     return {
       level: "review",
       action: "review",
-      reason: "potentially_sensitive_content"
+      reason: reviewMatch.reason
     };
   }
 
@@ -139,6 +155,51 @@ function sanitizeText(value, maxLength = MAX_MESSAGE_LENGTH) {
 /**
  * Vérifie l'entrée et la réponse de l'IA.
  */
+
+function getSafeResponse(risk, language = "fr") {
+  const reason = risk && typeof risk.reason === "string" ? risk.reason : "";
+  const responses = {
+    fr: {
+      cyber_abuse: "Je ne peux pas aider à pirater un compte ou contourner une sécurité. Je peux plutôt t’aider à protéger un compte et reconnaître les tentatives de fraude.",
+      weapon_instructions: "Je ne peux pas expliquer comment fabriquer ou utiliser une arme ou un explosif. On peut parler de prévention ou de sécurité sans instructions dangereuses.",
+      violent_intent: "Je ne peux pas aider à menacer ou blesser quelqu’un. Si un conflit devient tendu, éloigne-toi et demande l’aide d’un adulte de confiance.",
+      self_harm_concern: "Je suis désolé que ce sujet soit difficile. Tu n’as pas à gérer cela seul : parle dès maintenant à un adulte de confiance ou à un professionnel. Si tu es en danger immédiat, contacte les services d’urgence locaux.",
+      minor_safety: "Je ne peux pas participer à un contenu sexuel impliquant un mineur. On peut parler de sécurité, de respect et de limites dans une conversation adaptée.",
+      prohibited_content: "Je ne peux pas aider avec ce type de contenu. Je peux proposer une direction sûre et adaptée.",
+      possible_exposed_credentials: "Ne partage jamais de mot de passe ni de clé secrète dans une conversation. Si cette information est réelle, change-la et sécurise le compte concerné."
+    },
+    en: {
+      cyber_abuse: "I can’t help break into accounts or bypass security. I can help explain how to protect an account and recognize scams.",
+      weapon_instructions: "I can’t explain how to make or use a weapon or explosive. We can discuss prevention or safety without dangerous instructions.",
+      violent_intent: "I can’t help threaten or hurt someone. If a conflict is escalating, step away and ask a trusted adult for help.",
+      self_harm_concern: "I’m sorry this is difficult. You don’t have to handle it alone: talk now with a trusted adult or a professional. If you are in immediate danger, contact local emergency services.",
+      minor_safety: "I can’t take part in sexual content involving a minor. We can discuss safety, respect and boundaries in an age-appropriate way.",
+      prohibited_content: "I can’t help with that content. I can suggest a safe, appropriate direction.",
+      possible_exposed_credentials: "Never share passwords or secret keys in a conversation. If this information is real, change it and secure the affected account."
+    },
+    es: {
+      cyber_abuse: "No puedo ayudar a entrar en cuentas ni a eludir la seguridad. Sí puedo ayudarte a proteger una cuenta y reconocer fraudes.",
+      weapon_instructions: "No puedo explicar cómo fabricar o utilizar armas o explosivos. Podemos hablar de prevención o seguridad sin instrucciones peligrosas.",
+      violent_intent: "No puedo ayudar a amenazar o herir a alguien. Si un conflicto se intensifica, aléjate y pide ayuda a un adulto de confianza.",
+      self_harm_concern: "Siento que este tema sea difícil. No tienes que afrontarlo a solas: habla ahora con un adulto de confianza o un profesional. Si estás en peligro inmediato, contacta con los servicios de emergencia locales.",
+      minor_safety: "No puedo participar en contenido sexual que implique a un menor. Podemos hablar de seguridad, respeto y límites de forma apropiada.",
+      prohibited_content: "No puedo ayudar con ese contenido. Puedo proponer una alternativa segura y apropiada.",
+      possible_exposed_credentials: "Nunca compartas contraseñas ni claves secretas. Si la información es real, cámbiala y protege la cuenta."
+    },
+    ar: {
+      cyber_abuse: "لا أستطيع المساعدة في اختراق الحسابات أو تجاوز الحماية. يمكنني المساعدة في حماية الحسابات والتعرف على الاحتيال.",
+      weapon_instructions: "لا أستطيع شرح كيفية صنع سلاح أو متفجرات أو استخدامها. يمكننا التحدث عن الوقاية والسلامة دون تعليمات خطرة.",
+      violent_intent: "لا أستطيع المساعدة في تهديد شخص أو إيذائه. إذا تصاعد الخلاف، ابتعد واطلب مساعدة شخص بالغ تثق به.",
+      self_harm_concern: "آسف لأن هذا الموضوع صعب. لست مضطرًا لمواجهته وحدك؛ تحدث الآن مع شخص بالغ تثق به أو مختص. إذا كنت في خطر فوري، اتصل بخدمات الطوارئ المحلية.",
+      minor_safety: "لا أستطيع المشاركة في محتوى جنسي يتضمن قاصرًا. يمكننا الحديث عن السلامة والاحترام والحدود بطريقة مناسبة.",
+      prohibited_content: "لا أستطيع المساعدة في هذا المحتوى. يمكنني اقتراح اتجاه آمن ومناسب.",
+      possible_exposed_credentials: "لا تشارك كلمات المرور أو المفاتيح السرية في المحادثات. إذا كانت هذه المعلومات حقيقية، فغيّرها وأمّن الحساب."
+    }
+  };
+  const locale = responses[language] ? language : "fr";
+  return responses[locale][reason] || responses[locale].prohibited_content;
+}
+
 function evaluateConversation({ userMessage, aiReply }) {
   const inputRisk = detectRisk(userMessage);
 
@@ -200,5 +261,6 @@ module.exports = {
   validateMessage,
   detectRisk,
   sanitizeText,
+  getSafeResponse,
   evaluateConversation
 };
