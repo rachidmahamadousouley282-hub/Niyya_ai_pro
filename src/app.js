@@ -11,6 +11,7 @@ const characterRoutes = require("./routes/characters.routes");
 const chatRoutes = require("./routes/chat.routes");
 const quotaRoutes = require("./routes/quota.routes");
 const favoritesRoutes = require("./routes/favorites.routes");
+const adminRoutes = require("./routes/admin.routes");
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use("/api/characters", characterRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/quota", quotaRoutes);
 app.use("/api/favorites", favoritesRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use("/api", (req, res) => {
   return res.status(404).json({
