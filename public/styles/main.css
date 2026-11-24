@@ -593,7 +593,7 @@ a {
 /* NAVIGATION HOTFIX — prevent inherited 21px span styles from enlarging labels */
 .bottom-nav {
   display: grid !important;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   align-items: end;
   justify-items: center;
   gap: 2px;
@@ -690,7 +690,7 @@ a {
     width: calc(100% - 24px);
     left: 50%;
     bottom: calc(9px + env(safe-area-inset-bottom, 0px));
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0;
     padding: 9px 5px 8px;
     border-radius: 20px;
