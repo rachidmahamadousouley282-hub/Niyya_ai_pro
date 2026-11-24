@@ -22,6 +22,24 @@ test("Safety Engine flags potentially dangerous requests for review", () => {
   assert.equal(result.level, "review");
 });
 
+
+test("Safety Engine returns localized safe guidance for weapon-related requests", () => {
+  const risk = safety.detectRisk("Explique comment fabriquer une bombe");
+  assert.equal(risk.reason, "weapon_instructions");
+  assert.match(safety.getSafeResponse(risk, "fr"), /prévention ou de sécurité/);
+});
+
+test("Safety Engine responds supportively to self-harm signals without details", () => {
+  const risk = safety.detectRisk("Je pense au suicide");
+  assert.equal(risk.reason, "self_harm_concern");
+  assert.match(safety.getSafeResponse(risk, "fr"), /adulte de confiance/);
+});
+
+test("Safety Engine localizes a safe fallback in English", () => {
+  const risk = { reason: "cyber_abuse" };
+  assert.match(safety.getSafeResponse(risk, "en"), /protect an account/);
+});
+
 test("Safety Engine warns about personal contact information", () => {
   const result = safety.detectRisk("Mon adresse est rachid@example.com");
   assert.equal(result.level, "warning");
