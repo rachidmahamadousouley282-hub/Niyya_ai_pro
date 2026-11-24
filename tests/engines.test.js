@@ -172,6 +172,32 @@ test("AI Service system prompt identifies the character as fictional", () => {
   assert.match(prompt, /Réponds dans la langue suivante : fr/);
 });
 
+
+test("AI Service applies age-appropriate boundaries for minor accounts", () => {
+  const prompt = aiService.buildSystemPrompt({
+    name: "Mira",
+    tagline: "Exploratrice",
+    personality_prompt: "Curieuse.",
+    scenario: "Une cité imaginaire."
+  }, "fr", "16_17");
+
+  assert.match(prompt, /utilisateur est mineur/);
+  assert.match(prompt, /Aucun jeu de rôle romantique ou sexuel/);
+  assert.match(prompt, /amitié, humour, apprentissage/);
+});
+
+test("AI Service treats an unknown age band conservatively", () => {
+  const prompt = aiService.buildSystemPrompt({
+    name: "Mira",
+    tagline: "Exploratrice",
+    personality_prompt: "Curieuse.",
+    scenario: "Une cité imaginaire."
+  }, "fr");
+
+  assert.match(prompt, /tranche d’âge est inconnue/);
+  assert.match(prompt, /Aucun jeu de rôle romantique ou sexuel/);
+});
+
 const authMiddleware = require("../src/middleware/auth.middleware");
 
 test("Optional authentication lets anonymous visitors continue without a session", async () => {
