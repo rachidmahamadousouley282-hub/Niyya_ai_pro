@@ -653,3 +653,5 @@ textarea.creator-control { min-height: 86px; resize: vertical; line-height: 1.55
 .account-success { color:#cbb7ff; font-size:13px; line-height:1.7; }
 .account-label { color:var(--muted); font-size:11px; }
 .account-email { color:#fff; font-size:14px; overflow-wrap:anywhere; }
+
+.account-field[hidden], .account-note[hidden] { display:none !important; }
