@@ -21,7 +21,8 @@ router.get("/character-analytics", requireAuth, async (req, res) => {
           WHERE view_date >= CURRENT_DATE - ($1::integer - 1)) AS views,
          (SELECT COUNT(*)::bigint FROM public.user_favorite_characters f
           JOIN public.characters c ON c.id = f.character_id
-          WHERE c.status = 'active'
+          WHERE f.created_at >= NOW() - ($1::integer * INTERVAL '1 day')
+            AND c.status = 'active'
             AND (c.is_system = TRUE OR (c.visibility = 'public' AND c.publication_status = 'approved'))) AS likes,
          (SELECT COUNT(*)::bigint FROM public.conversations conv
           JOIN public.characters c ON c.id = conv.character_id
@@ -40,7 +41,8 @@ router.get("/character-analytics", requireAuth, async (req, res) => {
           WHERE v.character_id = c.id
             AND v.view_date >= CURRENT_DATE - ($1::integer - 1)) AS views,
          (SELECT COUNT(*)::bigint FROM public.user_favorite_characters f
-          WHERE f.character_id = c.id) AS likes,
+          WHERE f.character_id = c.id
+            AND f.created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS likes,
          (SELECT COUNT(*)::bigint FROM public.conversations conv
           WHERE conv.character_id = c.id
             AND conv.created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS conversations_started
