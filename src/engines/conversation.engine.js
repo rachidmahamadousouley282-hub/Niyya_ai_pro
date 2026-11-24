@@ -2,6 +2,7 @@
 "use strict";
 
 const { generateReply } = require("../services/ai.service");
+const { query } = require("../config/database");
 
 const characterEngine = require("./character.engine");
 const emotionEngine = require("./emotion.engine");
@@ -65,6 +66,13 @@ async function processMessage({
     throw new Error("Personnage introuvable ou inaccessible.");
   }
 
+  const accountResult = await query(
+    "SELECT age_band, adult_confirmed_at FROM public.users WHERE id = $1 LIMIT 1",
+    [userId]
+  );
+  const account = accountResult.rows[0] || {};
+  const ageBand = account.age_band || (account.adult_confirmed_at ? "18_plus" : "unknown");
+
   const safeHistory = normalizeHistory(history);
 
   const detectedEmotion = emotionEngine.detectEmotion(message);
@@ -125,7 +133,8 @@ async function processMessage({
         content: message.trim()
       }
     ],
-    language
+    language,
+    ageBand
   });
 
   if (!reply || typeof reply.reply !== "string" || !reply.reply.trim()) {
