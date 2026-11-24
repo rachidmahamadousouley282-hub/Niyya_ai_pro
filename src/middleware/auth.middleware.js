@@ -32,7 +32,7 @@ async function resolveSession(req) {
 
   const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
   const result = await query(
-    `SELECT s.id AS session_id, u.id AS user_id, u.role, u.is_guest
+    `SELECT s.id AS session_id, u.id AS user_id, u.role, u.is_guest, u.email
      FROM public.user_sessions AS s
      INNER JOIN public.users AS u ON u.id = s.user_id
      WHERE s.refresh_token_hash = $1
