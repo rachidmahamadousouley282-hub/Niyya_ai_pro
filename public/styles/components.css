@@ -624,3 +624,32 @@ textarea.creator-control { min-height: 86px; resize: vertical; line-height: 1.55
 .legal-content p { color:#c1b9cf; font-size:14px; line-height:1.8; margin:10px 0; }
 .legal-content a { color:#c5aaff; text-decoration:underline; text-underline-offset:3px; }
 .legal-warning { padding:14px 16px; border:1px solid rgba(255,194,107,.24); border-radius:12px; background:rgba(255,194,107,.06); color:#e7d3ad !important; }
+
+
+/* Header clarity and account access */
+.header-actions { gap: 8px; flex-shrink: 0; }
+.brand { min-width: 0; white-space: nowrap; }
+.quota-balance { display:inline-flex; align-items:center; justify-content:center; min-width:31px; height:28px; padding:0 8px; border:1px solid rgba(177,138,255,.25); border-radius:999px; background:rgba(149,101,245,.12); color:#d5c2ff; font-size:12px; font-weight:800; font-variant-numeric:tabular-nums; }
+.messages-button { width:auto; min-width:42px; padding:0 9px; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+.messages-button svg, .profile-button svg { width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+.header-action-label { font-size:10px; font-weight:600; }
+.profile-button { display:grid; place-items:center; cursor:pointer; }
+.profile-button svg { width:23px; height:23px; }
+.account-panel { width:min(100%,480px) !important; max-height:90vh !important; overflow:auto !important; }
+.account-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.account-heading h2 { font:700 25px 'Space Grotesk',sans-serif; margin:8px 0 0; }
+.account-content { display:grid; gap:14px; margin-top:16px; }
+.account-intro, .account-note { color:#a69db7; font-size:12px; line-height:1.7; }
+.account-note { padding:11px 12px; border:1px solid rgba(182,154,255,.15); border-radius:11px; background:rgba(149,101,245,.07); }
+.account-tabs { display:grid; grid-template-columns:1fr 1fr; gap:8px; padding:4px; border:1px solid var(--border); border-radius:13px; background:rgba(12,10,19,.55); }
+.account-tab { min-height:39px; border:0; border-radius:9px; background:transparent; color:var(--muted); font-size:12px; font-weight:700; }
+.account-tab.active { background:rgba(149,101,245,.2); color:#e3d6ff; }
+.account-form { display:grid; gap:12px; }
+.account-field { display:grid; gap:7px; color:#d8d0e5; font-size:12px; font-weight:650; }
+.account-input { width:100%; min-height:46px; padding:0 13px; border:1px solid rgba(174,135,255,.22); border-radius:11px; background:rgba(18,15,27,.95); color:#fff; outline:none; }
+.account-input:focus { border-color:#a77bff; box-shadow:0 0 0 3px rgba(149,101,245,.12); }
+.account-submit, .account-secondary { width:100%; min-height:46px; border-radius:12px; }
+.account-secondary { border:1px solid var(--border); background:transparent; color:#e4d8ff; font-weight:700; }
+.account-success { color:#cbb7ff; font-size:13px; line-height:1.7; }
+.account-label { color:var(--muted); font-size:11px; }
+.account-email { color:#fff; font-size:14px; overflow-wrap:anywhere; }
