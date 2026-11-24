@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/", requireAuth, async (req, res) => {
   try {
     const result = await query(
-      `SELECT onboarded_at, vip_until, daily_quota_date,
+      `SELECT onboarded_at, adult_confirmed_at, terms_accepted_at, age_band, vip_until, daily_quota_date,
               daily_messages_used, daily_bonus_messages,
               rewarded_videos_today, rewarded_videos_day
        FROM public.users
@@ -36,6 +36,8 @@ router.get("/", requireAuth, async (req, res) => {
     return res.status(200).json({
       success: true,
       onboarded: Boolean(user.onboarded_at),
+      ageBand: user.age_band || (user.adult_confirmed_at ? "18_plus" : null),
+      creatorAccess: Boolean(user.onboarded_at && user.adult_confirmed_at && user.terms_accepted_at),
       tier: vip ? "vip" : "free",
       remaining: vip ? null : Math.max(30 + bonus - used, 0),
       dailyBase: 30,
