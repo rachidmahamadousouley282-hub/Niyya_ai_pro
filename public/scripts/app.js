@@ -79,10 +79,11 @@ document.addEventListener("DOMContentLoaded", () => {
       button.type = "button";
       button.addEventListener("click", () => openProfile(character, button));
       info.append(button);
-      const favorite = element("button", "favorite-toggle" + (favoriteIds.has(character.id) ? " is-favorite" : ""), favoriteIds.has(character.id) ? "♥" : "♡");
+      const favorite = element("button", "favorite-toggle" + (favoriteIds.has(character.id) ? " is-favorite" : ""), (favoriteIds.has(character.id) ? "♥" : "♡") + " " + String(character.like_count || 0));
       favorite.type = "button";
       favorite.dataset.favoriteId = character.id;
-      favorite.setAttribute("aria-label", favoriteIds.has(character.id) ? "Retirer des favoris" : "Ajouter aux favoris");
+      favorite.dataset.likeCount = String(character.like_count || 0);
+      favorite.setAttribute("aria-label", favoriteIds.has(character.id) ? "Retirer ton J'aime" : "J'aime ce personnage");
       favorite.setAttribute("aria-pressed", favoriteIds.has(character.id) ? "true" : "false");
       favorite.addEventListener("click", () => toggleFavorite(character, favorite));
       card.append(art, info, favorite);
@@ -94,11 +95,12 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('[data-favorite-id="' + characterId + '"]').forEach(control => {
       control.classList.toggle("is-favorite", saved);
       control.setAttribute("aria-pressed", saved ? "true" : "false");
+      const count = Number(control.dataset.likeCount || 0);
       if (control.classList.contains("profile-favorite")) {
-        control.textContent = saved ? "♥ Favori" : "♡ Ajouter aux favoris";
+        control.textContent = (saved ? "♥ J'aime" : "♡ J'aime") + (count ? " · " + count : "");
       } else {
-        control.textContent = saved ? "♥" : "♡";
-        control.setAttribute("aria-label", saved ? "Retirer des favoris" : "Ajouter aux favoris");
+        control.textContent = (saved ? "♥" : "♡") + " " + count;
+        control.setAttribute("aria-label", saved ? "Retirer ton J'aime" : "J'aime ce personnage");
       }
     });
     if (activeView === "favorites" && !saved) {
@@ -120,8 +122,17 @@ document.addEventListener("DOMContentLoaded", () => {
     paintFavorite(character.id, saved);
     try {
       await ensureGuest();
-      if (saved) await window.NiyyaAPI.addFavorite(character.id);
-      else await window.NiyyaAPI.removeFavorite(character.id);
+      const result = saved
+        ? await window.NiyyaAPI.addFavorite(character.id)
+        : await window.NiyyaAPI.removeFavorite(character.id);
+      if (result.likeCount !== undefined) {
+        document.querySelectorAll('[data-favorite-id="' + character.id + '"]')
+          .forEach(control => { control.dataset.likeCount = String(result.likeCount); });
+        characters.forEach(item => {
+          if (item.id === character.id) item.like_count = result.likeCount;
+        });
+        paintFavorite(character.id, saved);
+      }
     } catch (error) {
       favoriteIds[wasSaved ? "add" : "delete"](character.id);
       paintFavorite(character.id, wasSaved);
@@ -339,6 +350,12 @@ document.addEventListener("DOMContentLoaded", () => {
   async function openProfile(character, trigger, resumeConversationId = null) {
     if (!character?.id) return;
     if (trigger) trigger.disabled = true;
+    try {
+      await ensureGuest();
+      await window.NiyyaAPI.recordCharacterView(character.id);
+    } catch {
+      // L'ouverture de la fiche reste possible si la mesure statistique échoue.
+    }
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal profile-fullscreen-modal");
     const panel = element("section", "modal-panel profile-panel");
@@ -410,9 +427,10 @@ document.addEventListener("DOMContentLoaded", () => {
     start.addEventListener("click", () => {
       openChat(character, start, resumeConversationId);
     });
-    const favorite = element("button", "favorite-toggle profile-favorite" + (favoriteIds.has(character.id) ? " is-favorite" : ""), favoriteIds.has(character.id) ? "♥ Favori" : "♡ Ajouter aux favoris");
+    const favorite = element("button", "favorite-toggle profile-favorite" + (favoriteIds.has(character.id) ? " is-favorite" : ""), (favoriteIds.has(character.id) ? "♥ J'aime" : "♡ J'aime") + (character.like_count ? " · " + character.like_count : ""));
     favorite.type = "button";
     favorite.dataset.favoriteId = character.id;
+    favorite.dataset.likeCount = String(character.like_count || 0);
     favorite.setAttribute("aria-pressed", favoriteIds.has(character.id) ? "true" : "false");
     favorite.addEventListener("click", () => toggleFavorite(character, favorite));
     footer.append(favorite, start);
@@ -834,20 +852,7 @@ async function openCreator() {
       document.querySelectorAll(".nav-item").forEach(link =>
         link.classList.toggle("selected", link === item));
       const target = (item.getAttribute("href") || "").replace("#", "");
-      if (target === "favorites") {
-        activeView = "favorites";
-        activeCategory = "all";
-        try {
-          await ensureGuest();
-          const data = await window.NiyyaAPI.getFavorites();
-          favoriteIds = new Set((data.favorites || []).map(character => character.id));
-        } catch (error) {
-          showToast(error.message || "Impossible de charger les favoris.");
-        }
-        renderCategories();
-        renderCharacters();
-        document.getElementById("discover")?.scrollIntoView({ behavior: "smooth" });
-      } else if (target === "discover" || target === "") {
+      if (target === "discover" || target === "") {
         activeView = "discover";
         renderCategories();
         renderCharacters();
