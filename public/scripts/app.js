@@ -434,9 +434,14 @@ document.addEventListener("DOMContentLoaded", () => {
       await ensureGuest();
       const onboarding = await window.NiyyaAPI.getQuota();
       if (!onboarding.onboarded) {
-        status.textContent = "Termine le parcours d'inscription et vérifie que ton compte respecte les conditions d'accès de NIYYA avant de commencer une conversation.";
+        status.textContent = "Complète ton profil pour commencer à discuter.";
         ui.input.disabled = true;
         ui.send.disabled = true;
+        if (window.NiyyaOnboarding?.open) {
+          window.NiyyaOnboarding.open({
+            onComplete: () => openChat(character, null, existingConversationId)
+          });
+        }
         return;
       }
       if (existingConversationId) {
