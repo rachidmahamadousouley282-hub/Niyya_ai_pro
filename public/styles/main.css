@@ -588,3 +588,147 @@ a {
   .nav-icon { width:32px; height:32px; border-radius:10px; }
   .nav-icon svg { width:18px; height:18px; }
 }
+
+
+/* NAVIGATION HOTFIX — prevent inherited 21px span styles from enlarging labels */
+.bottom-nav {
+  display: grid !important;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: end;
+  justify-items: center;
+  gap: 2px;
+  box-sizing: border-box;
+  padding: 10px 8px 9px;
+  overflow: visible;
+}
+.bottom-nav .nav-item {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  gap: 5px;
+  box-sizing: border-box;
+  font-size: 8px !important;
+  line-height: 1.15;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.bottom-nav .nav-item > .nav-icon {
+  display: grid;
+  flex: 0 0 35px;
+  width: 35px;
+  height: 35px;
+  min-width: 35px;
+  min-height: 35px;
+  box-sizing: border-box;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border-radius: 11px;
+}
+.bottom-nav .nav-item > .nav-icon svg {
+  width: 19px;
+  height: 19px;
+}
+.bottom-nav .nav-item > .nav-label {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  color: inherit;
+  font-size: 8px !important;
+  line-height: 1.15 !important;
+  font-weight: 600;
+  text-align: center;
+  text-overflow: clip;
+  white-space: nowrap;
+  letter-spacing: -.15px;
+}
+/* The central create action is intentionally the visual anchor. */
+.bottom-nav .nav-item.nav-create {
+  position: relative;
+  z-index: 2;
+  transform: translateY(-11px);
+  color: #e0ceff;
+}
+.bottom-nav .nav-item.nav-create > .nav-icon {
+  flex-basis: 54px;
+  width: 54px;
+  height: 54px;
+  min-width: 54px;
+  min-height: 54px;
+  border: 1px solid rgba(207,177,255,.8);
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(145deg, #a875ff 0%, #7843d2 55%, #512d91 100%);
+  box-shadow: 0 8px 24px rgba(125,75,214,.42), 0 0 0 5px rgba(157,112,240,.12);
+}
+.bottom-nav .nav-item.nav-create > .nav-icon svg {
+  width: 29px;
+  height: 29px;
+  stroke-width: 2.2;
+}
+.bottom-nav .nav-item.nav-create > .nav-label {
+  font-size: 8px !important;
+  font-weight: 750;
+  color: #e0ceff;
+}
+.bottom-nav .nav-item.selected:not(.nav-create) > .nav-icon {
+  border-color: rgba(177,138,255,.55);
+  background: linear-gradient(145deg, rgba(113,72,174,.48), rgba(57,36,85,.94));
+  box-shadow: 0 0 0 2px rgba(149,101,245,.08), 0 5px 16px rgba(104,65,170,.2);
+}
+@media (max-width: 600px) {
+  .bottom-nav {
+    width: calc(100% - 24px);
+    left: 50%;
+    bottom: calc(9px + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0;
+    padding: 9px 5px 8px;
+    border-radius: 20px;
+  }
+  .bottom-nav .nav-item { gap: 4px; }
+  .bottom-nav .nav-item > .nav-icon {
+    flex-basis: 34px;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
+  .bottom-nav .nav-item > .nav-label { font-size: 7.5px !important; }
+  .bottom-nav .nav-item.nav-create { transform: translateY(-12px); }
+  .bottom-nav .nav-item.nav-create > .nav-icon {
+    flex-basis: 52px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+    border-radius: 17px;
+  }
+}
+@media (max-width: 380px) {
+  .bottom-nav { width: calc(100% - 14px); padding-left: 3px; padding-right: 3px; }
+  .bottom-nav .nav-item > .nav-label { font-size: 7px !important; letter-spacing: -.3px; }
+  .bottom-nav .nav-item > .nav-icon {
+    flex-basis: 31px;
+    width: 31px;
+    height: 31px;
+    min-width: 31px;
+    min-height: 31px;
+  }
+  .bottom-nav .nav-item.nav-create > .nav-icon {
+    flex-basis: 48px;
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
