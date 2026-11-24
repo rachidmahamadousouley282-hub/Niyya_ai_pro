@@ -524,3 +524,67 @@ a {
   }
 }
 
+
+
+/* Unified bottom navigation icon tiles */
+.bottom-nav {
+  gap: 4px;
+  padding: 10px 9px 9px;
+}
+.nav-item {
+  flex: 1 1 0;
+  min-width: 0;
+  gap: 5px;
+  text-decoration: none;
+  font-size: 9px;
+  font-weight: 550;
+  letter-spacing: .05px;
+  transition: color .2s ease, transform .2s ease;
+}
+.nav-icon {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  border: 1px solid rgba(177,138,255,.13);
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(48,32,70,.88), rgba(26,19,39,.96));
+  color: #b99bfa;
+  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+.nav-icon svg {
+  display: block;
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nav-label { display:block; line-height:1.2; white-space:nowrap; }
+.nav-item.selected { color:#d5c1ff; }
+.nav-item.selected .nav-icon {
+  color: #d2b8ff;
+  border-color: rgba(177,138,255,.48);
+  background: linear-gradient(145deg, rgba(113,72,174,.42), rgba(57,36,85,.88));
+  box-shadow: 0 0 0 2px rgba(149,101,245,.08), 0 5px 16px rgba(104,65,170,.2);
+}
+.nav-item:active .nav-icon { transform:scale(.94); }
+.nav-create .nav-icon {
+  background: linear-gradient(145deg, rgba(101,65,160,.42), rgba(41,28,62,.98));
+  border-color: rgba(177,138,255,.3);
+}
+.nav-item:focus-visible { outline:2px solid #b99bfa; outline-offset:3px; border-radius:12px; }
+@media (max-width: 600px) {
+  .bottom-nav { width:calc(100% - 20px); gap:2px; padding:9px 6px 8px; border-radius:20px; }
+  .nav-item { min-width:0; font-size:8px; gap:4px; }
+  .nav-icon { width:35px; height:35px; border-radius:11px; }
+  .nav-icon svg { width:19px; height:19px; }
+}
+@media (max-width: 360px) {
+  .bottom-nav { width:calc(100% - 12px); padding:8px 4px 7px; }
+  .nav-item { font-size:7px; }
+  .nav-icon { width:32px; height:32px; border-radius:10px; }
+  .nav-icon svg { width:18px; height:18px; }
+}
