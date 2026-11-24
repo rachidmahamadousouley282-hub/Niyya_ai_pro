@@ -143,9 +143,11 @@ router.post("/:conversationId/messages", requireAuth, requireSameOrigin, async (
 
   const risk = safetyEngine.detectRisk(message);
   if (risk.action === "block" || risk.action === "review") {
-    return res.status(400).json({
-      error: "Ce message ne peut pas être traité. Reformule-le de manière sûre.",
-      code: risk.reason
+    return res.status(200).json({
+      success: true,
+      reply: safetyEngine.getSafeResponse(risk, responseLanguage),
+      safetyIntervention: true,
+      remaining: null
     });
   }
 
