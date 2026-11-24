@@ -125,7 +125,10 @@ router.get("/", async (req, res) => {
          UNION ALL
          SELECT c.id, c.slug, c.name, c.tagline,
                 CASE WHEN c.avatar_status = 'approved' THEN c.avatar_url ELSE NULL END AS avatar_url,
-                c.short_bio, c.backstory, c.profile_i18n, c.personality_traits,
+                c.short_bio,
+                (SELECT COUNT(*)::bigint FROM public.character_view_events v WHERE v.character_id = c.id) AS view_count,
+                (SELECT COUNT(*)::bigint FROM public.user_favorite_characters f WHERE f.character_id = c.id) AS like_count,
+                c.backstory, c.profile_i18n, c.personality_traits,
                 c.greeting, c.category, c.tags, u.pseudonym AS creator_pseudonym,
                 c.published_at, c.created_at
          FROM public.characters c
