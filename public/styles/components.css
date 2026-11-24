@@ -614,3 +614,13 @@ textarea.creator-control { min-height: 86px; resize: vertical; line-height: 1.55
 .onboarding-links { color:#b69aff; font-size:12px; }
 .onboarding-links a { text-decoration:underline; text-underline-offset:3px; }
 .onboarding-submit { min-height:46px; }
+
+
+/* Legal information pages */
+.legal-page { max-width:860px; padding-bottom:60px; }
+.legal-content { padding:48px 0; max-width:760px; }
+.legal-content h1 { font:700 clamp(32px,6vw,48px) 'Space Grotesk',sans-serif; margin:12px 0 18px; }
+.legal-content h2 { font:600 19px 'Space Grotesk',sans-serif; margin:28px 0 9px; color:#d9caff; }
+.legal-content p { color:#c1b9cf; font-size:14px; line-height:1.8; margin:10px 0; }
+.legal-content a { color:#c5aaff; text-decoration:underline; text-underline-offset:3px; }
+.legal-warning { padding:14px 16px; border:1px solid rgba(255,194,107,.24); border-radius:12px; background:rgba(255,194,107,.06); color:#e7d3ad !important; }
