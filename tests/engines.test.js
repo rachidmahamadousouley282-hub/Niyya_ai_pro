@@ -372,3 +372,17 @@ test("AI Service keeps minor safety while allowing warm, ordinary affection", ()
   assert.match(prompt, /sans jeu de rôle romantique ou sexuel/);
   assert.match(prompt, /Ne transforme pas automatiquement cela en avertissement/);
 });
+
+
+test("AI Service applies saved response length preferences", () => {
+  const character = {
+    name: "Mira",
+    tagline: "Curieuse",
+    personality_prompt: "Réfléchie.",
+    scenario: ""
+  };
+  const shortPrompt = aiService.buildSystemPrompt(character, "fr", "unknown", "short");
+  const longPrompt = aiService.buildSystemPrompt(character, "fr", "unknown", "long");
+  assert.match(shortPrompt, /réponses courtes/);
+  assert.match(longPrompt, /réponses détaillées/);
+});
