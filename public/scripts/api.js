@@ -119,6 +119,14 @@
       return request("/quota");
     },
 
+    getSettings() {
+      return request("/settings");
+    },
+
+    updateSettings(data) {
+      return request("/settings", { method: "PATCH", body: data });
+    },
+
     getFavorites() {
       return request("/favorites");
     },
