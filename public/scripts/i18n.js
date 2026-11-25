@@ -216,6 +216,16 @@
     pauseLabel.append(pauseCheckbox, pauseText);
     pauseCheckbox.addEventListener("change", () => save({ thinkingPause: pauseCheckbox.checked }));
 
+    const policyLinks = document.createElement("div");
+    policyLinks.className = "settings-policy-links";
+    const termsLink = document.createElement("a");
+    termsLink.href = "/terms.html";
+    termsLink.textContent = current === "en" ? "Terms of use" : current === "es" ? "Términos de uso" : current === "ar" ? "شروط الاستخدام" : "Conditions d’utilisation";
+    const privacyLink = document.createElement("a");
+    privacyLink.href = "/privacy.html";
+    privacyLink.textContent = current === "en" ? "Privacy policy" : current === "es" ? "Política de privacidad" : current === "ar" ? "سياسة الخصوصية" : "Politique de confidentialité";
+    policyLinks.append(termsLink, privacyLink);
+
     const note = document.createElement("p");
     note.className = "language-saved";
     note.setAttribute("role", "status");
@@ -263,6 +273,10 @@
         title.textContent = updated.settings;
         languageLabel.textContent = updated.language;
         lengthLabel.textContent = current === "en" ? "Reply length" : current === "es" ? "Longitud de las respuestas" : current === "ar" ? "طول الردود" : "Longueur des réponses";
+        themeLabel.textContent = current === "en" ? "Appearance" : current === "es" ? "Apariencia" : current === "ar" ? "المظهر" : "Apparence";
+        pauseText.textContent = current === "en" ? "Show thinking indicator" : current === "es" ? "Mostrar indicador de reflexión" : current === "ar" ? "إظهار مؤشر التفكير" : "Afficher l’indicateur de réflexion";
+        termsLink.textContent = current === "en" ? "Terms of use" : current === "es" ? "Términos de uso" : current === "ar" ? "شروط الاستخدام" : "Conditions d’utilisation";
+        privacyLink.textContent = current === "en" ? "Privacy policy" : current === "es" ? "Política de privacidad" : current === "ar" ? "سياسة الخصوصية" : "Politique de confidentialité";
         note.textContent = updated.saved;
         close.textContent = updated.close;
         const nextOptions = current === "en"
@@ -288,7 +302,7 @@
     });
     lengthSelect.addEventListener("change", () => save({ responseLength: lengthSelect.value }));
 
-    panel.append(title, languageLabel, languageSelect, lengthLabel, lengthSelect, themeLabel, themeSelect, pauseLabel, note, close);
+    panel.append(title, languageLabel, languageSelect, lengthLabel, lengthSelect, themeLabel, themeSelect, pauseLabel, policyLinks, note, close);
     modal.append(panel);
     modal.addEventListener("click", event => {
       if (event.target === modal) modal.remove();
