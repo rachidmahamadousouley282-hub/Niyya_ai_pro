@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/styles/components.css?v=settings-policy-v5-20261125">
   <link rel="stylesheet" href="/styles/responsive.css?v=nav5-20261124">
   <link rel="stylesheet" href="/styles/community.css?v=community-20261125">
+  <link rel="stylesheet" href="/styles/home.css?v=home-world-v1-20261126">
 </head>
 <body>
   <div class="app-shell">
@@ -33,15 +34,28 @@
     </header>
 
     <main>
-      <section class="hero">
-        <span class="eyebrow">YOUR AI UNIVERSE</span>
-        <h1>Un monde entier.<br><span>Une infinité d'histoires.</span></h1>
-        <p>Découvre des personnages, crée tes univers et commence une nouvelle aventure.</p>
+      <section class="hero home-hero">
+        <div class="home-welcome">
+          <span class="eyebrow">TON UNIVERS NIYYA</span>
+          <h1 id="home-greeting">Heureux de te retrouver.</h1>
+          <p>Les personnages ont leur monde. Tes discussions y ont leur place.</p>
+        </div>
         <div class="search-box">
           <span>⌕</span>
           <input id="character-search" type="search"
             placeholder="Rechercher un personnage...">
         </div>
+      </section>
+
+      <section class="section companion-section" id="active-companions" hidden>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">TON CERCLE</span>
+            <h2>Reprendre une discussion</h2>
+          </div>
+          <button class="text-link-button" id="all-conversations" type="button">Tout voir →</button>
+        </div>
+        <div class="companion-rail" id="companion-rail" aria-label="Personnages avec lesquels tu as déjà discuté"></div>
       </section>
 
       <section class="section">
@@ -108,7 +122,7 @@
   <script src="/scripts/api.js?v=settings-controls-v3-20261125"></script>
   <script src="/scripts/onboarding.js"></script>
   <script src="/scripts/navigation.js?v=nav-labels-fix2-20261124"></script>
-  <script src="/scripts/app.js?v=persistent-conversations-v1-20261126"></script>
+  <script src="/scripts/app.js?v=home-world-v1-20261126"></script>
   <script src="/scripts/community.js?v=community-profile-edit-20261125"></script>
   <script src="/scripts/pwa.js?v=pwa-20261124"></script>
 </body>

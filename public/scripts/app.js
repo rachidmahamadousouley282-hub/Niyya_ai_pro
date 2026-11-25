@@ -124,8 +124,21 @@ document.addEventListener("DOMContentLoaded", () => {
       card.dataset.category = character.category || "all";
       const art = element("div", "character-art art-" + ["one","two","three","four"][index % 4]);
       const label = element("span", "art-label", "NIYYA ORIGINAL");
-      const symbol = element("span", "character-symbol", (character.name || "N").slice(0,1).toUpperCase());
-      art.append(label, symbol);
+      art.append(label);
+      if (character.avatar_url) {
+        const portrait = element("img", "character-portrait");
+        portrait.src = character.avatar_url;
+        portrait.alt = character.name || "Portrait du personnage";
+        portrait.loading = "lazy";
+        portrait.decoding = "async";
+        portrait.addEventListener("error", () => {
+          portrait.remove();
+          art.append(element("span", "character-symbol", (character.name || "N").slice(0,1).toUpperCase()));
+        }, { once: true });
+        art.append(portrait);
+      } else {
+        art.append(element("span", "character-symbol", (character.name || "N").slice(0,1).toUpperCase()));
+      }
 
       const info = element("div", "character-info");
       info.append(
@@ -236,6 +249,70 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  async function renderActiveCompanions() {
+    const section = document.getElementById("active-companions");
+    const rail = document.getElementById("companion-rail");
+    if (!section || !rail) return;
+    try {
+      await ensureGuest();
+      const data = await window.NiyyaAPI.getConversations();
+      const conversations = Array.isArray(data.conversations) ? data.conversations : [];
+      const recent = conversations
+        .filter(item => item.character_id && item.character_name)
+        .slice(0, 12);
+      rail.replaceChildren();
+      if (!recent.length) {
+        section.hidden = true;
+        return;
+      }
+      recent.forEach(conversation => {
+        const character = characters.find(item => item.id === conversation.character_id) || {
+          id: conversation.character_id,
+          name: conversation.character_name,
+          avatar_url: conversation.character_avatar || null
+        };
+        const button = element("button", "companion-chip");
+        button.type = "button";
+        button.setAttribute("aria-label", "Reprendre la discussion avec " + character.name);
+        const portrait = element("span", "companion-portrait");
+        if (character.avatar_url) {
+          const image = element("img", "");
+          image.src = character.avatar_url;
+          image.alt = "";
+          image.loading = "lazy";
+          image.addEventListener("error", () => {
+            image.remove();
+            portrait.append(element("span", "", (character.name || "N").slice(0, 1).toUpperCase()));
+          }, { once: true });
+          portrait.append(image);
+        } else {
+          portrait.append(element("span", "", (character.name || "N").slice(0, 1).toUpperCase()));
+        }
+        button.append(portrait, element("span", "companion-name", character.name));
+        button.addEventListener("click", async () => {
+          button.disabled = true;
+          try {
+            let fullCharacter = characters.find(item => item.id === character.id);
+            if (!fullCharacter) {
+              const result = await window.NiyyaAPI.getCharacter(character.id);
+              fullCharacter = result.character;
+            }
+            if (!fullCharacter) throw new Error("Personnage introuvable.");
+            await openChat(fullCharacter, button);
+          } catch (error) {
+            showToast(error.message || "Impossible de reprendre cette discussion.");
+          } finally {
+            button.disabled = false;
+          }
+        });
+        rail.append(button);
+      });
+      section.hidden = false;
+    } catch {
+      section.hidden = true;
+    }
+  }
+
   async function openConversationHistory() {
     setActiveNav("#messages");
     document.querySelector(".niyya-modal")?.remove();
@@ -306,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dismiss();
             // Open the permanent character thread; legacy dated threads are
             // consolidated by the conversation endpoint when it is resumed.
-            openProfile(result.character, null);
+            openChat(result.character, null);
           } catch (error) {
             row.disabled = false;
             showToast(error.message || "Impossible d'ouvrir cette conversation.");
@@ -1107,6 +1184,11 @@ async function openCreator() {
       }
       renderCategories();
       renderCharacters();
+      await renderActiveCompanions();
+      const session = await window.NiyyaAPI.getSession().catch(() => null);
+      const pseudonym = session?.user?.pseudonym;
+      const greeting = document.getElementById("home-greeting");
+      if (greeting && pseudonym) greeting.textContent = "Heureux de te retrouver, " + pseudonym + ".";
     })
     .catch(error => {
       grid.setAttribute("aria-busy", "false");
