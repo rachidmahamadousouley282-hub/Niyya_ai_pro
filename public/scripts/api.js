@@ -12,6 +12,7 @@
     const config = {
       method: options.method || "GET",
       credentials: "same-origin",
+      cache: options.cache || "no-store",
       headers: {
         Accept: "application/json",
         ...(options.body ? {

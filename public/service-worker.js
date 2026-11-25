@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "niyya-shell-v17";
+const CACHE_NAME = "niyya-shell-v18";
 const SHELL_URLS = [
   "/",
   "/index.html",
@@ -10,11 +10,11 @@ const SHELL_URLS = [
   "/styles/main.css?v=nav5-20261124",
   "/styles/components.css?v=settings-controls-v3-20261125",
   "/styles/responsive.css?v=nav5-20261124",
-  "/scripts/i18n.js?v=settings-controls-v4-20261125",
-  "/scripts/api.js?v=settings-controls-v3-20261125",
+  "/scripts/i18n.js?v=six-tabs-labels-v3-20261126",
+  "/scripts/api.js?v=quota-no-cache-v2-20261126",
   "/scripts/onboarding.js",
-  "/scripts/navigation.js?v=nav-labels-fix2-20261124",
-  "/scripts/app.js?v=community-facebook-shell-v2-20261126",
+  "/scripts/navigation.js?v=six-tabs-labels-v3-20261126",
+  "/scripts/app.js?v=quota-no-cache-v2-20261126",
   "/styles/community.css?v=community-facebook-shell-v2-20261126",
   "/styles/home.css?v=profile-complete-v2-20261126",
   "/scripts/community.js?v=community-facebook-shell-v2-20261126",

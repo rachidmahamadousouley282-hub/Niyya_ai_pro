@@ -1312,6 +1312,9 @@ async function openCreator() {
     renderCharacters();
   });
 
+  // Charge le quota dès l'ouverture, sans afficher une ancienne valeur HTML.
+  ensureGuest().then(() => refreshQuota()).catch(() => refreshQuota());
+
   window.NiyyaAPI.getCharacters()
     .then(async data => {
       characters = Array.isArray(data.characters) ? data.characters : [];

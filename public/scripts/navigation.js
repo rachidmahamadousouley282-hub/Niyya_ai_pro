@@ -18,7 +18,7 @@
       { href: "#profile", label: "Profil" }
     ];
 
-    // Rebuild the five items cleanly. Preserve each existing SVG, but discard
+    // Rebuild all six destinations cleanly. Preserve each existing SVG, but discard
     // every old label/extra child so each destination can display one label only.
     const oldItems = Array.from(nav.children).filter(node => node.matches(".nav-item"));
     const rebuilt = expected.map(entry => {
