@@ -308,17 +308,7 @@
       } catch (error) { area.replaceChildren(el("p", "community-muted", error.message)); }
     }
 
-    const profileNav = nav.querySelector('[href="#profile"]');
-    profileNav?.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      nav.querySelectorAll(".nav-item").forEach(item => {
-        const selected = item === profileNav;
-        item.classList.toggle("selected", selected);
-        if (selected) item.setAttribute("aria-current", "page");
-        else item.removeAttribute("aria-current");
-      });
-      openCommunity(true);
-    }, true);
+    // Le bouton Profil appartient à l'espace personnel géré par app.js.
+    // La communauté garde uniquement son propre onglet dédié.
   });
 })();

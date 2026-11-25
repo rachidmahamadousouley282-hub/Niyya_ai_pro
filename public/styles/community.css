@@ -59,3 +59,41 @@
   outline: 2px solid rgba(182,154,255,.6);
   outline-offset: 1px;
 }
+
+
+/* Community — align the feed with NIYYA's midnight-blue identity */
+.community-panel {
+  border:1px solid rgba(123,180,239,.2) !important;
+  background:linear-gradient(160deg,#101d30,#080e18 76%) !important;
+  box-shadow:0 28px 90px rgba(0,0,0,.6);
+}
+.community-heading h2,.community-composer h3,.community-section-title,.community-profile-card h3 { color:#edf5ff; }
+.community-heading .chat-subtitle { color:#9fb4cd; }
+.community-composer,.community-post,.community-profile-card {
+  border-color:rgba(123,180,239,.17);
+  background:linear-gradient(145deg,rgba(19,36,57,.95),rgba(10,19,31,.98));
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+}
+.community-muted { color:#98adc5; }
+.community-label { color:#c4d6e9; }
+.community-textarea,.community-comment-input,.community-input {
+  border-color:rgba(123,180,239,.22); background:#081321; color:#eff6ff;
+}
+.community-textarea:focus,.community-comment-input:focus,.community-input:focus {
+  outline-color:rgba(115,184,245,.58);
+}
+.community-primary { background:linear-gradient(110deg,#3989d3,#20558f); color:#fff; }
+.community-secondary {
+  background:rgba(42,103,165,.16); border-color:rgba(123,180,239,.25); color:#b9dcff;
+}
+.community-author { color:#a9d5ff; }
+.community-date { color:#8095ae; }
+.community-post-body { color:#e5effb; }
+.community-post-actions { border-top-color:rgba(145,185,228,.12); }
+.community-action { background:#172a41; color:#b4c8df; }
+.community-action.active { color:#ff9fc0; }
+.community-comment { background:#102138; color:#dbe9f8; }
+.community-comment strong { color:#a9d5ff; }
+.community-empty { border-color:rgba(123,180,239,.22); color:#9db2ca; }
+.community-profile-stats span { background:#172a41; color:#c6d9ed; }
+.community-nav-item .nav-icon { color:#a9d5ff; }

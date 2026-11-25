@@ -308,3 +308,38 @@ body {
  .niyya-profile-avatar { flex-basis:66px; width:66px; height:66px; border-radius:19px; }
  .niyya-profile-identity-copy h3 { font-size:18px; }
 }
+
+
+/* NIYYA V2 — unified midnight-blue navigation and profile polish */
+.bottom-nav {
+  border-color: rgba(128,177,232,.2);
+  background: rgba(7,13,23,.94);
+  box-shadow: 0 14px 42px rgba(0,0,0,.48), inset 0 1px rgba(220,239,255,.045);
+}
+.bottom-nav .nav-item { color:#8194ad; }
+.bottom-nav .nav-icon {
+  border-color:rgba(123,177,234,.13);
+  background:linear-gradient(145deg,#15263c,#0c1727);
+  color:#9bbfe4;
+}
+.bottom-nav .nav-item.selected { color:#b7dcff; }
+.bottom-nav .nav-item.selected .nav-icon {
+  border-color:rgba(104,174,240,.58);
+  background:linear-gradient(145deg,rgba(46,112,181,.48),rgba(18,47,78,.96));
+  color:#d5ecff;
+  box-shadow:0 0 0 2px rgba(75,151,222,.1),0 5px 17px rgba(21,90,155,.23);
+}
+.bottom-nav .nav-create .nav-icon {
+  border-color:rgba(104,174,240,.38);
+  background:linear-gradient(145deg,#285f98,#122d4d);
+  color:#e4f3ff;
+}
+.bottom-nav .nav-item:focus-visible { outline-color:#8bc7ff; }
+.niyya-profile-stat strong { letter-spacing:-.5px; }
+.niyya-profile-edit-form .account-field { display:grid; gap:7px; color:#b8cce3; font-size:12px; }
+.niyya-profile-edit-form .account-input {
+  width:100%; min-width:0; border:1px solid rgba(123,180,239,.2);
+  border-radius:12px; background:#081321; color:#eff6ff; padding:12px;
+}
+.niyya-profile-edit-form .account-input:focus { outline:2px solid rgba(116,185,246,.5); outline-offset:1px; }
+.niyya-profile-menu-item:focus-visible { outline:2px solid #8bc7ff; outline-offset:2px; }
