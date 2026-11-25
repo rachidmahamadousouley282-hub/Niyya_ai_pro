@@ -132,7 +132,7 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
           \`INSERT INTO public.conversation_summaries
              (conversation_id, user_id, character_id, summary, messages_count, last_summarized_at, created_at, updated_at)
            SELECT $1, $2, $3,
-                  LEFT(STRING_AGG(summary, E'\\n\\n' ORDER BY created_at), 12000),
+                  LEFT(STRING_AGG(summary, E'\n\n' ORDER BY created_at), 12000),
                   SUM(messages_count)::integer,
                   MAX(last_summarized_at),
                   MIN(created_at),
@@ -143,7 +143,7 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
            ON CONFLICT (conversation_id) DO UPDATE SET
              summary = LEFT(
                COALESCE(NULLIF(public.conversation_summaries.summary, ''), '') ||
-               CASE WHEN COALESCE(public.conversation_summaries.summary, '') = '' THEN '' ELSE E'\\n\\n' END ||
+               CASE WHEN COALESCE(public.conversation_summaries.summary, '') = '' THEN '' ELSE E'\n\n' END ||
                EXCLUDED.summary,
                12000
              ),
