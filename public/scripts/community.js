@@ -109,6 +109,16 @@
         const data = await api("/profiles/me");
         const profile = data.profile;
         profileId = profile.id;
+        const pseudonymLabel = el("label", "community-label", "Pseudo public");
+        const pseudonym = el("input", "community-input");
+        pseudonym.type = "text";
+        pseudonym.name = "pseudonym";
+        pseudonym.minLength = 3;
+        pseudonym.maxLength = 20;
+        pseudonym.pattern = "[A-Za-z0-9_]{3,20}";
+        pseudonym.autocomplete = "nickname";
+        pseudonym.value = profile.pseudonym || "";
+        pseudonymLabel.append(pseudonym);
         const bioLabel = el("label", "community-label", "Petite présentation");
         const bio = el("textarea", "community-textarea");
         bio.maxLength = 180;
@@ -116,13 +126,15 @@
         bio.placeholder = "Présente-toi en quelques mots (sans coordonnées personnelles)…";
         bio.value = profile.bio || "";
         bioLabel.append(bio);
-        const saveBio = el("button", "community-secondary", "Enregistrer ma présentation");
+        const saveBio = el("button", "community-secondary", "Enregistrer mon profil");
         saveBio.type = "button";
         saveBio.addEventListener("click", async () => {
           saveBio.disabled = true;
           try {
-            await api("/profiles/me", { method: "PATCH", body: { bio: bio.value } });
-            intro.textContent = "Présentation enregistrée.";
+            const result = await api("/profiles/me", { method: "PATCH", body: { pseudonym: pseudonym.value, bio: bio.value } });
+            profile.pseudonym = result.profile.pseudonym;
+            profile.bio = result.profile.bio;
+            intro.textContent = "Profil enregistré.";
           } catch (error) { intro.textContent = error.message; }
           finally { saveBio.disabled = false; }
         });
