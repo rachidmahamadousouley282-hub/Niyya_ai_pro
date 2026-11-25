@@ -16,7 +16,7 @@ const SHELL_URLS = [
   "/scripts/navigation.js?v=nav-labels-fix2-20261124",
   "/scripts/app.js?v=quota-refresh-v2-20261125",
   "/styles/community.css?v=community-20261125",
-  "/scripts/community.js?v=community-profile-20261125",
+  "/scripts/community.js?v=community-profile-edit-20261125",
   "/scripts/pwa.js?v=pwa-20261124"
 ];
 
