@@ -80,6 +80,10 @@
       return request("/auth/logout", { method: "POST" });
     },
 
+    changePassword(data) {
+      return request("/auth/password", { method: "POST", body: data });
+    },
+
     completeOnboarding(data) {
       return request("/auth/onboarding", { method: "POST", body: data });
     },
