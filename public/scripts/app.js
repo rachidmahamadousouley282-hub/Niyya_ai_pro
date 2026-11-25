@@ -321,7 +321,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const badge = document.getElementById("quota-balance");
     if (!badge) return;
     try {
-      await ensureGuest();
       const data = await window.NiyyaAPI.getQuota();
       const lang = window.NiyyaI18n?.getLanguage() || "fr";
       if (data.tier === "vip") {
@@ -343,7 +342,9 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.title = labels[lang] || labels.fr;
       }
     } catch {
-      badge.textContent = "NIYYA";
+      badge.textContent = "—";
+      badge.setAttribute("aria-label", "Connecte-toi pour voir ton quota.");
+      badge.title = "Connecte-toi pour voir ton quota.";
     }
   }
 
