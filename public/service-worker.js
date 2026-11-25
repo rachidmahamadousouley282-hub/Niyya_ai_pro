@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "niyya-shell-v10";
+const CACHE_NAME = "niyya-shell-v11";
 const SHELL_URLS = [
   "/",
   "/index.html",
@@ -14,7 +14,7 @@ const SHELL_URLS = [
   "/scripts/api.js?v=settings-controls-v3-20261125",
   "/scripts/onboarding.js",
   "/scripts/navigation.js?v=nav-labels-fix2-20261124",
-  "/scripts/app.js?v=settings-controls-v3-20261125",
+  "/scripts/app.js?v=persistent-conversations-v1-20261126",
   "/styles/community.css?v=community-20261125",
   "/scripts/community.js?v=community-profile-edit-20261125",
   "/scripts/pwa.js?v=pwa-20261124"

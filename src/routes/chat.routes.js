@@ -50,12 +50,22 @@ function isMissingQuotaMigration(error) {
 router.get("/conversations", requireAuth, async (req, res) => {
   try {
     const result = await query(
-      `SELECT c.id, c.title, c.character_id, c.created_at, c.updated_at,
-              ch.name AS character_name, ch.avatar_url AS character_avatar
-       FROM public.conversations c
-       LEFT JOIN public.characters ch ON ch.id = c.character_id
-       WHERE c.user_id = $1
-       ORDER BY c.updated_at DESC
+      `WITH ranked AS (
+         SELECT c.id, c.title, c.character_id, c.created_at, c.updated_at,
+                ch.name AS character_name, ch.avatar_url AS character_avatar,
+                ROW_NUMBER() OVER (
+                  PARTITION BY COALESCE(c.character_id, c.id)
+                  ORDER BY c.updated_at DESC, c.created_at ASC, c.id ASC
+                ) AS character_rank
+         FROM public.conversations c
+         LEFT JOIN public.characters ch ON ch.id = c.character_id
+         WHERE c.user_id = $1
+       )
+       SELECT id, title, character_id, created_at, updated_at,
+              character_name, character_avatar
+       FROM ranked
+       WHERE character_rank = 1
+       ORDER BY updated_at DESC
        LIMIT 100`,
       [req.user.id]
     );
@@ -72,6 +82,7 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
     return res.status(400).json({ error: "Identifiant de personnage invalide." });
   }
 
+  const client = await pool.connect();
   try {
     const character = await characterEngine.getCharacterForConversation({
       characterId,
@@ -81,16 +92,121 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
       return res.status(404).json({ error: "Personnage introuvable ou inaccessible." });
     }
 
-    const result = await query(
-      `INSERT INTO public.conversations (user_id, character_id, title)
+    await client.query("BEGIN");
+    // Serialize creation for this account so quick repeated taps cannot
+    // create multiple permanent threads for the same character.
+    await client.query(
+      "SELECT id FROM public.users WHERE id = $1 FOR UPDATE",
+      [req.user.id]
+    );
+
+    const existing = await client.query(
+      \`SELECT id, title, character_id, created_at, updated_at
+       FROM public.conversations
+       WHERE user_id = $1 AND character_id = $2
+       ORDER BY created_at ASC, id ASC
+       FOR UPDATE\`,
+      [req.user.id, characterId]
+    );
+
+    if (existing.rows.length) {
+      const canonical = existing.rows[0];
+      const duplicateIds = existing.rows.slice(1).map(row => row.id);
+
+      if (duplicateIds.length) {
+        // Preserve every message ID and original timestamp while moving
+        // legacy dated threads into the oldest permanent conversation.
+        await client.query(
+          "UPDATE public.messages SET conversation_id = $1 WHERE conversation_id = ANY($2::uuid[])",
+          [canonical.id, duplicateIds]
+        );
+
+        await client.query(
+          "UPDATE public.character_memories SET source_conversation_id = $1 WHERE source_conversation_id = ANY($2::uuid[]) AND user_id = $3 AND character_id = $4",
+          [canonical.id, duplicateIds, req.user.id, characterId]
+        );
+
+        // Fold old summaries into the permanent thread before removing
+        // the now-empty duplicate conversation containers.
+        await client.query(
+          \`INSERT INTO public.conversation_summaries
+             (conversation_id, user_id, character_id, summary, messages_count, last_summarized_at, created_at, updated_at)
+           SELECT $1, $2, $3,
+                  LEFT(STRING_AGG(summary, E'\\n\\n' ORDER BY created_at), 12000),
+                  SUM(messages_count)::integer,
+                  MAX(last_summarized_at),
+                  MIN(created_at),
+                  NOW()
+           FROM public.conversation_summaries
+           WHERE conversation_id = ANY($4::uuid[])
+           HAVING COUNT(*) > 0
+           ON CONFLICT (conversation_id) DO UPDATE SET
+             summary = LEFT(
+               COALESCE(NULLIF(public.conversation_summaries.summary, ''), '') ||
+               CASE WHEN COALESCE(public.conversation_summaries.summary, '') = '' THEN '' ELSE E'\\n\\n' END ||
+               EXCLUDED.summary,
+               12000
+             ),
+             messages_count = public.conversation_summaries.messages_count + EXCLUDED.messages_count,
+             last_summarized_at = GREATEST(
+               public.conversation_summaries.last_summarized_at,
+               EXCLUDED.last_summarized_at
+             ),
+             updated_at = NOW()\`,
+          [canonical.id, req.user.id, characterId, duplicateIds]
+        );
+
+        await client.query(
+          \`UPDATE public.conversations
+           SET title = $4,
+               updated_at = GREATEST(
+                 updated_at,
+                 COALESCE(
+                   (SELECT MAX(updated_at) FROM public.conversations WHERE id = ANY($2::uuid[])),
+                   updated_at
+                 )
+               )
+           WHERE id = $1 AND user_id = $3\`,
+          [canonical.id, duplicateIds, req.user.id, character.name.slice(0, 120)]
+        );
+
+        await client.query(
+          "DELETE FROM public.conversations WHERE id = ANY($1::uuid[]) AND user_id = $2",
+          [duplicateIds, req.user.id]
+        );
+      } else {
+        await client.query(
+          "UPDATE public.conversations SET title = $3 WHERE id = $1 AND user_id = $2",
+          [canonical.id, req.user.id, character.name.slice(0, 120)]
+        );
+      }
+
+      const refreshed = await client.query(
+        "SELECT id, title, character_id, created_at, updated_at FROM public.conversations WHERE id = $1 AND user_id = $2",
+        [canonical.id, req.user.id]
+      );
+      await client.query("COMMIT");
+      return res.status(200).json({
+        success: true,
+        reused: true,
+        conversation: refreshed.rows[0]
+      });
+    }
+
+    const result = await client.query(
+      \`INSERT INTO public.conversations (user_id, character_id, title)
        VALUES ($1, $2, $3)
-       RETURNING id, title, character_id, created_at, updated_at`,
+       RETURNING id, title, character_id, created_at, updated_at\`,
       [req.user.id, characterId, character.name.slice(0, 120)]
     );
-    return res.status(201).json({ success: true, conversation: result.rows[0] });
+    await client.query("COMMIT");
+    return res.status(201).json({ success: true, reused: false, conversation: result.rows[0] });
   } catch (error) {
-    console.error("Erreur de création de conversation :", error.message);
-    return res.status(500).json({ error: "Impossible de créer la conversation." });
+    try { await client.query("ROLLBACK"); } catch {}
+    console.error("Erreur de reprise de conversation :", error.message);
+    return res.status(500).json({ error: "Impossible d'ouvrir la conversation." });
+  } finally {
+    client.release();
   }
 });
 

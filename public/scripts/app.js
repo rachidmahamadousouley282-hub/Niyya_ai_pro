@@ -304,7 +304,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const result = await window.NiyyaAPI.getCharacter(conversation.character_id);
             if (!result.character) throw new Error("Personnage introuvable.");
             dismiss();
-            openProfile(result.character, null, conversation.id);
+            // Open the permanent character thread; legacy dated threads are
+            // consolidated by the conversation endpoint when it is resumed.
+            openProfile(result.character, null);
           } catch (error) {
             row.disabled = false;
             showToast(error.message || "Impossible d'ouvrir cette conversation.");
