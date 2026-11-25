@@ -146,3 +146,119 @@
   .companion-rail { gap: 10px; }
   .bottom-nav .nav-item > .nav-icon { width: 31px; height: 31px; min-width: 31px; min-height: 31px; flex-basis: 31px; }
 }
+
+/* NIYYA home — Midnight Blue identity, no gold */
+:root {
+  --bg: #080d16;
+  --surface: #101827;
+  --surface-light: #172943;
+  --purple: #3478d4;
+  --purple-light: #8bc7ff;
+  --text: #edf5ff;
+  --muted: #93a5bc;
+  --border: rgba(151,190,235,.13);
+}
+body {
+  background:
+    radial-gradient(ellipse at 78% -18%, rgba(36,101,181,.22), transparent 46%),
+    radial-gradient(ellipse at 8% 38%, rgba(22,56,100,.13), transparent 42%),
+    #080d16;
+}
+.topbar { border-bottom-color: rgba(148,184,225,.12); }
+.brand-icon {
+  background: linear-gradient(145deg,#4c9cf0,#174b91);
+  box-shadow: 0 5px 24px rgba(43,119,206,.28);
+}
+.brand-ai { color: #83c4ff; }
+.icon-button,.profile-button {
+  border-color: rgba(145,184,230,.16);
+  background: #111c2c;
+}
+.profile-button {
+  background: linear-gradient(145deg,#428bdc,#1b4d88);
+}
+.home-hero {
+  border: 1px solid rgba(125,179,237,.19);
+  background:
+    radial-gradient(ellipse at 88% 8%, rgba(46,116,197,.28), transparent 48%),
+    linear-gradient(135deg,rgba(19,35,57,.98),rgba(10,18,30,.98));
+  box-shadow: 0 22px 65px rgba(0,0,0,.32), inset 0 1px rgba(220,239,255,.055);
+}
+.eyebrow,.text-link-button,.section-heading > a { color: #8bc7ff; }
+.home-welcome p { color: #a9bbd1; }
+.home-hero .search-box {
+  background: rgba(5,12,22,.62);
+  border-color: rgba(123,177,234,.2);
+  color: #8bc7ff;
+}
+.home-hero .search-box input { color: #edf5ff; }
+.home-hero .search-box input::placeholder { color: #8195ad; }
+.category {
+  border-color: rgba(145,184,230,.15);
+  background: #111c2b;
+  color: #b5c5d9;
+}
+.category.active,.category:hover {
+  background: rgba(48,117,194,.19);
+  color: #9bd0ff;
+  border-color: rgba(87,157,226,.52);
+}
+.character-card {
+  border-color: rgba(142,184,232,.14);
+  background: linear-gradient(145deg,rgba(24,39,59,.98),rgba(12,21,34,.99));
+  box-shadow: 0 14px 35px rgba(0,0,0,.24);
+}
+.character-card:hover { border-color: rgba(103,169,237,.46); }
+.character-art { background: linear-gradient(145deg,#1d3858,#101c2c); }
+.character-art::before { background: #2869ad; opacity: .36; }
+.character-symbol { text-shadow: 0 0 34px rgba(100,174,244,.52); }
+.character-tag { color: #9bc9f2; }
+.chat-button {
+  border-color: rgba(101,166,231,.32);
+  background: rgba(43,107,177,.16);
+  color: #a5d3ff;
+}
+.chat-button:hover { background: #2869b2; color: #fff; }
+.creator-banner {
+  border-color: rgba(122,177,235,.19);
+  background:
+    radial-gradient(circle at 90% 18%,rgba(43,112,188,.24),transparent 42%),
+    linear-gradient(120deg,#14263d,#0c1726);
+}
+.creator-banner button {
+  background: linear-gradient(110deg,#438edc,#205a9d);
+  box-shadow: 0 8px 25px rgba(35,100,171,.25);
+}
+.companion-chip { color: #e5f1ff; }
+.companion-portrait {
+  border-color: rgba(111,180,244,.84);
+  background: linear-gradient(145deg,#244a72,#101b2b);
+  box-shadow: 0 0 0 4px rgba(67,142,215,.12),0 8px 24px rgba(0,0,0,.25);
+}
+.companion-name { color: #c7d8eb; }
+.bottom-nav {
+  border-color: rgba(139,184,235,.17);
+  background: rgba(9,16,27,.94);
+  box-shadow: 0 16px 48px rgba(0,0,0,.48);
+}
+.nav-item { color: #8395ab; }
+.nav-icon {
+  border-color: rgba(126,171,221,.13);
+  background: linear-gradient(145deg,rgba(27,48,73,.9),rgba(14,26,42,.98));
+  color: #91bce8;
+}
+.nav-item.selected { color: #a6d4ff; }
+.nav-item.selected .nav-icon {
+  color: #b9ddff;
+  border-color: rgba(105,174,237,.48);
+  background: linear-gradient(145deg,rgba(48,111,177,.48),rgba(21,53,88,.94));
+  box-shadow: 0 0 0 2px rgba(54,126,199,.10),0 5px 18px rgba(31,91,153,.24);
+}
+.nav-create .nav-icon {
+  background: linear-gradient(145deg,rgba(42,105,171,.42),rgba(15,34,56,.98));
+  border-color: rgba(105,174,237,.3);
+}
+.nav-item:focus-visible { outline-color: #8bc7ff; }
+@media (prefers-reduced-motion: no-preference) {
+  .character-card,.companion-portrait,.nav-icon,.chat-button { transition-duration: .24s; }
+}
