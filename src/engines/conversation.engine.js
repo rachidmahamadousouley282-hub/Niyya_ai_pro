@@ -88,7 +88,7 @@ async function processMessage({
 
   if (ageBand !== "18_plus") {
     const relationshipIntent = safetyEngine.detectMinorRelationshipIntent(message);
-    if (relationshipIntent) {
+    if (relationshipIntent && relationshipIntent.kind === "sexual") {
       return {
         reply: safetyEngine.getMinorBoundaryResponse(relationshipIntent.kind, language),
         characterId: character.id,
@@ -171,9 +171,10 @@ async function processMessage({
   }
 
   const generatedRelationshipIntent = safetyEngine.detectMinorRelationshipIntent(reply.reply);
+  const unsafeGeneratedRelationship = generatedRelationshipIntent && generatedRelationshipIntent.kind !== "affection";
   const finalReply = ageBand !== "18_plus" &&
-    (generatedRelationshipIntent || safetyEngine.hasInappropriateMinorReply(reply.reply))
-    ? safetyEngine.getMinorBoundaryResponse(generatedRelationshipIntent ? generatedRelationshipIntent.kind : "romantic", language)
+    (unsafeGeneratedRelationship || safetyEngine.hasInappropriateMinorReply(reply.reply))
+    ? safetyEngine.getMinorBoundaryResponse(unsafeGeneratedRelationship ? generatedRelationshipIntent.kind : "romantic", language)
     : reply.reply;
 
   return {
