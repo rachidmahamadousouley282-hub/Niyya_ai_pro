@@ -13,6 +13,7 @@ const quotaRoutes = require("./routes/quota.routes");
 const favoritesRoutes = require("./routes/favorites.routes");
 const adminRoutes = require("./routes/admin.routes");
 const communityRoutes = require("./routes/community.routes");
+const settingsRoutes = require("./routes/settings.routes");
 
 const app = express();
 
@@ -74,6 +75,7 @@ app.use("/api/quota", quotaRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/community", communityRoutes);
+app.use("/api/settings", settingsRoutes);
 
 app.use("/api", (req, res) => {
   return res.status(404).json({
