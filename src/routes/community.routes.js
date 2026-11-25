@@ -111,6 +111,12 @@ router.patch("/profiles/me", requireAuth, sameOrigin, writeLimiter, async (req, 
       if (!/^[A-Za-z0-9_]{3,20}$/.test(pseudonym)) {
         return res.status(400).json({ error: "Le pseudo doit contenir 3 à 20 lettres, chiffres ou _." });
       }
+      const pseudonymRisk = typeof safety.detectCommunityRisk === "function"
+        ? safety.detectCommunityRisk(pseudonym)
+        : safety.detectRisk(pseudonym);
+      if (pseudonymRisk.action !== "allow") {
+        return res.status(400).json({ error: "Ce pseudo ne peut pas être utilisé." });
+      }
       add("pseudonym", pseudonym);
       updates.push("pseudonym_changed_at = NOW()");
     }
