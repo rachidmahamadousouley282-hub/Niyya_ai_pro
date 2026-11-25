@@ -321,6 +321,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const badge = document.getElementById("quota-balance");
     if (!badge) return;
     try {
+      await ensureGuest();
       const data = await window.NiyyaAPI.getQuota();
       const lang = window.NiyyaI18n?.getLanguage() || "fr";
       if (data.tier === "vip") {
@@ -340,13 +341,6 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.textContent = String(data.remaining);
         badge.setAttribute("aria-label", labels[lang] || labels.fr);
         badge.title = labels[lang] || labels.fr;
-        const rewardNotice = {
-          fr: "Les récompenses publicitaires ne sont pas encore disponibles.",
-          en: "Rewarded ads are not available yet.",
-          es: "Los anuncios con recompensa todavía no están disponibles.",
-          ar: "الإعلانات ذات المكافآت غير متاحة بعد."
-        };
-        badge.title = rewardNotice[lang] || rewardNotice.fr;
       }
     } catch {
       badge.textContent = "NIYYA";
@@ -660,6 +654,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
           waiting.remove();
           addMessage(ui.messages, "assistant", error.message, character.name);
+          if (/quota/i.test(error.message || "")) {
+            await refreshQuota();
+          }
           if (/quota|18 ans|profil|inscription/i.test(error.message)) {
             ui.input.disabled = true;
             ui.send.disabled = true;
@@ -1054,6 +1051,10 @@ async function openCreator() {
       grid.setAttribute("aria-busy", "false");
       grid.replaceChildren(element("p", "empty-state",
         error.message || "Impossible de charger les personnages."));
+    })
+    .finally(() => {
+      // Le compteur doit refléter le quota serveur dès l'ouverture, pas rester à la valeur HTML initiale.
+      refreshQuota();
     });
 
   console.log("NIYYA.ai V2 — Interface initialisée.");
