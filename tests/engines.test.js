@@ -190,6 +190,21 @@ test("AI Service system prompt identifies the character as fictional", () => {
   assert.match(prompt, /Réponds dans la langue suivante : fr/);
 });
 
+test("AI Service prioritizes natural, concise conversation over forced roleplay", () => {
+  const prompt = aiService.buildSystemPrompt({
+    name: "Clara",
+    tagline: "Drôle et vive",
+    personality_prompt: "Taquine et spontanée.",
+    scenario: "Un carnet avec trois défis."
+  }, "fr", "16_17");
+
+  assert.match(prompt, /PRIORITÉ AU NATUREL/);
+  assert.match(prompt, /1 à 3 phrases courtes/);
+  assert.match(prompt, /scénario est un point de départ facultatif/);
+  assert.match(prompt, /Si l'utilisateur change de sujet, suis-le/);
+  assert.match(prompt, /sans jeu de rôle romantique ou sexuel/);
+});
+
 
 test("AI Service applies age-appropriate boundaries for minor accounts", () => {
   const prompt = aiService.buildSystemPrompt({
