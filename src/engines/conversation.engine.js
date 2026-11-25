@@ -30,6 +30,18 @@ function validateInput({ userId, characterId, message }) {
   }
 }
 
+/**
+ * The current onboarding records a self-declared age band only.
+ * Until a trusted age-assurance flow exists, a self-declared 18+ value
+ * must not unlock the adult conversation profile.
+ */
+function resolveConversationAgeBand(account = {}) {
+  if (account.age_band === "13_15" || account.age_band === "16_17") {
+    return account.age_band;
+  }
+  return "unknown";
+}
+
 function normalizeHistory(history = []) {
   if (!Array.isArray(history)) {
     return [];
@@ -72,7 +84,7 @@ async function processMessage({
     [userId]
   );
   const account = accountResult.rows[0] || {};
-  const ageBand = account.age_band || (account.adult_confirmed_at ? "18_plus" : "unknown");
+  const ageBand = resolveConversationAgeBand(account);
 
   if (ageBand !== "18_plus") {
     const relationshipIntent = safetyEngine.detectMinorRelationshipIntent(message);
@@ -175,5 +187,6 @@ async function processMessage({
 
 module.exports = {
   processMessage,
-  normalizeHistory
+  normalizeHistory,
+  resolveConversationAgeBand
 };
