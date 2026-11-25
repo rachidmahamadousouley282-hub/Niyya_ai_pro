@@ -87,12 +87,44 @@ router.get("/profiles/me", requireAuth, async (req, res) => {
 });
 
 router.patch("/profiles/me", requireAuth, sameOrigin, writeLimiter, async (req, res) => {
+  const body = req.body && typeof req.body === "object" ? req.body : {};
+  const hasBio = Object.prototype.hasOwnProperty.call(body, "bio");
+  const hasPseudonym = Object.prototype.hasOwnProperty.call(body, "pseudonym");
+  if (!hasBio && !hasPseudonym) return res.status(400).json({ error: "Aucune modification à enregistrer." });
+
   try {
     if (!await requireOnboarded(req.user.id)) return res.status(403).json({ error: "Termine d'abord ton inscription." });
-    const bio = req.body && req.body.bio === "" ? "" : cleanText(req.body && req.body.bio, 180, "bio", 0);
-    const result = await query("UPDATE public.users SET bio = $2, updated_at = NOW() WHERE id = $1 RETURNING id, pseudonym, bio, created_at", [req.user.id, bio]);
+    const updates = [];
+    const values = [];
+    const add = (column, value) => {
+      values.push(value);
+      updates.push(column + " = $" + values.length);
+    };
+
+    if (hasBio) {
+      const bio = body.bio === "" ? "" : cleanText(body.bio, 180, "bio", 0);
+      add("bio", bio);
+    }
+    if (hasPseudonym) {
+      if (typeof body.pseudonym !== "string") return res.status(400).json({ error: "Le pseudo est invalide." });
+      const pseudonym = body.pseudonym.trim();
+      if (!/^[A-Za-z0-9_]{3,20}$/.test(pseudonym)) {
+        return res.status(400).json({ error: "Le pseudo doit contenir 3 à 20 lettres, chiffres ou _." });
+      }
+      add("pseudonym", pseudonym);
+      updates.push("pseudonym_changed_at = NOW()");
+    }
+
+    values.push(req.user.id);
+    const result = await query(
+      "UPDATE public.users SET " + updates.join(", ") + ", updated_at = NOW() WHERE id = $" + values.length +
+      " RETURNING id, pseudonym, bio, created_at",
+      values
+    );
+    if (!result.rows.length) return res.status(404).json({ error: "Profil introuvable." });
     return res.status(200).json({ success: true, profile: result.rows[0] });
   } catch (error) {
+    if (error.code === "23505") return res.status(409).json({ error: "Ce pseudo est déjà utilisé. Choisis-en un autre." });
     if (/champ|contenu|caractères/i.test(error.message || "")) return res.status(400).json({ error: error.message });
     console.error("Erreur de modification du profil :", error.message);
     return res.status(500).json({ error: "Impossible de modifier ton profil." });
