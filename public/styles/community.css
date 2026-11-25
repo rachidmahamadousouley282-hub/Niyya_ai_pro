@@ -1,0 +1,61 @@
+/* NIYYA.ai V2 — safe community experience */
+.community-panel { width:min(680px, calc(100vw - 24px)) !important; max-height:90vh !important; overflow-y:auto !important; }
+.community-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; }
+.community-heading h2 { margin:5px 0; font-size:25px; }
+.community-content { display:grid; gap:14px; padding-top:12px; }
+.community-profile-area, .community-feed-area { display:grid; gap:12px; min-width:0; }
+.community-composer, .community-post, .community-profile-card { padding:15px; border:1px solid rgba(182,154,255,.17); border-radius:16px; background:#100d18; }
+.community-composer h3, .community-section-title, .community-profile-card h3 { margin:0 0 9px; color:#e8ddff; font:600 16px 'Space Grotesk',sans-serif; }
+.community-muted { color:#9c94aa; font-size:12px; line-height:1.6; margin:5px 0; }
+.community-label { display:grid; gap:7px; margin:10px 0; color:#cfc4e2; font-size:12px; }
+.community-textarea, .community-comment-input { width:100%; min-width:0; border:1px solid rgba(182,154,255,.22); border-radius:12px; padding:12px; background:#0b0911; color:#fff; font:inherit; font-size:13px; resize:vertical; }
+.community-textarea:focus, .community-comment-input:focus { outline:2px solid rgba(182,154,255,.6); outline-offset:1px; }
+.community-primary, .community-secondary { min-height:38px; border:0; border-radius:10px; padding:9px 13px; font-size:12px; font-weight:700; cursor:pointer; }
+.community-primary { background:#9565f5; color:#fff; }
+.community-secondary { background:rgba(149,101,245,.12); border:1px solid rgba(182,154,255,.24); color:#d9caff; margin:7px 0; }
+.community-post-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.community-author { border:0; background:transparent; color:#d5c2ff; font-weight:700; font-size:13px; padding:0; cursor:pointer; }
+.community-date { color:#82798f; font-size:10px; }
+.community-post-body { white-space:pre-wrap; overflow-wrap:anywhere; color:#e9e3f0; font-size:13px; line-height:1.7; margin:13px 0; }
+.community-post-actions { display:flex; flex-wrap:wrap; gap:8px; padding-top:9px; border-top:1px solid rgba(255,255,255,.06); }
+.community-action { border:0; border-radius:9px; padding:7px 9px; background:#211a2d; color:#bcb1ce; font-size:11px; cursor:pointer; }
+.community-action.active { color:#ff9bc2; }
+.community-action:disabled, .community-primary:disabled, .community-secondary:disabled { opacity:.5; cursor:wait; }
+.community-report { margin-left:auto; }
+.community-comments { display:grid; gap:8px; padding-top:10px; }
+.community-comment { margin:0; padding:8px 10px; border-radius:9px; background:#1a1524; color:#d8d0e3; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.community-comment strong { color:#c9b2ff; }
+.community-comment-form { display:flex; gap:7px; align-items:center; }
+.community-comment-input { flex:1; }
+.community-empty { padding:22px; border:1px dashed rgba(182,154,255,.2); border-radius:14px; color:#a79cb8; text-align:center; font-size:13px; line-height:1.6; }
+.community-profile-stats { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+.community-profile-stats span { padding:7px 9px; border-radius:9px; background:#211a2d; color:#cbbce0; font-size:11px; }
+.community-nav-item .nav-icon { font-size:17px; }
+.bottom-nav { grid-template-columns:repeat(6, minmax(0, 1fr)); }
+.bottom-nav .nav-item { min-width:0; flex:1; }
+.bottom-nav .nav-label { font-size:9px; }
+@media(max-width:520px) {
+  .community-panel { width:calc(100vw - 14px) !important; padding:13px !important; }
+  .community-post { padding:12px; }
+  .community-post-actions { gap:5px; }
+  .community-action { padding:7px; font-size:10px; }
+  .community-comment-form { align-items:stretch; flex-direction:column; }
+  .community-comment-form button { width:100%; }
+  .bottom-nav .nav-label { font-size:8px; }
+}
+
+.community-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(182,154,255,.22);
+  border-radius: 12px;
+  padding: 12px;
+  background: #0b0911;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.community-input:focus {
+  outline: 2px solid rgba(182,154,255,.6);
+  outline-offset: 1px;
+}

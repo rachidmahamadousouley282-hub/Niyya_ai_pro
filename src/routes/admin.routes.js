@@ -1,0 +1,104 @@
+"use strict";
+
+const express = require("express");
+const { query } = require("../config/database");
+const { requireAuth } = require("../middleware/auth.middleware");
+
+const router = express.Router();
+
+router.get("/character-analytics", requireAuth, async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Accès réservé à la direction NIYYA.ai." });
+  }
+
+  const requestedDays = Number(req.query.days || 30);
+  const days = [7, 30, 90].includes(requestedDays) ? requestedDays : 30;
+
+  try {
+    const summary = await query(
+      `SELECT
+         (SELECT COUNT(*)::bigint FROM public.character_view_events
+          WHERE view_date >= CURRENT_DATE - ($1::integer - 1)) AS views,
+         (SELECT COUNT(*)::bigint FROM public.user_favorite_characters f
+          JOIN public.characters c ON c.id = f.character_id
+          WHERE f.created_at >= NOW() - ($1::integer * INTERVAL '1 day')
+            AND c.status = 'active'
+            AND (c.is_system = TRUE OR (c.visibility = 'public' AND c.publication_status = 'approved'))) AS likes,
+         (SELECT COUNT(*)::bigint FROM public.conversations conv
+          JOIN public.characters c ON c.id = conv.character_id
+          WHERE conv.created_at >= NOW() - ($1::integer * INTERVAL '1 day')
+            AND c.status = 'active'
+            AND (c.is_system = TRUE OR (c.visibility = 'public' AND c.publication_status = 'approved'))) AS conversations_started,
+         (SELECT COUNT(*)::bigint FROM public.characters c
+          WHERE c.status = 'active'
+            AND (c.is_system = TRUE OR (c.visibility = 'public' AND c.publication_status = 'approved'))) AS public_characters`,
+      [days]
+    );
+
+    const topCharacters = await query(
+      `SELECT c.id, c.name, c.category,
+         (SELECT COUNT(*)::bigint FROM public.character_view_events v
+          WHERE v.character_id = c.id
+            AND v.view_date >= CURRENT_DATE - ($1::integer - 1)) AS views,
+         (SELECT COUNT(*)::bigint FROM public.user_favorite_characters f
+          WHERE f.character_id = c.id
+            AND f.created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS likes,
+         (SELECT COUNT(*)::bigint FROM public.conversations conv
+          WHERE conv.character_id = c.id
+            AND conv.created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS conversations_started
+       FROM public.characters c
+       WHERE c.status = 'active'
+         AND (c.is_system = TRUE OR (c.visibility = 'public' AND c.publication_status = 'approved'))
+       ORDER BY views DESC, likes DESC, conversations_started DESC, c.name ASC
+       LIMIT 25`,
+      [days]
+    );
+
+    const dailyViews = await query(
+      `SELECT view_date AS day, COUNT(*)::bigint AS count
+       FROM public.character_view_events
+       WHERE view_date >= CURRENT_DATE - ($1::integer - 1)
+       GROUP BY view_date ORDER BY view_date ASC`,
+      [days]
+    );
+
+    const dailyLikes = await query(
+      `SELECT f.created_at::date AS day, COUNT(*)::bigint AS count
+       FROM public.user_favorite_characters f
+       JOIN public.characters c ON c.id = f.character_id
+       WHERE f.created_at >= NOW() - ($1::integer * INTERVAL '1 day')
+         AND c.status = 'active'
+         AND (c.is_system = TRUE OR (c.visibility = 'public' AND c.publication_status = 'approved'))
+       GROUP BY f.created_at::date ORDER BY f.created_at::date ASC`,
+      [days]
+    );
+
+    const dailyConversations = await query(
+      `SELECT conv.created_at::date AS day, COUNT(*)::bigint AS count
+       FROM public.conversations conv
+       JOIN public.characters c ON c.id = conv.character_id
+       WHERE conv.created_at >= NOW() - ($1::integer * INTERVAL '1 day')
+         AND c.status = 'active'
+         AND (c.is_system = TRUE OR (c.visibility = 'public' AND c.publication_status = 'approved'))
+       GROUP BY conv.created_at::date ORDER BY conv.created_at::date ASC`,
+      [days]
+    );
+
+    return res.status(200).json({
+      success: true,
+      periodDays: days,
+      summary: summary.rows[0] || {},
+      topCharacters: topCharacters.rows,
+      daily: {
+        views: dailyViews.rows,
+        likes: dailyLikes.rows,
+        conversations: dailyConversations.rows
+      }
+    });
+  } catch (error) {
+    console.error("Erreur des statistiques personnages :", error.message);
+    return res.status(500).json({ error: "Impossible de charger les statistiques des personnages." });
+  }
+});
+
+module.exports = router;
