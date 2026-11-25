@@ -36,6 +36,64 @@ document.addEventListener("DOMContentLoaded", () => {
   window.visualViewport?.addEventListener("resize", syncVisibleViewport, { passive: true });
   window.visualViewport?.addEventListener("scroll", syncVisibleViewport, { passive: true });
 
+  // Immobilise l'accueil derrière les fenêtres, notamment sur Safari iOS.
+  let modalPageLocked = false;
+  let modalScrollY = 0;
+  let previousBodyStyle = null;
+
+  function lockPageBehindModal() {
+    if (!modalPageLocked) {
+      modalScrollY = window.scrollY || window.pageYOffset || 0;
+      previousBodyStyle = document.body.getAttribute("style");
+      document.documentElement.classList.add("niyya-modal-open");
+      document.body.classList.add("niyya-modal-open");
+      document.body.style.position = "fixed";
+      document.body.style.top = "-" + modalScrollY + "px";
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+      const shell = document.querySelector(".app-shell");
+      if (shell) {
+        shell.setAttribute("aria-hidden", "true");
+        shell.inert = true;
+      }
+      modalPageLocked = true;
+    }
+    syncVisibleViewport();
+  }
+
+  function unlockPageAfterModal() {
+    if (!modalPageLocked) return;
+    document.documentElement.classList.remove("niyya-modal-open");
+    document.body.classList.remove("niyya-modal-open");
+    if (previousBodyStyle === null) document.body.removeAttribute("style");
+    else document.body.setAttribute("style", previousBodyStyle);
+    const shell = document.querySelector(".app-shell");
+    if (shell) {
+      shell.removeAttribute("aria-hidden");
+      shell.inert = false;
+    }
+    modalPageLocked = false;
+    window.scrollTo(0, modalScrollY);
+    previousBodyStyle = null;
+  }
+
+  const modalObserver = new MutationObserver(() => {
+    if (document.querySelector(".niyya-modal")) lockPageBehindModal();
+    else unlockPageAfterModal();
+  });
+  modalObserver.observe(document.body, { childList: true });
+
+  function setActiveNav(href) {
+    document.querySelectorAll(".bottom-nav .nav-item").forEach(link => {
+      const selected = link.getAttribute("href") === href;
+      link.classList.toggle("selected", selected);
+      if (selected) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+  }
+
   function renderCharacters() {
     const term = searchInput.value.trim().toLocaleLowerCase();
     grid.replaceChildren();
@@ -179,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function openConversationHistory() {
+    setActiveNav("#messages");
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal messages-fullscreen-modal");
     const panel = element("section", "modal-panel history-panel messages-fullscreen-panel");
@@ -197,7 +256,10 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.append(header, list);
     modal.append(panel);
     document.body.append(modal);
-    const dismiss = () => modal.remove();
+    const dismiss = () => {
+      modal.remove();
+      setActiveNav("#");
+    };
     close.addEventListener("click", dismiss);
     modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
 
@@ -302,6 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function openChatShell(character) {
+    setActiveNav("#messages");
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal chat-fullscreen-modal");
     const panel = element("section", "modal-panel chat-panel chat-fullscreen-panel");
@@ -342,7 +405,10 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.append(panel);
     document.body.append(modal);
 
-    const closeModal = () => modal.remove();
+    const closeModal = () => {
+      modal.remove();
+      setActiveNav("#");
+    };
     close.addEventListener("click", closeModal);
 
     return { modal, messages, form, input, send, profile };
@@ -900,8 +966,7 @@ async function openCreator() {
   document.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", async event => {
       event.preventDefault();
-      document.querySelectorAll(".nav-item").forEach(link =>
-        link.classList.toggle("selected", link === item));
+      setActiveNav(item.getAttribute("href") || "#");
       const target = (item.getAttribute("href") || "").replace("#", "");
       if (target === "discover" || target === "") {
         activeView = "discover";
