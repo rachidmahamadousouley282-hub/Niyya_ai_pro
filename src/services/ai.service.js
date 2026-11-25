@@ -244,6 +244,46 @@ async function generateWithOpenAI({
 }
 
 /**
+ * Normalise les formats texte courants des réponses IA.
+ * Les champs de raisonnement interne ne sont jamais exposés à l'utilisateur.
+ */
+function normalizeProviderText(value) {
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) {
+    return value.map(part => {
+      if (typeof part === "string") return part;
+      if (!part || typeof part !== "object") return "";
+      if (typeof part.text === "string") return part.text;
+      if (typeof part.content === "string") return part.content;
+      return "";
+    }).filter(Boolean).join("\n").trim();
+  }
+  if (value && typeof value === "object") {
+    for (const key of ["text", "content", "response", "output_text"]) {
+      if (typeof value[key] === "string") return value[key].trim();
+    }
+  }
+  return "";
+}
+
+function extractCloudflareReply(data) {
+  const candidates = [
+    data?.choices?.[0]?.message?.content,
+    data?.choices?.[0]?.text,
+    data?.result?.response,
+    data?.response,
+    data?.output_text,
+    data?.output?.text,
+    data?.generated_text
+  ];
+  for (const candidate of candidates) {
+    const text = normalizeProviderText(candidate);
+    if (text) return text;
+  }
+  return "";
+}
+
+/**
  * Connexion à Cloudflare Workers AI via son endpoint OpenAI-compatible.
  * Le jeton reste exclusivement côté serveur.
  */
@@ -281,12 +321,9 @@ async function generateWithCloudflare({
           },
           ...history
         ],
-        temperature: 0.85,
-        max_completion_tokens: 700,
-        stream: false,
-        options: {
-          rejectIfBusy: true
-        }
+        temperature: 0.75,
+        max_tokens: 700,
+        stream: false
       }),
       signal: controller.signal
     });
@@ -308,17 +345,37 @@ async function generateWithCloudflare({
       );
     }
 
-    const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content;
+    const contentType = response.headers.get("content-type") || "";
+    const rawBody = await response.text();
+    let data = null;
 
-    if (typeof reply !== "string" || !reply.trim()) {
+    try {
+      data = rawBody ? JSON.parse(rawBody) : null;
+    } catch {
+      if (/^text\/plain/i.test(contentType) && rawBody.trim()) {
+        data = { response: rawBody };
+      }
+    }
+
+    const reply = extractCloudflareReply(data);
+    if (!reply) {
+      const firstChoice = data?.choices?.[0] || {};
+      const firstMessage = firstChoice.message || {};
+      // Journalise seulement la structure, jamais le texte ni les secrets.
+      console.warn("[NIYYA AI] Format de réponse Cloudflare non reconnu.", {
+        status: response.status,
+        contentType,
+        topLevelKeys: data && typeof data === "object" ? Object.keys(data) : [],
+        choiceKeys: Object.keys(firstChoice),
+        messageKeys: Object.keys(firstMessage)
+      });
       throw new Error(
         "Cloudflare Workers AI n'a retourné aucune réponse exploitable."
       );
     }
 
     return {
-      reply: reply.trim(),
+      reply,
       provider: "cloudflare",
       model: config.model,
       usage: data.usage || null
