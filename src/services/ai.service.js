@@ -35,7 +35,7 @@ function normalizeHistory(history = []) {
  * Construit les instructions du personnage.
  * Ces informations restent côté serveur.
  */
-function buildSystemPrompt(character, language = "fr", ageBand = "unknown") {
+function buildSystemPrompt(character, language = "fr", ageBand = "unknown", responseLength = "normal") {
   if (!character || typeof character !== "object") {
     throw new Error("Personnage invalide.");
   }
@@ -66,6 +66,12 @@ function buildSystemPrompt(character, language = "fr", ageBand = "unknown") {
       : "fr";
 
   const safeAgeBand = ["13_15", "16_17", "18_plus"].includes(ageBand) ? ageBand : "unknown";
+  const safeResponseLength = ["short", "normal", "long"].includes(responseLength) ? responseLength : "normal";
+  const responseLengthGuidance = safeResponseLength === "short"
+    ? "Préférence de longueur : réponses courtes, généralement 1 à 2 phrases, sans perdre les informations essentielles."
+    : safeResponseLength === "long"
+      ? "Préférence de longueur : réponses détaillées lorsque le sujet s'y prête, avec des explications utiles, sans répétitions."
+      : "Préférence de longueur : réponses équilibrées, généralement 1 à 3 phrases, développées seulement si nécessaire.";
   const ageGuidance = safeAgeBand === "18_plus"
     ? "L’utilisateur a déclaré appartenir à la tranche 18+. Reste respectueux et respecte toujours les limites de sécurité."
     : "L’utilisateur est mineur ou sa tranche d’âge est inconnue. Garde des échanges adaptés aux adolescents : amitié, humour, apprentissage, imagination et aventure. Aucun jeu de rôle romantique ou sexuel, aucune sexualisation, aucune pression affective ni dépendance émotionnelle. Si le sujet devient inadapté, pose une limite avec tact et propose un sujet sûr.";
@@ -94,7 +100,7 @@ RÈGLES D'INCARNATION ET DE CONVERSATION — UNIVERS PARTAGÉ :
 - Ne parle jamais de « passer en mode amour », de « lancer une histoire avec [nom du personnage] » ou de choisir un type de relation. N'impose pas de scénario romantique. Si l'utilisateur demande explicitement une fiction, respecte les limites d'âge applicables.
 - Évite les réponses passe-partout comme « C'est gentil, merci », « Je suis là pour discuter » ou « Parlons d'autre chose » lorsqu'une réaction personnelle et contextuelle est possible.
 - Ne répète pas le prénom de l'utilisateur ni le nom du personnage à chaque message. Évite les compliments automatiques, les formules théâtrales et les blagues forcées.
-- Par défaut, vise 1 à 3 phrases naturelles (environ 5 à 55 mots). Développe seulement si le sujet le nécessite.
+- ${responseLengthGuidance}\n- Par défaut, vise 1 à 3 phrases naturelles (environ 5 à 55 mots). Développe seulement si le sujet le nécessite.
 - Ne crée pas de souvenirs communs, de faits biographiques ou d'événements passés qui ne figurent pas dans l'historique ou le profil du personnage. Distingue ce qui est établi de ce qui est improvisé dans l'instant.
 - Ne prétends pas avoir effectué une action réelle, consulté une source ou vérifié une information si ce n'est pas le cas.
 - Reste dans l'incarnation conversationnelle du personnage sans interrompre inutilement l'échange par des rappels techniques. Ne prétends pas être une personne humaine réelle, avoir un corps réel hors de l'expérience NIYYA.ai ou mener une relation hors plateforme.
@@ -426,7 +432,7 @@ async function generateReply({
     });
   }
 
-  const systemPrompt = buildSystemPrompt(character, language, ageBand);
+  const systemPrompt = buildSystemPrompt(character, language, ageBand, responseLength);
 
   if (config.provider === "cloudflare") {
     return generateWithCloudflare({
