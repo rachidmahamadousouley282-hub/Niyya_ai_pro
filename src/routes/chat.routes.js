@@ -101,11 +101,11 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
     );
 
     const existing = await client.query(
-      \`SELECT id, title, character_id, created_at, updated_at
+      `SELECT id, title, character_id, created_at, updated_at
        FROM public.conversations
        WHERE user_id = $1 AND character_id = $2
        ORDER BY created_at ASC, id ASC
-       FOR UPDATE\`,
+       FOR UPDATE`,
       [req.user.id, characterId]
     );
 
@@ -129,7 +129,7 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
         // Fold old summaries into the permanent thread before removing
         // the now-empty duplicate conversation containers.
         await client.query(
-          \`INSERT INTO public.conversation_summaries
+          `INSERT INTO public.conversation_summaries
              (conversation_id, user_id, character_id, summary, messages_count, last_summarized_at, created_at, updated_at)
            SELECT $1, $2, $3,
                   LEFT(STRING_AGG(summary, E'\n\n' ORDER BY created_at), 12000),
@@ -152,12 +152,12 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
                public.conversation_summaries.last_summarized_at,
                EXCLUDED.last_summarized_at
              ),
-             updated_at = NOW()\`,
+             updated_at = NOW()`,
           [canonical.id, req.user.id, characterId, duplicateIds]
         );
 
         await client.query(
-          \`UPDATE public.conversations
+          `UPDATE public.conversations
            SET title = $4,
                updated_at = GREATEST(
                  updated_at,
@@ -166,7 +166,7 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
                    updated_at
                  )
                )
-           WHERE id = $1 AND user_id = $3\`,
+           WHERE id = $1 AND user_id = $3`,
           [canonical.id, duplicateIds, req.user.id, character.name.slice(0, 120)]
         );
 
@@ -194,9 +194,9 @@ router.post("/conversations", requireAuth, requireSameOrigin, async (req, res) =
     }
 
     const result = await client.query(
-      \`INSERT INTO public.conversations (user_id, character_id, title)
+      `INSERT INTO public.conversations (user_id, character_id, title)
        VALUES ($1, $2, $3)
-       RETURNING id, title, character_id, created_at, updated_at\`,
+       RETURNING id, title, character_id, created_at, updated_at`,
       [req.user.id, characterId, character.name.slice(0, 120)]
     );
     await client.query("COMMIT");
