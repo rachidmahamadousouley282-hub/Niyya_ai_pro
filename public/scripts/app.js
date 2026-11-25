@@ -373,10 +373,28 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.setAttribute("aria-label", "Conversation avec " + character.name);
 
     const header = element("div", "chat-header");
-    const titleWrap = element("div");
-    titleWrap.append(element("span", "eyebrow", t("fictional")),
+    const titleWrap = element("div", "chat-title-wrap");
+    const avatar = element("div", "chat-header-avatar");
+    avatar.setAttribute("aria-hidden", "true");
+    const fallbackAvatar = () => {
+      avatar.replaceChildren(element("span", "chat-header-avatar-fallback",
+        (character.name || "N").slice(0, 1).toUpperCase()));
+    };
+    if (character.avatar_url) {
+      const avatarImage = element("img", "chat-header-avatar-image");
+      avatarImage.src = character.avatar_url;
+      avatarImage.alt = "";
+      avatarImage.loading = "lazy";
+      avatarImage.addEventListener("error", fallbackAvatar, { once: true });
+      avatar.append(avatarImage);
+    } else {
+      fallbackAvatar();
+    }
+    const titleCopy = element("div", "chat-title-copy");
+    titleCopy.append(element("span", "eyebrow", t("fictional")),
       element("h2", "", character.name),
       element("p", "chat-subtitle", character.tagline || ""));
+    titleWrap.append(avatar, titleCopy);
     const actions = element("div", "chat-header-actions");
     const profile = element("button", "profile-link-button", t("profileTitle"));
     profile.type = "button";
