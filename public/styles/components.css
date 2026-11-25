@@ -710,3 +710,52 @@ body.niyya-modal-open {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
+
+
+/* Character identity in the conversation header. */
+.chat-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.chat-title-copy { min-width: 0; }
+.chat-title-copy h2 {
+  max-width: min(62vw, 560px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-header-avatar {
+  display: grid;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(190,160,255,.42);
+  border-radius: 15px;
+  background: radial-gradient(circle at 35% 25%, #8058bc, #21172f 72%);
+  box-shadow: 0 5px 18px rgba(91,57,145,.24);
+}
+.chat-header-avatar-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.chat-header-avatar-fallback {
+  color: #fff;
+  font: 700 22px 'Space Grotesk', sans-serif;
+}
+@media (max-width: 520px) {
+  .chat-title-wrap { gap: 9px; }
+  .chat-header-avatar {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+  .chat-header-avatar-fallback { font-size: 19px; }
+  .chat-title-copy h2 { max-width: 43vw; }
+}
