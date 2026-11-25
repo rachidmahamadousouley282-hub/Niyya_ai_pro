@@ -177,7 +177,7 @@ test("AI Service keeps only the latest 18 history messages", () => {
   assert.equal(normalized[17].content, "34");
 });
 
-test("AI Service system prompt identifies the character as fictional", () => {
+test("AI Service frames the character experience without claiming human identity", () => {
   const prompt = aiService.buildSystemPrompt({
     name: "Mira",
     tagline: "Exploratrice",
@@ -185,8 +185,8 @@ test("AI Service system prompt identifies the character as fictional", () => {
     scenario: "Une cité imaginaire."
   }, "fr");
 
-  assert.match(prompt, /personnage fictif/);
-  assert.match(prompt, /Ne prétends pas être une personne réelle/);
+  assert.match(prompt, /Tu incarnes/);
+  assert.match(prompt, /Ne prétends pas être une personne humaine réelle/);
   assert.match(prompt, /Réponds dans la langue suivante : fr/);
 });
 
@@ -268,10 +268,10 @@ test("Required authentication still rejects visitors without a session", async (
 });
 
 
-test("Safety Engine keeps affection non-romantic for minors", () => {
+test("Safety Engine responds warmly to affection without implying a relationship", () => {
   const intent = safety.detectMinorRelationshipIntent("Je t'aime");
-  assert.deepEqual(intent, { kind: "romantic" });
-  assert.match(safety.getMinorBoundaryResponse(intent.kind, "fr"), /personnage fictif/);
+  assert.deepEqual(intent, { kind: "affection" });
+  assert.match(safety.getMinorBoundaryResponse(intent.kind, "fr"), /C'est gentil/);
 });
 
 test("Safety Engine gives a clear boundary for sexual messages from minors", () => {
@@ -280,9 +280,9 @@ test("Safety Engine gives a clear boundary for sexual messages from minors", () 
   assert.match(safety.getMinorBoundaryResponse(intent.kind, "fr"), /Je ne peux pas participer/);
 });
 
-test("Safety Engine catches flirtatious AI output for minor accounts", () => {
+test("Safety Engine catches romantic AI output for minor accounts", () => {
   assert.equal(safety.hasInappropriateMinorReply("Tu as encore du travail pour me convaincre."), true);
-  assert.equal(safety.hasInappropriateMinorReply("C'est gentil, je suis un personnage fictif."), false);
+  assert.equal(safety.hasInappropriateMinorReply("C'est gentil, merci !"), false);
 });
 
 test("Safety Engine blocks explicit sexual content from community posts", () => {
