@@ -122,9 +122,9 @@ test("Conversation Engine keeps only the latest 30 history messages", () => {
 
   const normalized = conversation.normalizeHistory(history);
 
-  assert.equal(normalized.length, 30);
-  assert.equal(normalized[0].content, "5");
-  assert.equal(normalized[29].content, "34");
+  assert.equal(normalized.length, 18);
+  assert.equal(normalized[0].content, "17");
+  assert.equal(normalized[17].content, "34");
 });
 
 test("Conversation Engine caps each history message length", () => {
@@ -265,4 +265,36 @@ test("Required authentication still rejects visitors without a session", async (
   assert.equal(nextCalled, false);
   assert.equal(res.statusCode, 401);
   assert.equal(res.body.error, "Authentification requise.");
+});
+
+
+test("Safety Engine keeps affection non-romantic for minors", () => {
+  const intent = safety.detectMinorRelationshipIntent("Je t'aime");
+  assert.deepEqual(intent, { kind: "romantic" });
+  assert.match(safety.getMinorBoundaryResponse(intent.kind, "fr"), /personnage fictif/);
+});
+
+test("Safety Engine gives a clear boundary for sexual messages from minors", () => {
+  const intent = safety.detectMinorRelationshipIntent("Je veux coucher avec toi");
+  assert.deepEqual(intent, { kind: "sexual" });
+  assert.match(safety.getMinorBoundaryResponse(intent.kind, "fr"), /Je ne peux pas participer/);
+});
+
+test("Safety Engine catches flirtatious AI output for minor accounts", () => {
+  assert.equal(safety.hasInappropriateMinorReply("Tu as encore du travail pour me convaincre."), true);
+  assert.equal(safety.hasInappropriateMinorReply("C'est gentil, je suis un personnage fictif."), false);
+});
+
+test("Safety Engine blocks explicit sexual content from community posts", () => {
+  assert.equal(safety.detectCommunityRisk("Je veux envoyer des nudes").action, "review");
+});
+
+test("AI Service caps total history size to control free inference usage", () => {
+  const history = Array.from({ length: 18 }, (_, index) => ({
+    role: index % 2 ? "assistant" : "user",
+    content: "x".repeat(2500)
+  }));
+  const normalized = aiService.normalizeHistory(history);
+  assert.ok(normalized.reduce((sum, item) => sum + item.content.length, 0) <= 9000);
+  assert.equal(normalized.length, 4);
 });

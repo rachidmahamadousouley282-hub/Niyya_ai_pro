@@ -9,10 +9,10 @@ const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
 const i18n = fs.readFileSync(path.join(root, "public/scripts/i18n.js"), "utf8");
 
-test("bottom navigation contains exactly the five agreed destinations", () => {
+test("bottom navigation contains the six agreed destinations", () => {
   const links = html.match(/<a class="nav-item(?: [^"]*)?" href=/g) || [];
-  assert.equal(links.length, 5, "The bottom navigation must contain five links");
-  for (const label of ["Accueil", "Explorer", "Créer", "Messages", "Profil"]) {
+  assert.equal(links.length, 6, "The bottom navigation must contain six links");
+  for (const label of ["Accueil", "Explorer", "Communauté", "Créer", "Messages", "Profil"]) {
     assert.match(html, new RegExp(`<span class="nav-label">${label}</span>`));
   }
   assert.doesNotMatch(html, /<span class="nav-label">Favoris<\/span>/);

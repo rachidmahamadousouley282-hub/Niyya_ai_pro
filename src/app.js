@@ -12,6 +12,7 @@ const chatRoutes = require("./routes/chat.routes");
 const quotaRoutes = require("./routes/quota.routes");
 const favoritesRoutes = require("./routes/favorites.routes");
 const adminRoutes = require("./routes/admin.routes");
+const communityRoutes = require("./routes/community.routes");
 
 const app = express();
 
@@ -72,6 +73,7 @@ app.use("/api/chat", chatRoutes);
 app.use("/api/quota", quotaRoutes);
 app.use("/api/favorites", favoritesRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/community", communityRoutes);
 
 app.use("/api", (req, res) => {
   return res.status(404).json({

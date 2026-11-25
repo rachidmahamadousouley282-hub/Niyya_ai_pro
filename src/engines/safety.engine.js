@@ -200,6 +200,60 @@ function getSafeResponse(risk, language = "fr") {
   return responses[locale][reason] || responses[locale].prohibited_content;
 }
 
+
+function detectMinorRelationshipIntent(message) {
+  if (typeof message !== "string") return null;
+  const text = message.toLocaleLowerCase();
+  const sexual = /\b(?:coucher avec toi|faire l'amour|avoir des relations sexuelles|tu m'excites|tu m'excite|sexe avec toi|je veux t'embrasser|embrasse-moi)\b/i.test(text);
+  if (sexual) return { kind: "sexual" };
+  const affectionate = /\b(?:je t'aime|je t'adore|tu me plais|je veux qu'on soit en couple|être en couple avec toi|sois ma copine|sois mon copain|ma petite amie|mon petit ami|sortir ensemble|je suis amoureux de toi|je suis amoureuse de toi)\b/i.test(text);
+  return affectionate ? { kind: "romantic" } : null;
+}
+
+function getMinorBoundaryResponse(kind = "romantic", language = "fr") {
+  const messages = {
+    fr: {
+      romantic: "C'est gentil de me le dire. Je suis un personnage fictif : je ne peux pas être en couple, mais on peut continuer à discuter simplement.",
+      sexual: "Je ne peux pas participer à une conversation sexuelle ou romantique. On peut parler d'autre chose, sans jugement."
+    },
+    en: {
+      romantic: "That's kind of you to say. I'm a fictional character, so I can't be in a relationship, but we can keep chatting.",
+      sexual: "I can't take part in a sexual or romantic conversation. We can talk about something else, without judgment."
+    },
+    es: {
+      romantic: "Qué amable de tu parte. Soy un personaje ficticio y no puedo tener una relación, pero podemos seguir conversando.",
+      sexual: "No puedo participar en una conversación sexual o romántica. Podemos hablar de otra cosa, sin juzgarte."
+    },
+    ar: {
+      romantic: "هذا لطف منك. أنا شخصية خيالية ولا يمكنني الدخول في علاقة، لكن يمكننا مواصلة الحديث بشكل عادي.",
+      sexual: "لا يمكنني المشاركة في محادثة جنسية أو رومانسية. يمكننا التحدث عن موضوع آخر دون أحكام."
+    },
+    de: {
+      romantic: "Das ist nett von dir. Ich bin eine fiktive Figur und kann keine Beziehung führen, aber wir können weiter miteinander reden.",
+      sexual: "Ich kann mich nicht an einem sexuellen oder romantischen Gespräch beteiligen. Wir können ohne Urteil über etwas anderes sprechen."
+    },
+    pt: {
+      romantic: "É gentil da tua parte. Sou uma personagem fictícia e não posso ter um relacionamento, mas podemos continuar a conversar.",
+      sexual: "Não posso participar numa conversa sexual ou romântica. Podemos falar de outra coisa, sem julgamentos."
+    }
+  };
+  const locale = messages[language] ? language : "fr";
+  return messages[locale][kind === "sexual" ? "sexual" : "romantic"];
+}
+
+function hasInappropriateMinorReply(reply) {
+  if (typeof reply !== "string") return true;
+  return /\b(?:eu te amo também|je t'aime aussi|je suis amoureux de toi|je suis amoureuse de toi|je veux être ta copine|je veux être ton copain|je veux t'embrasser|je veux coucher avec toi|tu as encore du travail pour me convaincre|il faudra me convaincre|tu me plais aussi|i love you too|i want to be your girlfriend|i want to be your boyfriend|i want to kiss you|i want to sleep with you|te quiero también|quiero ser tu pareja)\b/i.test(reply);
+}
+
+function detectCommunityRisk(message) {
+  const base = detectRisk(message);
+  if (base.action !== "allow") return base;
+  const explicit = /\b(?:contenu sexuel|sexe explicite|pornographie|porno|nudes?|photos intimes|faire l'amour|coucher avec|sexual content|explicit sex|pornography|send nudes)\b/i;
+  if (explicit.test(message)) return { level: "review", action: "review", reason: "explicit_sexual_content" };
+  return base;
+}
+
 function evaluateConversation({ userMessage, aiReply }) {
   const inputRisk = detectRisk(userMessage);
 
@@ -262,5 +316,9 @@ module.exports = {
   detectRisk,
   sanitizeText,
   getSafeResponse,
-  evaluateConversation
+  evaluateConversation,
+  detectMinorRelationshipIntent,
+  getMinorBoundaryResponse,
+  hasInappropriateMinorReply,
+  detectCommunityRisk
 };

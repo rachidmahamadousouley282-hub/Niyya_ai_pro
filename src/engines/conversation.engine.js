@@ -7,6 +7,7 @@ const { query } = require("../config/database");
 const characterEngine = require("./character.engine");
 const emotionEngine = require("./emotion.engine");
 const memoryEngine = require("./memory.engine");
+const safetyEngine = require("./safety.engine");
 
 const MAX_HISTORY = 30;
 const MAX_MESSAGE_LENGTH = 12000;
@@ -72,6 +73,20 @@ async function processMessage({
   );
   const account = accountResult.rows[0] || {};
   const ageBand = account.age_band || (account.adult_confirmed_at ? "18_plus" : "unknown");
+
+  if (ageBand !== "18_plus") {
+    const relationshipIntent = safetyEngine.detectMinorRelationshipIntent(message);
+    if (relationshipIntent) {
+      return {
+        reply: safetyEngine.getMinorBoundaryResponse(relationshipIntent.kind, language),
+        characterId: character.id,
+        emotion: "neutral",
+        provider: "niyya-safety",
+        model: "age-appropriate-boundary",
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
+      };
+    }
+  }
 
   const safeHistory = normalizeHistory(history);
 
@@ -141,8 +156,12 @@ async function processMessage({
     throw new Error("Le moteur IA n'a pas généré de réponse valide.");
   }
 
+  const finalReply = ageBand !== "18_plus" && safetyEngine.hasInappropriateMinorReply(reply.reply)
+    ? safetyEngine.getMinorBoundaryResponse("romantic", language)
+    : reply.reply;
+
   return {
-    reply: reply.reply,
+    reply: finalReply,
     characterId: character.id,
     emotion: detectedEmotion.emotion,
     provider: reply.provider,
