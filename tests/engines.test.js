@@ -122,9 +122,9 @@ test("Conversation Engine keeps only the latest 30 history messages", () => {
 
   const normalized = conversation.normalizeHistory(history);
 
-  assert.equal(normalized.length, 18);
-  assert.equal(normalized[0].content, "17");
-  assert.equal(normalized[17].content, "34");
+  assert.equal(normalized.length, 30);
+  assert.equal(normalized[0].content, "5");
+  assert.equal(normalized[29].content, "34");
 });
 
 test("Conversation Engine caps each history message length", () => {
@@ -164,7 +164,7 @@ test("AI Service removes blank and malformed history messages", () => {
   ]);
 });
 
-test("AI Service limits conversation history to the latest 30 messages", () => {
+test("AI Service keeps only the latest 18 history messages", () => {
   const history = Array.from({ length: 35 }, (_, index) => ({
     role: index % 2 === 0 ? "user" : "assistant",
     content: String(index)
@@ -172,9 +172,9 @@ test("AI Service limits conversation history to the latest 30 messages", () => {
 
   const normalized = aiService.normalizeHistory(history);
 
-  assert.equal(normalized.length, 30);
-  assert.equal(normalized[0].content, "5");
-  assert.equal(normalized[29].content, "34");
+  assert.equal(normalized.length, 18);
+  assert.equal(normalized[0].content, "17");
+  assert.equal(normalized[17].content, "34");
 });
 
 test("AI Service system prompt identifies the character as fictional", () => {
@@ -297,4 +297,12 @@ test("AI Service caps total history size to control free inference usage", () =>
   const normalized = aiService.normalizeHistory(history);
   assert.ok(normalized.reduce((sum, item) => sum + item.content.length, 0) <= 9000);
   assert.equal(normalized.length, 4);
+});
+
+
+test("AI Service caps each history message length", () => {
+  const normalized = aiService.normalizeHistory([
+    { role: "user", content: "x".repeat(12050) }
+  ]);
+  assert.equal(normalized[0].content.length, 2500);
 });
