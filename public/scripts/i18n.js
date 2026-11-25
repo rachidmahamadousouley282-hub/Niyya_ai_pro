@@ -125,6 +125,19 @@
     document.dispatchEvent(new CustomEvent("niyya:language-changed", { detail: { language: current } }));
   }
 
+  const THEME_STORAGE_KEY = "niyya-theme";
+
+  function getTheme() {
+    return localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark";
+  }
+
+  function applyTheme(theme) {
+    const selected = theme === "light" ? "light" : "dark";
+    document.documentElement.dataset.theme = selected;
+    localStorage.setItem(THEME_STORAGE_KEY, selected);
+    return selected;
+  }
+
   function openSettings() {
     document.querySelector(".niyya-modal")?.remove();
     const t = translations[current];
@@ -170,6 +183,28 @@
       option.textContent = name;
       lengthSelect.append(option);
     });
+
+    const themeLabel = document.createElement("label");
+    themeLabel.textContent = current === "en" ? "Appearance" : current === "es" ? "Apariencia" : current === "ar" ? "المظهر" : "Apparence";
+    themeLabel.htmlFor = "niyya-theme-select";
+    const themeSelect = document.createElement("select");
+    themeSelect.id = "niyya-theme-select";
+    themeSelect.className = "language-select";
+    const themeOptions = current === "en"
+      ? [["dark","Dark"],["light","Light"]]
+      : current === "es"
+        ? [["dark","Oscuro"],["light","Claro"]]
+        : current === "ar"
+          ? [["dark","داكن"],["light","فاتح"]]
+          : [["dark","Sombre"],["light","Clair"]];
+    themeOptions.forEach(([value,name]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = name;
+      option.selected = value === getTheme();
+      themeSelect.append(option);
+    });
+    themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
 
     const note = document.createElement("p");
     note.className = "language-saved";
@@ -240,7 +275,7 @@
     });
     lengthSelect.addEventListener("change", () => save({ responseLength: lengthSelect.value }));
 
-    panel.append(title, languageLabel, languageSelect, lengthLabel, lengthSelect, note, close);
+    panel.append(title, languageLabel, languageSelect, lengthLabel, lengthSelect, themeLabel, themeSelect, note, close);
     modal.append(panel);
     modal.addEventListener("click", event => {
       if (event.target === modal) modal.remove();
@@ -269,6 +304,7 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     apply(current);
+    applyTheme(getTheme());
     document.getElementById("settings-button")?.addEventListener("click", openSettings);
   });
 
