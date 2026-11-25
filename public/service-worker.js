@@ -10,7 +10,7 @@ const SHELL_URLS = [
   "/styles/main.css?v=nav5-20261124",
   "/styles/components.css?v=settings-controls-v3-20261125",
   "/styles/responsive.css?v=nav5-20261124",
-  "/scripts/i18n.js?v=settings-controls-v3-20261125",
+  "/scripts/i18n.js?v=settings-controls-v4-20261125",
   "/scripts/api.js?v=settings-controls-v3-20261125",
   "/scripts/onboarding.js",
   "/scripts/navigation.js?v=nav-labels-fix2-20261124",
