@@ -80,7 +80,7 @@ async function processMessage({
   }
 
   const accountResult = await query(
-    "SELECT age_band, adult_confirmed_at FROM public.users WHERE id = $1 LIMIT 1",
+    "SELECT age_band, adult_confirmed_at, response_length FROM public.users WHERE id = $1 LIMIT 1",
     [userId]
   );
   const account = accountResult.rows[0] || {};
