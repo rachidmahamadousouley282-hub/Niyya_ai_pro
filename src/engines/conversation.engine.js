@@ -119,10 +119,11 @@ async function processMessage({
 
   const memoryContext = Array.isArray(memories)
     ? memories
-        .slice(0, 10)
+        .slice(0, 5)
         .map(memory => memory.fact_text)
         .filter(text => typeof text === "string")
         .join("\n")
+        .slice(0, 1200)
     : "";
 
   const enrichedCharacter = {
