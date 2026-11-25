@@ -306,3 +306,31 @@ test("AI Service caps each history message length", () => {
   ]);
   assert.equal(normalized[0].content.length, 2500);
 });
+
+
+test("Safety Engine normalizes typographic apostrophes in affectionate messages", () => {
+  assert.deepEqual(safety.detectMinorRelationshipIntent("Je t’aime"), { kind: "affection" });
+  assert.match(safety.getMinorBoundaryResponse("affection", "fr"), /C'est gentil/);
+});
+
+test("Safety Engine distinguishes affection from a request for a relationship", () => {
+  assert.deepEqual(safety.detectMinorRelationshipIntent("Je t'adore"), { kind: "affection" });
+  assert.deepEqual(safety.detectMinorRelationshipIntent("Je veux qu’on soit en couple"), { kind: "relationship" });
+  assert.match(safety.getMinorBoundaryResponse("relationship", "fr"), /je ne peux pas être ta copine/);
+});
+
+test("Safety Engine catches sexual slang and misspelled intimate requests", () => {
+  assert.deepEqual(safety.detectMinorRelationshipIntent("Tu m’excites trop"), { kind: "sexual" });
+  assert.deepEqual(safety.detectMinorRelationshipIntent("Toucher tes sein"), { kind: "sexual" });
+});
+
+test("Safety Engine does not label ordinary conversation as romantic", () => {
+  assert.equal(safety.detectMinorRelationshipIntent("Je veux juste causer"), null);
+  assert.equal(safety.detectMinorRelationshipIntent("Tu es drôle aujourd'hui"), null);
+});
+
+test("Safety Engine catches generated relationship hints with typographic apostrophes", () => {
+  assert.equal(safety.hasInappropriateMinorReply("Je t’aime aussi"), true);
+  assert.equal(safety.hasInappropriateMinorReply("Tu as encore du travail pour me convaincre"), true);
+  assert.equal(safety.hasInappropriateMinorReply("C'est gentil, merci !"), false);
+});
