@@ -201,49 +201,73 @@ function getSafeResponse(risk, language = "fr") {
 }
 
 
-function detectMinorRelationshipIntent(message) {
-  if (typeof message !== "string") return null;
-  const text = message.toLocaleLowerCase();
-  const sexual = /\b(?:envie de coucher|envie de t'embrasser|j'aimerais t'embrasser|coucher avec toi|coucher ensemble|faire l'amour|avoir des relations sexuelles|tu m'excites|tu m'excite|sexe avec toi|je veux t'embrasser|embrasse-moi|j'ai envie de toi)\b/i.test(text);
-  if (sexual) return { kind: "sexual" };
-  const affectionate = /\b(?:je t'aime|je t'adore|tu me plais|je veux qu'on soit en couple|je veux qu'on se mette ensemble|être en couple avec toi|sois ma copine|sois mon copain|ma petite amie|mon petit ami|sortir ensemble|je suis amoureux de toi|je suis amoureuse de toi)\b/i.test(text);
-  return affectionate ? { kind: "romantic" } : null;
+function normalizeRelationshipText(message) {
+  return message
+    .normalize("NFKC")
+    .toLocaleLowerCase()
+    .replace(/[’‘`´]/g, "'")
+    .replace(/[‐‑‒–—]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
-function getMinorBoundaryResponse(kind = "romantic", language = "fr") {
+function detectMinorRelationshipIntent(message) {
+  if (typeof message !== "string") return null;
+  const text = normalizeRelationshipText(message);
+
+  const sexual = /\b(?:envie de coucher|coucher avec toi|coucher ensemble|faire l'amour|avoir des relations sexuelles|tu m'excite(?:s)?|sexe avec toi|j'ai envie de toi|toucher\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine)|caresser\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine)|palper\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine))\b/i;
+  if (sexual.test(text)) return { kind: "sexual" };
+
+  const relationship = /\b(?:je veux qu'on soit en couple|je veux qu'on se mette ensemble|être en couple avec toi|etre en couple avec toi|sois ma copine|sois mon copain|ma petite amie|mon petit ami|sortir ensemble|je suis amoureux de toi|je suis amoureuse de toi|je veux t'embrasser|j'aimerais t'embrasser|envie de t'embrasser|embrasse-moi|on est ensemble|tu es ma copine|tu es mon copain)\b/i;
+  if (relationship.test(text)) return { kind: "relationship" };
+
+  const affectionate = /\b(?:je t'aime|je t'adore|je t'aime bien|tu comptes pour moi|tu es adorable|t'es adorable)\b/i;
+  return affectionate.test(text) ? { kind: "affection" } : null;
+}
+
+function getMinorBoundaryResponse(kind = "affection", language = "fr") {
   const messages = {
     fr: {
-      romantic: "C'est gentil de me le dire. Je suis un personnage fictif : je ne peux pas être en couple, mais on peut continuer à discuter simplement.",
-      sexual: "Je ne peux pas participer à une conversation sexuelle ou romantique. On peut parler d'autre chose, sans jugement."
+      affection: "C'est gentil, merci ! Je suis là pour discuter avec toi, plaisanter et partager de bonnes idées.",
+      relationship: "Je comprends, mais je ne peux pas être ta copine ou ton copain. On peut continuer à discuter, rire et imaginer des aventures ensemble.",
+      sexual: "Je ne peux pas participer à des échanges sexuels ou intimes. On peut changer de sujet, sans jugement."
     },
     en: {
-      romantic: "That's kind of you to say. I'm a fictional character, so I can't be in a relationship, but we can keep chatting.",
-      sexual: "I can't take part in a sexual or romantic conversation. We can talk about something else, without judgment."
+      affection: "That's kind of you, thank you! I'm here to chat, joke around and share ideas.",
+      relationship: "I understand, but I can't be your girlfriend or boyfriend. We can keep chatting, laughing and imagining adventures.",
+      sexual: "I can't take part in sexual or intimate exchanges. We can change the subject, without judgment."
     },
     es: {
-      romantic: "Qué amable de tu parte. Soy un personaje ficticio y no puedo tener una relación, pero podemos seguir conversando.",
-      sexual: "No puedo participar en una conversación sexual o romántica. Podemos hablar de otra cosa, sin juzgarte."
+      affection: "Qué amable, ¡gracias! Estoy aquí para conversar, bromear y compartir ideas.",
+      relationship: "Lo entiendo, pero no puedo ser tu pareja. Podemos seguir charlando, riendo e imaginando aventuras.",
+      sexual: "No puedo participar en intercambios sexuales o íntimos. Podemos cambiar de tema, sin juzgarte."
     },
     ar: {
-      romantic: "هذا لطف منك. أنا شخصية خيالية ولا يمكنني الدخول في علاقة، لكن يمكننا مواصلة الحديث بشكل عادي.",
-      sexual: "لا يمكنني المشاركة في محادثة جنسية أو رومانسية. يمكننا التحدث عن موضوع آخر دون أحكام."
+      affection: "هذا لطف منك، شكرًا! يمكننا الدردشة والمزاح وتبادل الأفكار.",
+      relationship: "أتفهم ذلك، لكن لا يمكنني أن أكون شريكًا عاطفيًا لك. يمكننا مواصلة الحديث والضحك وتخيّل المغامرات.",
+      sexual: "لا يمكنني المشاركة في محادثات جنسية أو حميمة. يمكننا تغيير الموضوع دون أحكام."
     },
     de: {
-      romantic: "Das ist nett von dir. Ich bin eine fiktive Figur und kann keine Beziehung führen, aber wir können weiter miteinander reden.",
-      sexual: "Ich kann mich nicht an einem sexuellen oder romantischen Gespräch beteiligen. Wir können ohne Urteil über etwas anderes sprechen."
+      affection: "Das ist nett, danke! Wir können uns unterhalten, scherzen und Ideen austauschen.",
+      relationship: "Ich verstehe dich, aber ich kann nicht deine Freundin oder dein Freund sein. Wir können weiter reden und uns Abenteuer ausdenken.",
+      sexual: "Ich kann mich nicht an sexuellen oder intimen Gesprächen beteiligen. Wir können das Thema ohne Urteil wechseln."
     },
     pt: {
-      romantic: "É gentil da tua parte. Sou uma personagem fictícia e não posso ter um relacionamento, mas podemos continuar a conversar.",
-      sexual: "Não posso participar numa conversa sexual ou romântica. Podemos falar de outra coisa, sem julgamentos."
+      affection: "Que gentil, obrigado! Podemos conversar, brincar e partilhar ideias.",
+      relationship: "Entendo, mas não posso ser teu par romântico. Podemos continuar a conversar, rir e imaginar aventuras.",
+      sexual: "Não posso participar em conversas sexuais ou íntimas. Podemos mudar de assunto, sem julgamentos."
     }
   };
   const locale = messages[language] ? language : "fr";
-  return messages[locale][kind === "sexual" ? "sexual" : "romantic"];
+  const selectedKind = ["affection", "relationship", "sexual"].includes(kind) ? kind : "affection";
+  return messages[locale][selectedKind];
 }
 
 function hasInappropriateMinorReply(reply) {
   if (typeof reply !== "string") return true;
-  return Boolean(detectMinorRelationshipIntent(reply)) || /\b(?:eu te amo também|je t'aime aussi|je suis amoureux de toi|je suis amoureuse de toi|je veux être ta copine|je veux être ton copain|je veux t'embrasser|je veux coucher avec toi|j'ai envie de toi|tu as encore du travail pour me convaincre|il faudra me convaincre|tu me plais aussi|i love you too|i want to be your girlfriend|i want to be your boyfriend|i want to kiss you|i want to sleep with you|te quiero también|quiero ser tu pareja)\b/i.test(reply);
+  const normalized = normalizeRelationshipText(reply);
+  return Boolean(detectMinorRelationshipIntent(normalized)) ||
+    /\b(?:je t'aime aussi|je suis amoureux de toi|je suis amoureuse de toi|je veux être ta copine|je veux être ton copain|je veux t'embrasser|je veux coucher avec toi|j'ai envie de toi|tu as encore du travail pour me convaincre|il faudra me convaincre|tu me plais aussi|i love you too|i want to be your girlfriend|i want to be your boyfriend|i want to kiss you|i want to sleep with you|te quiero también|quiero ser tu pareja)\b/i.test(normalized);
 }
 
 function detectCommunityRisk(message) {
