@@ -839,3 +839,14 @@ html[data-theme="light"] .community-comment-input {
   accent-color: #9565f5;
 }
 html[data-theme="light"] .settings-toggle { color: #30263d; }
+
+
+.settings-policy-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 4px 0;
+  font-size: 12px;
+}
+.settings-policy-links a { color: #bca2f8; text-decoration: underline; }
+html[data-theme="light"] .settings-policy-links a { color: #6943b5; }
