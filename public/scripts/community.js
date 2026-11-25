@@ -55,7 +55,7 @@
       catch { await window.NiyyaAPI.createGuest(); }
     };
 
-    async function openCommunity() {
+    async function openCommunity(showOwnProfile = false) {
       document.querySelector(".niyya-modal")?.remove();
       const modal = el("div", "niyya-modal community-modal");
       const panel = el("section", "modal-panel community-panel");
@@ -92,8 +92,9 @@
       const profileArea = el("section", "community-profile-area");
       const feedArea = el("section", "community-feed-area");
       content.replaceChildren(profileArea, feedArea);
-      await renderComposer(profileArea);
+      const myProfileId = await renderComposer(profileArea);
       await loadFeed(feedArea, profileArea);
+      if (showOwnProfile && myProfileId) await showProfile(myProfileId, profileArea);
     }
 
     async function renderComposer(container) {
@@ -102,10 +103,12 @@
       card.append(el("h3", "", "Ton espace"));
       const intro = el("p", "community-muted", "Connecte-toi avec ton pseudo NIYYA pour publier et gérer ton profil.");
       card.append(intro);
+      let profileId = null;
       try {
         await ensureSession();
         const data = await api("/profiles/me");
         const profile = data.profile;
+        profileId = profile.id;
         const bioLabel = el("label", "community-label", "Petite présentation");
         const bio = el("textarea", "community-textarea");
         bio.maxLength = 180;
@@ -153,6 +156,7 @@
         card.append(el("p", "community-muted", error.message || "Le fil est accessible, mais termine ton inscription pour publier."));
       }
       container.append(card);
+      return profileId;
     }
 
     async function loadFeed(container, profileArea) {
@@ -291,5 +295,18 @@
         area.replaceChildren(card);
       } catch (error) { area.replaceChildren(el("p", "community-muted", error.message)); }
     }
+
+    const profileNav = nav.querySelector('[href="#profile"]');
+    profileNav?.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      nav.querySelectorAll(".nav-item").forEach(item => {
+        const selected = item === profileNav;
+        item.classList.toggle("selected", selected);
+        if (selected) item.setAttribute("aria-current", "page");
+        else item.removeAttribute("aria-current");
+      });
+      openCommunity(true);
+    }, true);
   });
 })();
