@@ -536,6 +536,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const text = ui.input.value.trim();
         if (!text || ui.send.disabled) return;
         ui.input.value = "";
+        ui.messages.querySelector(".chat-starters")?.remove();
         addMessage(ui.messages, "user", text);
         ui.send.disabled = true;
         const waiting = element("p", "chat-status", t("preparing"));
