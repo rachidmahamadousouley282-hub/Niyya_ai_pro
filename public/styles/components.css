@@ -655,3 +655,37 @@ textarea.creator-control { min-height: 86px; resize: vertical; line-height: 1.55
 .account-email { color:#fff; font-size:14px; overflow-wrap:anywhere; }
 
 .account-field[hidden], .account-note[hidden] { display:none !important; }
+
+/* Conversation starters and reserved advertising placement */
+.chat-starters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 2px 2px 8px;
+}
+.chat-starter {
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid rgba(182,154,255,.28);
+  border-radius: 999px;
+  background: rgba(149,101,245,.09);
+  color: #d9cbff;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: left;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
+}
+.chat-starter:hover,
+.chat-starter:focus-visible {
+  border-color: rgba(182,154,255,.65);
+  background: rgba(149,101,245,.2);
+}
+.chat-starter:active { transform: scale(.98); }
+.history-ad-slot[hidden] { display: none !important; }
+.history-ad-slot {
+  min-height: 0;
+  margin: 0 0 14px;
+  border: 1px solid rgba(182,154,255,.16);
+  border-radius: 14px;
+  background: rgba(149,101,245,.06);
+}
