@@ -282,11 +282,14 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
 .niyya-modal.chat-fullscreen-modal {
   display: block;
   position: fixed;
-  inset: 0;
+  top: var(--niyya-viewport-top, 0px);
+  right: 0;
+  bottom: auto;
+  left: 0;
   z-index: 300;
   width: 100%;
-  height: 100%;
-  height: 100dvh;
+  height: 100vh;
+  height: var(--niyya-viewport-height, 100vh);
   padding: 0;
   overflow: hidden;
   background: #0b0911;
@@ -299,8 +302,8 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
   gap: 0;
   width: 100%;
   max-width: none;
-  height: 100%;
-  height: 100dvh;
+  height: 100vh;
+  height: var(--niyya-viewport-height, 100vh);
   max-height: none;
   min-height: 0;
   padding: 0;
@@ -333,6 +336,9 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
   flex: 1 1 auto;
   min-height: 0;
   max-height: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   margin: 0 auto;
   width: min(100%, 900px);
   padding: 22px clamp(14px, 4vw, 34px);
@@ -380,11 +386,14 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
 .niyya-modal.messages-fullscreen-modal {
   display: block;
   position: fixed;
-  inset: 0;
+  top: var(--niyya-viewport-top, 0px);
+  right: 0;
+  bottom: auto;
+  left: 0;
   z-index: 250;
   width: 100%;
-  height: 100%;
-  height: 100dvh;
+  height: 100vh;
+  height: var(--niyya-viewport-height, 100vh);
   padding: 0;
   overflow: hidden;
   background: #0d0b14;
@@ -394,8 +403,8 @@ html[dir='rtl'] .topbar, html[dir='rtl'] .section-heading { direction:rtl; }
 .niyya-modal .messages-fullscreen-panel {
   width: 100%;
   max-width: none;
-  height: 100%;
-  height: 100dvh;
+  height: 100vh;
+  height: var(--niyya-viewport-height, 100vh);
   max-height: none;
   padding: 0;
   overflow-y: auto;
@@ -688,4 +697,16 @@ textarea.creator-control { min-height: 86px; resize: vertical; line-height: 1.55
   border: 1px solid rgba(182,154,255,.16);
   border-radius: 14px;
   background: rgba(149,101,245,.06);
+}
+
+
+/* Lock the page behind open modals and keep mobile scrolling contained. */
+html.niyya-modal-open,
+body.niyya-modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+.messages-fullscreen-panel {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
