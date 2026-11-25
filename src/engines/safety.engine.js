@@ -215,7 +215,7 @@ function detectMinorRelationshipIntent(message) {
   if (typeof message !== "string") return null;
   const text = normalizeRelationshipText(message);
 
-  const sexual = /\b(?:envie de coucher|coucher avec toi|coucher ensemble|faire l'amour|avoir des relations sexuelles|tu m'excite(?:s)?|sexe avec toi|j'ai envie de toi|toucher\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine)|caresser\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine)|palper\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine))\b/i;
+  const sexual = /\b(?:envie de coucher|envie de t'embrasser.{0,40}\bcoucher\b|coucher avec toi|coucher ensemble|faire l'amour|avoir des relations sexuelles|tu m'excite(?:s)?|sexe avec toi|j'ai envie de toi|toucher\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine)|caresser\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine)|palper\s+(?:(?:tes?|ta|les)\s+)?(?:seins?|poitrine))\b/i;
   if (sexual.test(text)) return { kind: "sexual" };
 
   const relationship = /\b(?:je veux qu'on soit en couple|je veux qu'on se mette ensemble|être en couple avec toi|etre en couple avec toi|sois ma copine|sois mon copain|ma petite amie|mon petit ami|sortir ensemble|je suis amoureux de toi|je suis amoureuse de toi|je veux t'embrasser|j'aimerais t'embrasser|envie de t'embrasser|embrasse-moi|on est ensemble|tu es ma copine|tu es mon copain)\b/i;
