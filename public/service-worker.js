@@ -8,7 +8,7 @@ const SHELL_URLS = [
   "/manifest.webmanifest",
   "/icons/niyya-icon.svg",
   "/styles/main.css?v=nav5-20261124",
-  "/styles/components.css?v=personal-chat-20261125",
+  "/styles/components.css?v=appearance-light-20261125",
   "/styles/responsive.css?v=nav5-20261124",
   "/scripts/i18n.js?v=settings-v2-20261125",
   "/scripts/api.js?v=account-security-v3-20261125",
