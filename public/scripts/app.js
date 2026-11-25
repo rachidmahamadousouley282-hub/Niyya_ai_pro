@@ -717,6 +717,63 @@ document.addEventListener("DOMContentLoaded", () => {
           element("span", "account-label", "Adresse e-mail"),
           element("p", "account-email", user.email)
         );
+        const passwordForm = element("form", "account-form");
+        const currentPasswordLabel = element("label", "account-field");
+        currentPasswordLabel.append(element("span", "", "Mot de passe actuel"));
+        const currentPassword = element("input", "account-input");
+        currentPassword.type = "password";
+        currentPassword.autocomplete = "current-password";
+        currentPassword.required = true;
+        currentPassword.maxLength = 128;
+        currentPasswordLabel.append(currentPassword);
+        const newPasswordLabel = element("label", "account-field");
+        newPasswordLabel.append(element("span", "", "Nouveau mot de passe"));
+        const newPassword = element("input", "account-input");
+        newPassword.type = "password";
+        newPassword.autocomplete = "new-password";
+        newPassword.required = true;
+        newPassword.minLength = 10;
+        newPassword.maxLength = 128;
+        newPasswordLabel.append(newPassword);
+        const confirmPasswordLabel = element("label", "account-field");
+        confirmPasswordLabel.append(element("span", "", "Confirmer le nouveau mot de passe"));
+        const confirmPassword = element("input", "account-input");
+        confirmPassword.type = "password";
+        confirmPassword.autocomplete = "new-password";
+        confirmPassword.required = true;
+        confirmPassword.minLength = 10;
+        confirmPassword.maxLength = 128;
+        confirmPasswordLabel.append(confirmPassword);
+        const passwordStatus = element("p", "chat-status", "");
+        passwordStatus.setAttribute("role", "status");
+        const changePassword = element("button", "account-secondary", "Modifier le mot de passe");
+        changePassword.type = "submit";
+        passwordForm.append(currentPasswordLabel, newPasswordLabel, confirmPasswordLabel, passwordStatus, changePassword);
+        passwordForm.addEventListener("submit", async event => {
+          event.preventDefault();
+          if (changePassword.disabled) return;
+          if (newPassword.value !== confirmPassword.value) {
+            passwordStatus.textContent = "Les deux nouveaux mots de passe ne correspondent pas.";
+            return;
+          }
+          changePassword.disabled = true;
+          try {
+            const result = await window.NiyyaAPI.changePassword({
+              currentPassword: currentPassword.value,
+              newPassword: newPassword.value
+            });
+            passwordStatus.textContent = result.message || "Mot de passe modifié.";
+            currentPassword.value = "";
+            newPassword.value = "";
+            confirmPassword.value = "";
+          } catch (error) {
+            passwordStatus.textContent = error.message || "Impossible de modifier le mot de passe.";
+          } finally {
+            changePassword.disabled = false;
+          }
+        });
+        content.append(passwordForm);
+
         const logout = element("button", "account-secondary", "Se déconnecter");
         logout.type = "button";
         logout.addEventListener("click", async () => {
