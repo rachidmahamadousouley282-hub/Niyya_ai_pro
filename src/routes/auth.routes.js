@@ -119,6 +119,48 @@ router.post("/login", requireSameOrigin, async (req, res) => {
   }
 });
 
+router.post("/password", requireAuth, requireSameOrigin, async (req, res) => {
+  const currentPassword = req.body && req.body.currentPassword;
+  const newPassword = req.body && req.body.newPassword;
+  if (typeof currentPassword !== "string" || currentPassword.length > 128 ||
+      typeof newPassword !== "string" || newPassword.length < 10 || newPassword.length > 128) {
+    return res.status(400).json({ error: "Le nouveau mot de passe doit contenir entre 10 et 128 caractères." });
+  }
+  if (req.user.isGuest) return res.status(403).json({ error: "Crée d'abord un compte permanent pour modifier ton mot de passe." });
+
+  let client;
+  try {
+    const accountResult = await query(
+      "SELECT password_hash FROM public.users WHERE id = $1 AND is_guest = FALSE LIMIT 1",
+      [req.user.id]
+    );
+    const account = accountResult.rows[0];
+    if (!account || !await verifyPassword(currentPassword, account.password_hash)) {
+      return res.status(401).json({ error: "Ton mot de passe actuel est incorrect." });
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+    client = await pool.connect();
+    await client.query("BEGIN");
+    await client.query(
+      "UPDATE public.users SET password_hash = $2, updated_at = NOW() WHERE id = $1",
+      [req.user.id, passwordHash]
+    );
+    await client.query(
+      "UPDATE public.user_sessions SET is_revoked = TRUE, updated_at = NOW() WHERE user_id = $1 AND id <> $2 AND is_revoked = FALSE",
+      [req.user.id, req.user.sessionId]
+    );
+    await client.query("COMMIT");
+    return res.status(200).json({ success: true, message: "Mot de passe modifié. Les autres sessions ont été déconnectées." });
+  } catch (error) {
+    if (client) await client.query("ROLLBACK").catch(() => {});
+    console.error("Erreur de modification du mot de passe :", error.message);
+    return res.status(500).json({ error: "Impossible de modifier ton mot de passe pour le moment." });
+  } finally {
+    if (client) client.release();
+  }
+});
+
 router.post("/logout", requireAuth, requireSameOrigin, async (req, res) => {
   try {
     await query("UPDATE public.user_sessions SET is_revoked = TRUE, updated_at = NOW() WHERE id = $1", [req.user.sessionId]);
