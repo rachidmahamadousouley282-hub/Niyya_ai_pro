@@ -136,43 +136,135 @@
     panel.setAttribute("aria-modal", "true");
     const title = document.createElement("h2");
     title.textContent = t.settings;
-    const label = document.createElement("label");
-    label.textContent = t.language;
-    label.htmlFor = "niyya-language-select";
-    const select = document.createElement("select");
-    select.id = "niyya-language-select";
-    select.className = "language-select";
+
+    const languageLabel = document.createElement("label");
+    languageLabel.textContent = t.language;
+    languageLabel.htmlFor = "niyya-language-select";
+    const languageSelect = document.createElement("select");
+    languageSelect.id = "niyya-language-select";
+    languageSelect.className = "language-select";
     [["fr","Français"],["en","English"],["es","Español"],["ar","العربية"]].forEach(([value,name]) => {
       const option = document.createElement("option");
       option.value = value;
       option.textContent = name;
       option.selected = value === current;
-      select.append(option);
+      languageSelect.append(option);
     });
+
+    const lengthLabel = document.createElement("label");
+    lengthLabel.textContent = current === "en" ? "Reply length" : current === "es" ? "Longitud de las respuestas" : current === "ar" ? "طول الردود" : "Longueur des réponses";
+    lengthLabel.htmlFor = "niyya-response-length";
+    const lengthSelect = document.createElement("select");
+    lengthSelect.id = "niyya-response-length";
+    lengthSelect.className = "language-select";
+    const lengthOptions = current === "en"
+      ? [["short","Short"],["normal","Balanced"],["long","Detailed"]]
+      : current === "es"
+        ? [["short","Cortas"],["normal","Equilibradas"],["long","Detalladas"]]
+        : current === "ar"
+          ? [["short","قصيرة"],["normal","متوازنة"],["long","مفصلة"]]
+          : [["short","Courtes"],["normal","Équilibrées"],["long","Détaillées"]];
+    lengthOptions.forEach(([value,name]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = name;
+      lengthSelect.append(option);
+    });
+
     const note = document.createElement("p");
     note.className = "language-saved";
+    note.setAttribute("role", "status");
     note.textContent = t.saved;
     const close = document.createElement("button");
     close.type = "button";
     close.className = "chat-send";
     close.textContent = t.close;
     close.addEventListener("click", () => modal.remove());
-    select.addEventListener("change", () => {
-      localStorage.setItem(STORAGE_KEY, select.value);
-      apply(select.value);
-      const updated = translations[current];
-      title.textContent = updated.settings;
-      label.textContent = updated.language;
-      note.textContent = updated.saved;
-      close.textContent = updated.close;
-      document.documentElement.dir = current === "ar" ? "rtl" : "ltr";
+
+    let settingsReady = false;
+    let saveInProgress = false;
+    const ensureSettingsSession = async () => {
+      try {
+        await window.NiyyaAPI.getSession();
+      } catch {
+        await window.NiyyaAPI.createGuest();
+      }
+    };
+    const save = async payload => {
+      if (!settingsReady || saveInProgress) return;
+      saveInProgress = true;
+      note.textContent = current === "en" ? "Saving…" : current === "es" ? "Guardando…" : current === "ar" ? "جارٍ الحفظ…" : "Enregistrement…";
+      try {
+        await window.NiyyaAPI.updateSettings(payload);
+        note.textContent = translations[current].saved;
+      } catch (error) {
+        note.textContent = error.message || (current === "en" ? "Could not save settings." : "Impossible d’enregistrer les paramètres.");
+      } finally {
+        saveInProgress = false;
+      }
+    };
+
+    languageSelect.addEventListener("change", async () => {
+      const next = languageSelect.value;
+      try {
+        await ensureSettingsSession();
+        await window.NiyyaAPI.updateSettings({ language: next });
+        localStorage.setItem(STORAGE_KEY, next);
+        apply(next);
+        const updated = translations[current];
+        title.textContent = updated.settings;
+        languageLabel.textContent = updated.language;
+        lengthLabel.textContent = current === "en" ? "Reply length" : current === "es" ? "Longitud de las respuestas" : current === "ar" ? "طول الردود" : "Longueur des réponses";
+        note.textContent = updated.saved;
+        close.textContent = updated.close;
+        const nextOptions = current === "en"
+          ? [["short","Short"],["normal","Balanced"],["long","Detailed"]]
+          : current === "es"
+            ? [["short","Cortas"],["normal","Equilibradas"],["long","Detalladas"]]
+            : current === "ar"
+              ? [["short","قصيرة"],["normal","متوازنة"],["long","مفصلة"]]
+              : [["short","Courtes"],["normal","Équilibrées"],["long","Détaillées"]];
+        const selectedLength = lengthSelect.value || "normal";
+        lengthSelect.replaceChildren();
+        nextOptions.forEach(([value,name]) => {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = name;
+          option.selected = value === selectedLength;
+          lengthSelect.append(option);
+        });
+      } catch (error) {
+        note.textContent = error.message || "Impossible d’enregistrer la langue.";
+        languageSelect.value = current;
+      }
     });
-    panel.append(title, label, select, note, close);
+    lengthSelect.addEventListener("change", () => save({ responseLength: lengthSelect.value }));
+
+    panel.append(title, languageLabel, languageSelect, lengthLabel, lengthSelect, note, close);
     modal.append(panel);
     modal.addEventListener("click", event => {
       if (event.target === modal) modal.remove();
     });
     document.body.append(modal);
+
+    ensureSettingsSession()
+      .then(() => window.NiyyaAPI.getSettings())
+      .then(data => {
+        const settings = data.settings || {};
+        if (!localStorage.getItem(STORAGE_KEY) && ["fr","en","es","ar"].includes(settings.language)) {
+          apply(settings.language);
+          languageSelect.value = settings.language;
+          title.textContent = translations[current].settings;
+          languageLabel.textContent = translations[current].language;
+          close.textContent = translations[current].close;
+        }
+        lengthSelect.value = ["short","normal","long"].includes(settings.responseLength)
+          ? settings.responseLength : "normal";
+        settingsReady = true;
+      })
+      .catch(error => {
+        note.textContent = error.message || "Impossible de charger les paramètres.";
+      });
   }
 
   document.addEventListener("DOMContentLoaded", () => {
