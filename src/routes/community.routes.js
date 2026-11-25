@@ -47,7 +47,7 @@ async function getProfile(userId, viewerId) {
     "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
     "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.follower_user_id = u.id) AS following_count, " +
     "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $2 AND f.followed_user_id = u.id) AS is_following, " +
-    "EXISTS (SELECT 1 FROM public.community_blocks b WHERE b.blocker_user_id = $2 AND b.blocked_user_id = u.id) AS is_blocked " +
+    "EXISTS (SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id = $2 AND b.blocked_user_id = u.id) OR (b.blocker_user_id = u.id AND b.blocked_user_id = $2)) AS is_blocked " +
     "FROM public.users u WHERE u.id = $1 AND u.onboarded_at IS NOT NULL AND u.pseudonym IS NOT NULL LIMIT 1",
     [userId, viewerId || null]
   );
@@ -57,19 +57,26 @@ async function getProfile(userId, viewerId) {
 router.get("/feed", optionalAuth, async (req, res) => {
   const limit = pagination(req.query.limit, 20, 30);
   const offset = pagination(req.query.offset, 0, 5000);
+  const mode = ["all", "following", "mine"].includes(req.query.mode) ? req.query.mode : "all";
   if (limit === null || offset === null) return res.status(400).json({ error: "Pagination invalide." });
   try {
+    const viewer = req.user ? req.user.id : null;
     const result = await query(
-      "SELECT p.id, p.body, p.created_at, u.id AS author_id, u.pseudonym AS author_name, " +
+      "SELECT p.id, p.body, p.visibility, (p.media_data IS NOT NULL) AS has_image, p.media_mime, p.created_at, u.id AS author_id, u.pseudonym AS author_name, " +
       "(SELECT COUNT(*)::int FROM public.community_post_likes l WHERE l.post_id = p.id) AS like_count, " +
       "(SELECT COUNT(*)::int FROM public.community_comments c WHERE c.post_id = p.id AND c.status = 'published') AS comment_count, " +
-      "EXISTS (SELECT 1 FROM public.community_post_likes l WHERE l.post_id = p.id AND l.user_id = $3) AS liked_by_me " +
+      "EXISTS (SELECT 1 FROM public.community_post_likes l WHERE l.post_id = p.id AND l.user_id = $3) AS liked_by_me, " +
+      "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $3 AND f.followed_user_id = u.id) AS is_following " +
       "FROM public.community_posts p JOIN public.users u ON u.id = p.author_user_id " +
       "WHERE p.status = 'published' AND u.onboarded_at IS NOT NULL " +
+      "AND (p.visibility = 'public' OR p.author_user_id = $3) " +
+      "AND ($4 <> 'following' OR EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $3 AND f.followed_user_id = u.id)) " +
+      "AND ($4 <> 'mine' OR p.author_user_id = $3) " +
+      "AND ($3 IS NULL OR NOT EXISTS (SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id = $3 AND b.blocked_user_id = u.id) OR (b.blocker_user_id = u.id AND b.blocked_user_id = $3))) " +
       "ORDER BY p.created_at DESC, p.id DESC LIMIT $1 OFFSET $2",
-      [limit, offset, req.user ? req.user.id : null]
+      [limit, offset, viewer, mode]
     );
-    return res.status(200).json({ success: true, posts: result.rows });
+    return res.status(200).json({ success: true, posts: result.rows, mode });
   } catch (error) {
     console.error("Erreur du fil communautaire :", error.message);
     return res.status(500).json({ error: "Impossible de charger la communauté." });
@@ -163,6 +170,7 @@ router.post("/profiles/:userId/follow", requireAuth, sameOrigin, writeLimiter, a
       "SELECT EXISTS(SELECT 1 FROM added) AS following",
       [req.user.id, targetId]
     );
+    if (result.rows[0].following) await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type) VALUES ($1,$2,'follow')", [targetId, req.user.id]);
     const counts = await query("SELECT COUNT(*)::int AS follower_count FROM public.community_follows WHERE followed_user_id = $1", [targetId]);
     return res.status(200).json({ success: true, following: result.rows[0].following, followerCount: counts.rows[0].follower_count });
   } catch (error) {
@@ -175,8 +183,28 @@ router.post("/posts", requireAuth, sameOrigin, writeLimiter, async (req, res) =>
   try {
     const user = await requireOnboarded(req.user.id);
     if (!user) return res.status(403).json({ error: "Termine d'abord ton inscription." });
-    const body = cleanText(req.body && req.body.body, 600, "publication", 2);
-    const result = await query("INSERT INTO public.community_posts (author_user_id, body) VALUES ($1, $2) RETURNING id, body, created_at", [req.user.id, body]);
+    const rawBody = typeof (req.body && req.body.body) === "string" ? req.body.body : "";
+    const body = rawBody.trim() ? cleanText(rawBody, 600, "publication", 2) : "";
+    const visibility = req.body && req.body.visibility === "private" ? "private" : "public";
+    let image = null;
+    if (req.body && req.body.image) {
+      const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(req.body.image);
+      if (!match) return res.status(400).json({ error: "Image invalide. Formats acceptés : JPG, PNG ou WebP." });
+      const imageBytes = Buffer.from(match[2], "base64");
+      if (!imageBytes.length || imageBytes.length > 1500000) return res.status(413).json({ error: "L'image doit faire 1,5 Mo maximum après compression." });
+      const signatures = {
+        "image/jpeg": imageBytes[0] === 0xff && imageBytes[1] === 0xd8,
+        "image/png": imageBytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),
+        "image/webp": imageBytes.toString("ascii",0,4) === "RIFF" && imageBytes.toString("ascii",8,12) === "WEBP"
+      };
+      if (!signatures[match[1]]) return res.status(400).json({ error: "Le fichier ne correspond pas à son format déclaré." });
+      image = { data: imageBytes, mime: match[1] };
+    }
+    if (body.length < 2 && !image) return res.status(400).json({ error: "Ajoute un texte ou une image à ta publication." });
+    const result = await query(
+      "INSERT INTO public.community_posts (author_user_id, body, visibility, media_data, media_mime) VALUES ($1,$2,$3,$4,$5) RETURNING id, body, visibility, (media_data IS NOT NULL) AS has_image, media_mime, created_at",
+      [req.user.id, body, visibility, image ? image.data : null, image ? image.mime : null]
+    );
     return res.status(201).json({ success: true, post: { ...result.rows[0], author_id: user.id, author_name: user.pseudonym, like_count: 0, comment_count: 0, liked_by_me: false } });
   } catch (error) {
     if (/champ|contenu|caractères/i.test(error.message || "")) return res.status(400).json({ error: error.message });
@@ -209,6 +237,9 @@ router.post("/posts/:postId/like", requireAuth, sameOrigin, writeLimiter, async 
       [req.user.id, req.params.postId]
     );
     if (!result.rows[0] || !result.rows[0].exists) return res.status(404).json({ error: "Publication introuvable." });
+    if (result.rows[0].liked) {
+      await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type, post_id) SELECT author_user_id, $1, 'like', id FROM public.community_posts WHERE id = $2 AND author_user_id <> $1", [req.user.id, req.params.postId]);
+    }
     const count = await query("SELECT COUNT(*)::int AS like_count FROM public.community_post_likes WHERE post_id = $1", [req.params.postId]);
     return res.status(200).json({ success: true, liked: result.rows[0].liked, likeCount: count.rows[0].like_count });
   } catch (error) {
@@ -247,6 +278,7 @@ router.post("/posts/:postId/comments", requireAuth, sameOrigin, writeLimiter, as
       [req.params.postId, req.user.id, body]
     );
     if (!result.rows.length) return res.status(404).json({ error: "Publication introuvable." });
+    await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type, post_id) SELECT author_user_id, $1, 'comment', id FROM public.community_posts WHERE id = $2 AND author_user_id <> $1", [req.user.id, req.params.postId]);
     return res.status(201).json({ success: true, comment: { ...result.rows[0], author_id: user.id, author_name: user.pseudonym } });
   } catch (error) {
     if (/champ|contenu|caractères/i.test(error.message || "")) return res.status(400).json({ error: error.message });
@@ -313,6 +345,113 @@ router.patch("/moderation/reports/:reportId", requireAuth, sameOrigin, writeLimi
   }
 });
 
+
+router.get("/profiles/:userId/relations", optionalAuth, async(req,res)=>{
+  const target=req.params.userId;
+  const type=req.query.type==="following"?"following":"followers";
+  if(!validId(target))return res.status(400).json({error:"Profil invalide."});
+  try{
+    const col=type==="followers"?"followed_user_id":"follower_user_id";
+    const join=type==="followers"?"f.follower_user_id":"f.followed_user_id";
+    const result=await query(
+      "SELECT u.id,u.pseudonym,u.bio FROM public.community_follows f JOIN public.users u ON u.id="+join+
+      " WHERE f."+col+"=$1 AND u.onboarded_at IS NOT NULL AND ($2 IS NULL OR NOT EXISTS(SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id=$2 AND b.blocked_user_id=u.id) OR (b.blocker_user_id=u.id AND b.blocked_user_id=$2))) ORDER BY f.created_at DESC LIMIT 100",
+      [target,req.user?req.user.id:null]);
+    return res.json({success:true,members:result.rows,type});
+  }catch(error){return res.status(500).json({error:"Impossible de charger cette liste."});}
+});
+
+router.post("/comments/:commentId/report", requireAuth, sameOrigin, writeLimiter, async(req,res)=>{
+  if(!validId(req.params.commentId))return res.status(400).json({error:"Commentaire invalide."});
+  const reason=["spam","harassment","unsafe","personal_info","other"].includes(req.body&&req.body.reason)?req.body.reason:"other";
+  try{
+    const exists=await query("SELECT id FROM public.community_comments WHERE id=$1 AND status='published'",[req.params.commentId]);
+    if(!exists.rows.length)return res.status(404).json({error:"Commentaire introuvable."});
+    const result=await query("INSERT INTO public.community_reports(reporter_user_id,target_type,target_id,reason) VALUES($1,'comment',$2,$3) ON CONFLICT(reporter_user_id,target_type,target_id) DO NOTHING RETURNING id",[req.user.id,req.params.commentId,reason]);
+    return res.status(201).json({success:true,reported:Boolean(result.rows.length)});
+  }catch(error){return res.status(500).json({error:"Impossible de signaler ce commentaire."});}
+});
+
+
+router.get("/posts/:postId/media", optionalAuth, async (req, res) => {
+  if (!validId(req.params.postId)) return res.sendStatus(400);
+  try {
+    const result = await query("SELECT media_data, media_mime, author_user_id, visibility, status FROM public.community_posts WHERE id=$1 LIMIT 1", [req.params.postId]);
+    const item = result.rows[0];
+    if (!item || !item.media_data || item.status !== "published") return res.sendStatus(404);
+    if (item.visibility === "private" && (!req.user || req.user.id !== item.author_user_id)) return res.sendStatus(404);
+    if (req.user) {
+      const blocked = await query("SELECT 1 FROM public.community_blocks WHERE (blocker_user_id=$1 AND blocked_user_id=$2) OR (blocker_user_id=$2 AND blocked_user_id=$1) LIMIT 1", [req.user.id,item.author_user_id]);
+      if (blocked.rows.length) return res.sendStatus(404);
+    }
+    res.set("Content-Type", item.media_mime);
+    res.set("Cache-Control", item.visibility === "private" ? "private, no-store" : "public, max-age=3600");
+    res.set("X-Content-Type-Options", "nosniff");
+    return res.send(item.media_data);
+  } catch (error) { console.error("Erreur média communauté :", error.message); return res.sendStatus(500); }
+});
+
+router.get("/profiles/:userId/posts", optionalAuth, async (req,res) => {
+  if (!validId(req.params.userId)) return res.status(400).json({error:"Profil invalide."});
+  const limit=pagination(req.query.limit,20,30);
+  if(limit===null) return res.status(400).json({error:"Pagination invalide."});
+  try {
+    const viewer=req.user ? req.user.id : null;
+    const result=await query(
+      "SELECT p.id,p.body,p.visibility,(p.media_data IS NOT NULL) AS has_image,p.media_mime,p.created_at,u.id AS author_id,u.pseudonym AS author_name,"+
+      "(SELECT COUNT(*)::int FROM public.community_post_likes l WHERE l.post_id=p.id) AS like_count,"+
+      "(SELECT COUNT(*)::int FROM public.community_comments c WHERE c.post_id=p.id AND c.status='published') AS comment_count,"+
+      "EXISTS(SELECT 1 FROM public.community_post_likes l WHERE l.post_id=p.id AND l.user_id=$2) AS liked_by_me "+
+      "FROM public.community_posts p JOIN public.users u ON u.id=p.author_user_id "+
+      "WHERE p.author_user_id=$1 AND p.status='published' AND (p.visibility='public' OR $1=$2) "+
+      "AND ($2 IS NULL OR NOT EXISTS(SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id=$2 AND b.blocked_user_id=$1) OR (b.blocker_user_id=$1 AND b.blocked_user_id=$2))) "+
+      "ORDER BY p.created_at DESC LIMIT $3",[req.params.userId,viewer,limit]);
+    return res.json({success:true,posts:result.rows});
+  } catch(error){console.error("Erreur publications profil :",error.message);return res.status(500).json({error:"Impossible de charger les publications."});}
+});
+
+router.get("/search", optionalAuth, async (req,res)=>{
+  const term=typeof req.query.q==="string"?req.query.q.trim().slice(0,40):"";
+  if(term.length<2) return res.json({success:true,profiles:[]});
+  try{
+    const result=await query(
+      "SELECT u.id,u.pseudonym,u.bio,(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id=u.id) AS follower_count "+
+      "FROM public.users u WHERE u.onboarded_at IS NOT NULL AND u.pseudonym ILIKE $1 "+
+      "AND ($2 IS NULL OR NOT EXISTS(SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id=$2 AND b.blocked_user_id=u.id) OR (b.blocker_user_id=u.id AND b.blocked_user_id=$2))) "+
+      "ORDER BY follower_count DESC,u.pseudonym LIMIT 20",["%"+term+"%",req.user?req.user.id:null]);
+    return res.json({success:true,profiles:result.rows});
+  }catch(error){return res.status(500).json({error:"Recherche indisponible."});}
+});
+
+router.get("/notifications", requireAuth, async(req,res)=>{
+  try{
+    const result=await query(
+      "SELECT n.id,n.event_type,n.created_at,n.read_at,n.post_id,u.id AS actor_id,u.pseudonym AS actor_name "+
+      "FROM public.community_notifications n LEFT JOIN public.users u ON u.id=n.actor_user_id "+
+      "WHERE n.recipient_user_id=$1 ORDER BY n.created_at DESC LIMIT 40",[req.user.id]);
+    return res.json({success:true,notifications:result.rows,unread_count:result.rows.filter(x=>!x.read_at).length});
+  }catch(error){return res.status(500).json({error:"Notifications indisponibles."});}
+});
+
+router.post("/notifications/read", requireAuth, sameOrigin, writeLimiter, async(req,res)=>{
+  try{await query("UPDATE public.community_notifications SET read_at=NOW() WHERE recipient_user_id=$1 AND read_at IS NULL",[req.user.id]);return res.json({success:true});}
+  catch(error){return res.status(500).json({error:"Impossible de marquer les notifications."});}
+});
+
+router.post("/profiles/:userId/block", requireAuth, sameOrigin, writeLimiter, async(req,res)=>{
+  const target=req.params.userId;
+  if(!validId(target)||target===req.user.id)return res.status(400).json({error:"Membre invalide."});
+  try{
+    const existing=await query("SELECT 1 FROM public.community_blocks WHERE blocker_user_id=$1 AND blocked_user_id=$2",[req.user.id,target]);
+    if(existing.rows.length){
+      await query("DELETE FROM public.community_blocks WHERE blocker_user_id=$1 AND blocked_user_id=$2",[req.user.id,target]);
+      return res.json({success:true,blocked:false});
+    }
+    await query("INSERT INTO public.community_blocks(blocker_user_id,blocked_user_id) VALUES($1,$2) ON CONFLICT DO NOTHING",[req.user.id,target]);
+    await query("DELETE FROM public.community_follows WHERE (follower_user_id=$1 AND followed_user_id=$2) OR (follower_user_id=$2 AND followed_user_id=$1)",[req.user.id,target]);
+    return res.json({success:true,blocked:true});
+  }catch(error){return res.status(500).json({error:"Impossible de modifier le blocage."});}
+});
 
 router.get("/profiles/:userId/relations", optionalAuth, async(req,res)=>{
   const target=req.params.userId;
