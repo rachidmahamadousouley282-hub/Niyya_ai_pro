@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "niyya-shell-v4";
+const CACHE_NAME = "niyya-shell-v5";
 const SHELL_URLS = [
   "/",
   "/index.html",
@@ -8,13 +8,13 @@ const SHELL_URLS = [
   "/manifest.webmanifest",
   "/icons/niyya-icon.svg",
   "/styles/main.css?v=nav5-20261124",
-  "/styles/components.css?v=personal-chat-20261125",
+  "/styles/components.css?v=character-name-fix-20261125",
   "/styles/responsive.css?v=nav5-20261124",
   "/scripts/i18n.js?v=nav-labels-fix-20261124",
   "/scripts/api.js",
   "/scripts/onboarding.js",
   "/scripts/navigation.js?v=nav-labels-fix2-20261124",
-  "/scripts/app.js?v=personal-chat-20261125",
+  "/scripts/app.js?v=character-name-fix-20261125",
   "/scripts/pwa.js?v=pwa-20261124"
 ];
 
