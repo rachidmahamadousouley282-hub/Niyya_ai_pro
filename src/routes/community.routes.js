@@ -38,7 +38,7 @@ function cleanText(value, max, field, min) {
 async function requireOnboarded(userId) {
   const result = await query("SELECT id, pseudonym, age_band, onboarded_at FROM public.users WHERE id = $1 LIMIT 1", [userId]);
   const user = result.rows[0];
-  return user && user.onboarded_at && user.pseudonym && user.age_band ? user : null;
+  return user && user.onboarded_at && user.pseudonym ? user : null;
 }
 async function getProfile(userId, viewerId) {
   const result = await query(
@@ -161,6 +161,7 @@ router.delete("/posts/:postId", requireAuth, sameOrigin, writeLimiter, async (re
 router.post("/posts/:postId/like", requireAuth, sameOrigin, writeLimiter, async (req, res) => {
   if (!validId(req.params.postId)) return res.status(400).json({ error: "Publication invalide." });
   try {
+    if (!await requireOnboarded(req.user.id)) return res.status(403).json({ error: "Termine d'abord ton inscription." });
     const result = await query(
       "WITH target AS (SELECT id FROM public.community_posts WHERE id = $2 AND status = 'published'), " +
       "removed AS (DELETE FROM public.community_post_likes l USING target t WHERE l.post_id = t.id AND l.user_id = $1 RETURNING 1), " +
@@ -183,6 +184,7 @@ router.get("/posts/:postId/comments", optionalAuth, async (req, res) => {
     const result = await query(
       "SELECT c.id, c.body, c.created_at, u.id AS author_id, u.pseudonym AS author_name " +
       "FROM public.community_comments c JOIN public.users u ON u.id = c.author_user_id " +
+      "JOIN public.community_posts p ON p.id = c.post_id AND p.status = 'published' " +
       "WHERE c.post_id = $1 AND c.status = 'published' ORDER BY c.created_at ASC LIMIT 50",
       [req.params.postId]
     );
@@ -216,6 +218,7 @@ router.post("/posts/:postId/comments", requireAuth, sameOrigin, writeLimiter, as
 
 router.post("/posts/:postId/report", requireAuth, sameOrigin, writeLimiter, async (req, res) => {
   if (!validId(req.params.postId)) return res.status(400).json({ error: "Publication invalide." });
+  if (!await requireOnboarded(req.user.id)) return res.status(403).json({ error: "Termine d'abord ton inscription." });
   const reason = ["spam", "harassment", "unsafe", "personal_info", "other"].includes(req.body && req.body.reason) ? req.body.reason : "other";
   try {
     const exists = await query("SELECT id FROM public.community_posts WHERE id = $1 AND status = 'published'", [req.params.postId]);
