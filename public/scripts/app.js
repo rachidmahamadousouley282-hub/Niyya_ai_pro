@@ -645,15 +645,16 @@ document.addEventListener("DOMContentLoaded", () => {
         ui.messages.querySelector(".chat-starters")?.remove();
         addMessage(ui.messages, "user", text, character.name);
         ui.send.disabled = true;
-        const waiting = element("p", "chat-status", t("preparing"));
-        ui.messages.append(waiting);
+        const showThinking = localStorage.getItem("niyya-thinking-pause") !== "0";
+        const waiting = showThinking ? element("p", "chat-status", t("preparing")) : null;
+        if (waiting) ui.messages.append(waiting);
         try {
           const result = await window.NiyyaAPI.sendMessage(activeConversation, text, window.NiyyaI18n?.getLanguage() || "fr");
-          waiting.remove();
+          waiting?.remove();
           await addMessageTyping(ui.messages, result.reply, character.name);
           await refreshQuota();
         } catch (error) {
-          waiting.remove();
+          waiting?.remove();
           addMessage(ui.messages, "assistant", error.message, character.name);
           if (/quota/i.test(error.message || "")) {
             await refreshQuota();
