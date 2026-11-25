@@ -386,3 +386,14 @@ test("AI Service applies saved response length preferences", () => {
   assert.match(shortPrompt, /réponses courtes/);
   assert.match(longPrompt, /réponses détaillées/);
 });
+
+test("Safety Engine allows character-voiced, non-romantic relationship boundaries", () => {
+  assert.equal(safety.hasInappropriateMinorReply("Je ne peux pas être ta copine, mais on peut parler de musique."), false);
+  assert.equal(safety.hasInappropriateMinorReply("Je ne veux pas qu'on soit en couple."), false);
+  assert.equal(safety.hasInappropriateMinorReply("Je préfère qu'on reste amis."), false);
+});
+
+test("Safety Engine still rejects reciprocal romantic replies", () => {
+  assert.equal(safety.hasInappropriateMinorReply("Je t'aime aussi."), true);
+  assert.equal(safety.hasInappropriateMinorReply("Je veux être ta copine."), true);
+});

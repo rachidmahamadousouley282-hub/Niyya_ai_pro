@@ -171,10 +171,13 @@ async function processMessage({
   }
 
   const generatedRelationshipIntent = safetyEngine.detectMinorRelationshipIntent(reply.reply);
-  const unsafeGeneratedRelationship = generatedRelationshipIntent && generatedRelationshipIntent.kind !== "affection";
-  const finalReply = ageBand !== "18_plus" &&
-    (unsafeGeneratedRelationship || safetyEngine.hasInappropriateMinorReply(reply.reply))
-    ? safetyEngine.getMinorBoundaryResponse(unsafeGeneratedRelationship ? generatedRelationshipIntent.kind : "romantic", language)
+  const unsafeGeneratedRelationship = ageBand !== "18_plus" &&
+    safetyEngine.hasInappropriateMinorReply(reply.reply);
+  const fallbackKind = generatedRelationshipIntent && generatedRelationshipIntent.kind === "sexual"
+    ? "sexual"
+    : "relationship";
+  const finalReply = unsafeGeneratedRelationship
+    ? safetyEngine.getMinorBoundaryResponse(fallbackKind, language)
     : reply.reply;
 
   return {

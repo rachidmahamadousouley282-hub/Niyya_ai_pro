@@ -266,6 +266,12 @@ function getMinorBoundaryResponse(kind = "affection", language = "fr") {
 function hasInappropriateMinorReply(reply) {
   if (typeof reply !== "string") return true;
   const normalized = normalizeRelationshipText(reply);
+
+  // Une limite clairement formulée n'est pas une déclaration romantique.
+  // On la laisse passer pour que le personnage puisse la dire avec sa propre voix.
+  const clearBoundary = /\b(?:je ne peux pas|je ne veux pas|je ne serai pas|je ne suis pas|je préfère ne pas|je prefere ne pas|je préfère qu'on reste|je prefere qu'on reste|je préfère qu'on garde|je prefere qu'on garde)\b.{0,100}\b(?:ta copine|ton copain|être en couple|etre en couple|relation amoureuse|sortir ensemble|t'embrasser|être ta partenaire|etre ta partenaire|être ton partenaire|etre ton partenaire)\b/i;
+  if (clearBoundary.test(normalized)) return false;
+
   const intent = detectMinorRelationshipIntent(normalized);
   return Boolean(intent && intent.kind !== "affection") ||
     /\b(?:je t'aime aussi|je suis amoureux de toi|je suis amoureuse de toi|je veux être ta copine|je veux être ton copain|je veux t'embrasser|je veux coucher avec toi|j'ai envie de toi|tu as encore du travail pour me convaincre|il faudra me convaincre|tu me plais aussi|i love you too|i want to be your girlfriend|i want to be your boyfriend|i want to kiss you|i want to sleep with you|te quiero también|quiero ser tu pareja)\b/i.test(normalized);
