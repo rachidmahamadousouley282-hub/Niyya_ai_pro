@@ -762,6 +762,146 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function openAccount() {
     document.querySelector(".niyya-modal")?.remove();
+    const modal = element("div", "niyya-modal niyya-profile-modal");
+    const panel = element("section", "modal-panel niyya-profile-panel");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "niyya-profile-title");
+    const header = element("div", "niyya-profile-header");
+    const heading = element("div");
+    heading.append(element("span", "eyebrow", "NIYYA.ai · ESPACE PERSONNEL"));
+    const title = element("h2", "", "Mon profil");
+    title.id = "niyya-profile-title";
+    heading.append(title);
+    const close = element("button", "modal-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Fermer");
+    header.append(heading, close);
+    const content = element("div", "niyya-profile-content");
+    content.append(element("p", "chat-status", "Chargement de ton profil…"));
+    panel.append(header, content);
+    modal.append(panel);
+    document.body.append(modal);
+    const dismiss = () => modal.remove();
+    close.addEventListener("click", dismiss);
+    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+
+    const addMenu = (label, detail, symbol, action) => {
+      const button = element("button", "niyya-profile-menu-item");
+      button.type = "button";
+      const icon = element("span", "niyya-profile-menu-icon", symbol);
+      const copy = element("span", "niyya-profile-menu-copy");
+      copy.append(element("strong", "", label), element("small", "", detail));
+      button.append(icon, copy, element("span", "niyya-profile-chevron", "›"));
+      button.addEventListener("click", () => { dismiss(); action(); });
+      content.append(button);
+    };
+
+    try {
+      await ensureGuest();
+      const session = await window.NiyyaAPI.getSession();
+      const user = session.user || {};
+      let profile = null;
+      if (!user.isGuest) {
+        try {
+          const result = await fetch("/api/community/profiles/me", { credentials: "same-origin", headers: { Accept: "application/json" } });
+          const data = await result.json();
+          if (result.ok) profile = data.profile;
+        } catch {}
+      }
+      content.replaceChildren();
+      const identity = element("section", "niyya-profile-identity");
+      const avatar = element("div", "niyya-profile-avatar", (profile?.pseudonym || user.pseudonym || user.email || "N").slice(0,1).toUpperCase());
+      const identityCopy = element("div", "niyya-profile-identity-copy");
+      identityCopy.append(
+        element("h3", "", profile?.pseudonym || user.pseudonym || (user.isGuest ? "Invité NIYYA" : "Membre NIYYA")),
+        element("p", "", user.isGuest ? "Compte invité" : (user.email || "Compte NIYYA"))
+      );
+      identity.append(avatar, identityCopy);
+      content.append(identity);
+
+      const stats = element("div", "niyya-profile-stats");
+      const stat = (value, label) => {
+        const item = element("div", "niyya-profile-stat");
+        item.append(element("strong", "", String(value)), element("span", "", label));
+        stats.append(item);
+      };
+      stat(profile?.post_count ?? "—", "Publications");
+      stat(profile?.follower_count ?? "—", "Abonnés");
+      stat(profile?.following_count ?? "—", "Abonnements");
+      content.append(stats);
+
+      const bio = element("p", "niyya-profile-bio", profile?.bio || (user.isGuest
+        ? "Crée ton compte pour personnaliser ton profil et retrouver tes activités."
+        : "Ajoute une petite présentation pour que la communauté puisse te découvrir."));
+      content.append(bio);
+
+      if (!user.isGuest && profile) {
+        const edit = element("details", "niyya-profile-edit");
+        const summary = element("summary", "", "Modifier mon profil");
+        const form = element("form", "niyya-profile-edit-form");
+        const pseudoLabel = element("label", "account-field", "Pseudo public");
+        const pseudo = element("input", "account-input");
+        pseudo.value = profile.pseudonym || "";
+        pseudo.minLength = 3; pseudo.maxLength = 20; pseudo.required = true;
+        pseudo.pattern = "[A-Za-z0-9_]{3,20}";
+        pseudoLabel.append(pseudo);
+        const bioLabel = element("label", "account-field", "Présentation");
+        const bioInput = element("textarea", "account-input");
+        bioInput.rows = 3; bioInput.maxLength = 180;
+        bioInput.value = profile.bio || "";
+        bioInput.placeholder = "Présente-toi en quelques mots…";
+        bioLabel.append(bioInput);
+        const status = element("p", "chat-status", "");
+        status.setAttribute("role", "status");
+        const save = element("button", "chat-send account-submit", "Enregistrer");
+        save.type = "submit";
+        form.append(pseudoLabel, bioLabel, status, save);
+        form.addEventListener("submit", async event => {
+          event.preventDefault();
+          if (save.disabled) return;
+          save.disabled = true; status.textContent = "Enregistrement…";
+          try {
+            const response = await fetch("/api/community/profiles/me", {
+              method: "PATCH", credentials: "same-origin",
+              headers: { "Content-Type": "application/json", Accept: "application/json" },
+              body: JSON.stringify({ pseudonym: pseudo.value, bio: bioInput.value })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Impossible d'enregistrer le profil.");
+            profile = data.profile;
+            identityCopy.querySelector("h3").textContent = profile.pseudonym;
+            avatar.textContent = profile.pseudonym.slice(0,1).toUpperCase();
+            bio.textContent = profile.bio || "Aucune présentation pour le moment.";
+            status.textContent = "Profil mis à jour.";
+          } catch (error) { status.textContent = error.message; }
+          finally { save.disabled = false; }
+        });
+        edit.append(summary, form);
+        content.append(edit);
+      }
+
+      const menuTitle = element("h3", "niyya-profile-section-title", "Mon espace");
+      content.append(menuTitle);
+      addMenu("Messages", "Retrouver toutes tes discussions", "▤", openConversationHistory);
+      addMenu("Mes personnages", "Gérer les personnages que tu as créés", "✦", openMyCharacters);
+      addMenu("Communauté", "Publications et membres NIYYA", "◎", () => {
+        document.querySelector('.bottom-nav [href="#community"]')?.click();
+      });
+      addMenu("Compte et sécurité", "Connexion, mot de passe et déconnexion", "⌑", openAccountSettings);
+      if (user.isGuest) {
+        const register = element("button", "chat-send niyya-profile-register", "Créer un compte ou se connecter");
+        register.type = "button";
+        register.addEventListener("click", () => { dismiss(); openAccountSettings(); });
+        content.append(register);
+      }
+    } catch (error) {
+      content.replaceChildren(element("p", "chat-status", error.message || "Impossible de charger ton profil."));
+    }
+  }
+
+  async function openAccountSettings() {
+    document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal account-modal");
     const panel = element("section", "modal-panel account-panel");
     panel.setAttribute("role", "dialog");

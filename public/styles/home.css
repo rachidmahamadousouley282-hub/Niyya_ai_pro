@@ -262,3 +262,49 @@ body {
 @media (prefers-reduced-motion: no-preference) {
   .character-card,.companion-portrait,.nav-icon,.chat-button { transition-duration: .24s; }
 }
+
+
+/* NIYYA V2 — complete member profile */
+.niyya-profile-modal { align-items:stretch; padding: max(12px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom)); }
+.niyya-profile-panel {
+  width:min(100%,620px) !important; max-height:100% !important; overflow:auto !important;
+  margin:auto; padding:clamp(18px,4vw,28px) !important;
+  border:1px solid rgba(120,177,235,.2) !important;
+  border-radius:24px !important;
+  background:linear-gradient(160deg,#101d30 0%,#0a111d 58%,#080d16 100%) !important;
+  box-shadow:0 28px 90px rgba(0,0,0,.58);
+  -webkit-overflow-scrolling:touch;
+}
+.niyya-profile-header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.niyya-profile-header h2 { margin:7px 0 0; color:#eff6ff; font:700 25px 'Space Grotesk',sans-serif; }
+.niyya-profile-content { display:grid; gap:17px; margin-top:22px; }
+.niyya-profile-identity { display:flex; align-items:center; gap:16px; padding:18px; border:1px solid rgba(123,180,239,.17); border-radius:19px; background:linear-gradient(125deg,rgba(37,78,121,.38),rgba(14,26,42,.8)); }
+.niyya-profile-avatar { display:grid; place-items:center; flex:0 0 76px; width:76px; height:76px; border:2px solid rgba(133,195,250,.7); border-radius:22px; background:linear-gradient(145deg,#3b83c8,#152e4d); color:#fff; font:700 30px 'Space Grotesk',sans-serif; box-shadow:0 8px 26px rgba(32,103,173,.25); }
+.niyya-profile-identity-copy { min-width:0; }
+.niyya-profile-identity-copy h3 { margin:0 0 6px; color:#f1f7ff; font:700 20px 'Space Grotesk',sans-serif; overflow-wrap:anywhere; }
+.niyya-profile-identity-copy p { margin:0; color:#9db2ca; font-size:13px; overflow-wrap:anywhere; }
+.niyya-profile-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); padding:14px 4px; border:1px solid rgba(123,180,239,.13); border-radius:16px; background:rgba(7,14,24,.52); }
+.niyya-profile-stat { display:grid; gap:5px; justify-items:center; text-align:center; }
+.niyya-profile-stat + .niyya-profile-stat { border-left:1px solid rgba(150,185,220,.18); }
+.niyya-profile-stat strong { color:#f0f6ff; font:700 22px 'Space Grotesk',sans-serif; }
+.niyya-profile-stat span { color:#91a7c0; font-size:11px; }
+.niyya-profile-bio { margin:0; padding:0 3px; color:#b5c7dc; font-size:13px; line-height:1.7; }
+.niyya-profile-edit { border:1px solid rgba(123,180,239,.16); border-radius:14px; background:rgba(11,22,36,.65); }
+.niyya-profile-edit summary { padding:14px 15px; color:#a9d5ff; font-size:13px; font-weight:700; cursor:pointer; }
+.niyya-profile-edit-form { display:grid; gap:12px; padding:0 14px 14px; }
+.niyya-profile-edit-form textarea { min-height:84px; padding:12px; resize:vertical; }
+.niyya-profile-section-title { margin:5px 0 -6px; color:#eaf3ff; font:650 16px 'Space Grotesk',sans-serif; }
+.niyya-profile-menu-item { display:flex; align-items:center; gap:13px; width:100%; min-height:70px; padding:12px 14px; border:1px solid rgba(123,180,239,.13); border-radius:15px; background:linear-gradient(110deg,rgba(21,39,61,.9),rgba(12,22,36,.94)); color:#edf5ff; text-align:left; cursor:pointer; }
+.niyya-profile-menu-item:active { transform:scale(.99); background:#193252; }
+.niyya-profile-menu-icon { display:grid; place-items:center; flex:0 0 40px; width:40px; height:40px; border:1px solid rgba(123,180,239,.18); border-radius:13px; background:linear-gradient(145deg,#203e60,#111f32); color:#a9d5ff; font-size:20px; }
+.niyya-profile-menu-copy { display:grid; gap:4px; min-width:0; }
+.niyya-profile-menu-copy strong { color:#eaf3ff; font-size:14px; }
+.niyya-profile-menu-copy small { color:#91a7c0; font-size:11px; }
+.niyya-profile-chevron { margin-left:auto; color:#9bcfff; font-size:27px; line-height:1; }
+.niyya-profile-register { width:100%; min-height:48px; }
+@media(max-width:520px) {
+ .niyya-profile-modal { padding: max(8px,env(safe-area-inset-top)) 7px max(10px,env(safe-area-inset-bottom)); }
+ .niyya-profile-panel { padding:17px !important; border-radius:20px !important; }
+ .niyya-profile-avatar { flex-basis:66px; width:66px; height:66px; border-radius:19px; }
+ .niyya-profile-identity-copy h3 { font-size:18px; }
+}
