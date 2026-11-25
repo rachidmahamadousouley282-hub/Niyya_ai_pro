@@ -334,3 +334,11 @@ test("Safety Engine catches generated relationship hints with typographic apostr
   assert.equal(safety.hasInappropriateMinorReply("Tu as encore du travail pour me convaincre"), true);
   assert.equal(safety.hasInappropriateMinorReply("C'est gentil, merci !"), false);
 });
+
+
+test("Conversation Engine keeps self-declared adults in the safe unknown-age profile", () => {
+  assert.equal(conversation.resolveConversationAgeBand({ age_band: "18_plus", adult_confirmed_at: new Date().toISOString() }), "unknown");
+  assert.equal(conversation.resolveConversationAgeBand({ age_band: "13_15" }), "13_15");
+  assert.equal(conversation.resolveConversationAgeBand({ age_band: "16_17" }), "16_17");
+  assert.equal(conversation.resolveConversationAgeBand({}), "unknown");
+});
