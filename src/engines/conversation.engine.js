@@ -156,8 +156,10 @@ async function processMessage({
     throw new Error("Le moteur IA n'a pas généré de réponse valide.");
   }
 
-  const finalReply = ageBand !== "18_plus" && safetyEngine.hasInappropriateMinorReply(reply.reply)
-    ? safetyEngine.getMinorBoundaryResponse("romantic", language)
+  const generatedRelationshipIntent = safetyEngine.detectMinorRelationshipIntent(reply.reply);
+  const finalReply = ageBand !== "18_plus" &&
+    (generatedRelationshipIntent || safetyEngine.hasInappropriateMinorReply(reply.reply))
+    ? safetyEngine.getMinorBoundaryResponse(generatedRelationshipIntent ? generatedRelationshipIntent.kind : "romantic", language)
     : reply.reply;
 
   return {

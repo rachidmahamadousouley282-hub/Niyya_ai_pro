@@ -275,7 +275,7 @@ test("Safety Engine keeps affection non-romantic for minors", () => {
 });
 
 test("Safety Engine gives a clear boundary for sexual messages from minors", () => {
-  const intent = safety.detectMinorRelationshipIntent("Je veux coucher avec toi");
+  const intent = safety.detectMinorRelationshipIntent("J'ai envie de t'embrasser et de coucher");
   assert.deepEqual(intent, { kind: "sexual" });
   assert.match(safety.getMinorBoundaryResponse(intent.kind, "fr"), /Je ne peux pas participer/);
 });

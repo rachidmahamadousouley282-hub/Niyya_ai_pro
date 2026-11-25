@@ -204,9 +204,9 @@ function getSafeResponse(risk, language = "fr") {
 function detectMinorRelationshipIntent(message) {
   if (typeof message !== "string") return null;
   const text = message.toLocaleLowerCase();
-  const sexual = /\b(?:coucher avec toi|faire l'amour|avoir des relations sexuelles|tu m'excites|tu m'excite|sexe avec toi|je veux t'embrasser|embrasse-moi)\b/i.test(text);
+  const sexual = /\b(?:envie de coucher|envie de t'embrasser|j'aimerais t'embrasser|coucher avec toi|coucher ensemble|faire l'amour|avoir des relations sexuelles|tu m'excites|tu m'excite|sexe avec toi|je veux t'embrasser|embrasse-moi|j'ai envie de toi)\b/i.test(text);
   if (sexual) return { kind: "sexual" };
-  const affectionate = /\b(?:je t'aime|je t'adore|tu me plais|je veux qu'on soit en couple|être en couple avec toi|sois ma copine|sois mon copain|ma petite amie|mon petit ami|sortir ensemble|je suis amoureux de toi|je suis amoureuse de toi)\b/i.test(text);
+  const affectionate = /\b(?:je t'aime|je t'adore|tu me plais|je veux qu'on soit en couple|je veux qu'on se mette ensemble|être en couple avec toi|sois ma copine|sois mon copain|ma petite amie|mon petit ami|sortir ensemble|je suis amoureux de toi|je suis amoureuse de toi)\b/i.test(text);
   return affectionate ? { kind: "romantic" } : null;
 }
 
@@ -243,7 +243,7 @@ function getMinorBoundaryResponse(kind = "romantic", language = "fr") {
 
 function hasInappropriateMinorReply(reply) {
   if (typeof reply !== "string") return true;
-  return /\b(?:eu te amo também|je t'aime aussi|je suis amoureux de toi|je suis amoureuse de toi|je veux être ta copine|je veux être ton copain|je veux t'embrasser|je veux coucher avec toi|tu as encore du travail pour me convaincre|il faudra me convaincre|tu me plais aussi|i love you too|i want to be your girlfriend|i want to be your boyfriend|i want to kiss you|i want to sleep with you|te quiero también|quiero ser tu pareja)\b/i.test(reply);
+  return Boolean(detectMinorRelationshipIntent(reply)) || /\b(?:eu te amo também|je t'aime aussi|je suis amoureux de toi|je suis amoureuse de toi|je veux être ta copine|je veux être ton copain|je veux t'embrasser|je veux coucher avec toi|j'ai envie de toi|tu as encore du travail pour me convaincre|il faudra me convaincre|tu me plais aussi|i love you too|i want to be your girlfriend|i want to be your boyfriend|i want to kiss you|i want to sleep with you|te quiero también|quiero ser tu pareja)\b/i.test(reply);
 }
 
 function detectCommunityRisk(message) {
