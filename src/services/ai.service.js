@@ -413,7 +413,8 @@ async function generateReply({
   character,
   history = [],
   language = "fr",
-  ageBand = "unknown"
+  ageBand = "unknown",
+  responseLength = "normal"
 }) {
   const safeHistory = normalizeHistory(history);
 
