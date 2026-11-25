@@ -441,6 +441,32 @@ document.addEventListener("DOMContentLoaded", () => {
     container.scrollTop = container.scrollHeight;
   }
 
+  // Affiche la réponse progressivement, mot par mot, une fois la réponse
+  // complète reçue et contrôlée par le serveur.
+  async function addMessageTyping(container, content, characterName = "NIYYA") {
+    const bubble = element("div", "chat-message assistant is-typing");
+    const speaker = characterName || "Personnage";
+    const paragraph = element("p", "");
+    bubble.append(element("span", "chat-role", speaker), paragraph);
+    container.append(bubble);
+
+    const words = String(content || "").match(/\\S+\\s*/g) || [String(content || "")];
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const delay = words.length > 70 ? 16 : 28;
+    let visibleText = "";
+
+    for (const word of words) {
+      if (!bubble.isConnected) return;
+      visibleText += word;
+      paragraph.textContent = visibleText;
+      container.scrollTop = container.scrollHeight;
+      if (!reducedMotion) {
+        await new Promise(resolve => window.setTimeout(resolve, delay));
+      }
+    }
+    bubble.classList.remove("is-typing");
+  }
+
   async function openProfile(character, trigger, resumeConversationId = null) {
     if (!character?.id) return;
     if (trigger) trigger.disabled = true;
@@ -629,7 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
           const result = await window.NiyyaAPI.sendMessage(activeConversation, text, window.NiyyaI18n?.getLanguage() || "fr");
           waiting.remove();
-          addMessage(ui.messages, "assistant", result.reply, character.name);
+          await addMessageTyping(ui.messages, result.reply, character.name);
           await refreshQuota();
         } catch (error) {
           waiting.remove();
