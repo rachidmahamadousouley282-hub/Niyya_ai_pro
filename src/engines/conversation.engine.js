@@ -162,7 +162,8 @@ async function processMessage({
       }
     ],
     language,
-    ageBand
+    ageBand,
+    responseLength: account.response_length || "normal"
   });
 
   if (!reply || typeof reply.reply !== "string" || !reply.reply.trim()) {
