@@ -321,6 +321,18 @@
     apply(current);
     applyTheme(getTheme());
     document.getElementById("settings-button")?.addEventListener("click", openSettings);
+    window.NiyyaAPI?.getSession()
+      .then(() => window.NiyyaAPI.getSettings())
+      .then(data => {
+        const settings = data.settings || {};
+        if (!localStorage.getItem(STORAGE_KEY) && ["fr","en","es","ar"].includes(settings.language)) {
+          apply(settings.language);
+        }
+        if (typeof settings.thinkingPause === "boolean") {
+          localStorage.setItem("niyya-thinking-pause", settings.thinkingPause ? "1" : "0");
+        }
+      })
+      .catch(() => {});
   });
 
   window.NiyyaI18n = Object.freeze({
