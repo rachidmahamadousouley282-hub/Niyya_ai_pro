@@ -432,9 +432,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return { modal, messages, form, input, send, profile };
   }
 
-  function addMessage(container, role, content) {
+  function addMessage(container, role, content, characterName = "NIYYA") {
     const bubble = element("div", "chat-message " + role);
-    bubble.append(element("span", "chat-role", role === "user" ? t("you") : t("niyya")));
+    const speaker = role === "user" ? t("you") : (characterName || "Personnage");
+    bubble.append(element("span", "chat-role", speaker));
     bubble.append(element("p", "", content));
     container.append(bubble);
     container.scrollTop = container.scrollHeight;
@@ -568,11 +569,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const history = await window.NiyyaAPI.getMessages(activeConversation);
       status.remove();
       (history.messages || []).forEach(message =>
-        addMessage(ui.messages, message.role, message.content));
+        addMessage(ui.messages, message.role, message.content, character.name));
       if (!history.messages?.length) {
         const greeting = character.greeting ||
           "Une nouvelle histoire commence ici. Par quoi veux-tu commencer ?";
-        addMessage(ui.messages, "assistant", greeting);
+        addMessage(ui.messages, "assistant", greeting, character.name);
 
         const startersBySlug = {
           clara: [
@@ -621,18 +622,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!text || ui.send.disabled) return;
         ui.input.value = "";
         ui.messages.querySelector(".chat-starters")?.remove();
-        addMessage(ui.messages, "user", text);
+        addMessage(ui.messages, "user", text, character.name);
         ui.send.disabled = true;
         const waiting = element("p", "chat-status", t("preparing"));
         ui.messages.append(waiting);
         try {
           const result = await window.NiyyaAPI.sendMessage(activeConversation, text, window.NiyyaI18n?.getLanguage() || "fr");
           waiting.remove();
-          addMessage(ui.messages, "assistant", result.reply);
+          addMessage(ui.messages, "assistant", result.reply, character.name);
           await refreshQuota();
         } catch (error) {
           waiting.remove();
-          addMessage(ui.messages, "assistant", error.message);
+          addMessage(ui.messages, "assistant", error.message, character.name);
           if (/quota|18 ans|profil|inscription/i.test(error.message)) {
             ui.input.disabled = true;
             ui.send.disabled = true;
