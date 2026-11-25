@@ -25,10 +25,18 @@
       config.body = JSON.stringify(options.body);
     }
 
-    const response = await fetch(
-      `${API_BASE}${endpoint}`,
-      config
-    );
+    let response;
+    try {
+      response = await fetch(`${API_BASE}${endpoint}`, config);
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("La connexion a expiré. Vérifie Internet puis réessaie.");
+      }
+      if (error instanceof TypeError) {
+        throw new Error("Connexion au serveur impossible. Vérifie ta connexion Internet puis réessaie.");
+      }
+      throw new Error("La connexion a été interrompue. Réessaie dans un instant.");
+    }
 
     let data = {};
 
