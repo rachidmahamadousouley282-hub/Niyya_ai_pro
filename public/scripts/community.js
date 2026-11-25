@@ -134,6 +134,11 @@
 
       function renderComposer() {
         const card = el("section", "community-composer");
+        if (!myId) {
+          card.append(el("div","community-composer-heading","Partage quelque chose"));
+          card.append(el("p","community-muted","Pour publier, suivre des membres et créer ton profil public, termine d'abord ton inscription ou connecte-toi."));
+          return card;
+        }
         card.append(el("div","community-composer-heading", "Partage quelque chose"));
         card.append(el("p","community-muted","Une création, une idée ou simplement une image avec une description."));
         const form = el("form","community-post-form");
@@ -308,6 +313,17 @@
           (data.comments||[]).forEach(comment=>{
             const row=el("div","community-comment-row");
             row.append(el("strong","",comment.author_name),el("p","",comment.body));
+            if (myId && comment.author_id !== myId) {
+              const report=el("button","community-action community-comment-report","Signaler");
+              report.type="button";
+              report.addEventListener("click",async()=>{
+                if(!confirm("Signaler ce commentaire à l'équipe NIYYA.ai ?"))return;
+                report.disabled=true;
+                try{await api("/comments/"+comment.id+"/report",{method:"POST",body:{reason:"other"}});report.textContent="Signalé";}
+                catch(error){alert(error.message);report.disabled=false;}
+              });
+              row.append(report);
+            }
             container.append(row);
           });
           if(!data.comments?.length)container.append(el("p","community-muted","Pas encore de commentaire."));
