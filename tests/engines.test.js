@@ -342,3 +342,31 @@ test("Conversation Engine keeps self-declared adults in the safe unknown-age pro
   assert.equal(conversation.resolveConversationAgeBand({ age_band: "16_17" }), "16_17");
   assert.equal(conversation.resolveConversationAgeBand({}), "unknown");
 });
+
+test("AI Service makes character familiarity gradual and grounded in chat history", () => {
+  const prompt = aiService.buildSystemPrompt({
+    name: "Clara",
+    tagline: "Taquine et vive",
+    personality_prompt: "Drôle et spontanée.",
+    scenario: ""
+  }, "fr", "16_17");
+
+  assert.match(prompt, /se construit progressivement/);
+  assert.match(prompt, /Au début, vous ne vous connaissez pas/);
+  assert.match(prompt, /Ne lance jamais un questionnaire/);
+  assert.match(prompt, /autonomie du personnage/);
+  assert.match(prompt, /Ne parle jamais de « passer en mode amour »/);
+});
+
+test("AI Service keeps minor safety while allowing warm, ordinary affection", () => {
+  const prompt = aiService.buildSystemPrompt({
+    name: "Clara",
+    tagline: "Taquine et vive",
+    personality_prompt: "Drôle et spontanée.",
+    scenario: ""
+  }, "fr", "16_17");
+
+  assert.match(prompt, /Une déclaration affectueuse simple reçoit une réponse chaleureuse et brève/);
+  assert.match(prompt, /sans jeu de rôle romantique ou sexuel/);
+  assert.match(prompt, /Ne transforme pas automatiquement cela en avertissement/);
+});
