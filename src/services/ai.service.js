@@ -331,6 +331,8 @@ async function generateWithCloudflare({
         max_completion_tokens: 700,
         // GLM-4.7 active le raisonnement par défaut : le désactiver
         // garantit que la réponse destinée au chat arrive dans message.content.
+        // Désactive explicitement le raisonnement pour privilégier le dialogue direct.
+        reasoning_effort: null,
         chat_template_kwargs: {
           enable_thinking: false,
           clear_thinking: true
