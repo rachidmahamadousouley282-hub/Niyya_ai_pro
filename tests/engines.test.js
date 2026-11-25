@@ -200,7 +200,9 @@ test("AI Service prioritizes natural, concise conversation over forced roleplay"
 
   assert.match(prompt, /PRIORITÉ AU NATUREL/);
   assert.match(prompt, /1 à 3 phrases courtes/);
-  assert.match(prompt, /scénario est un point de départ facultatif/);
+  assert.match(prompt, /environnement concret et partagé/);
+  assert.match(prompt, /conversation par téléphone/);
+  assert.match(prompt, /sa propre vie dans cet environnement/);
   assert.match(prompt, /Si l'utilisateur change de sujet, suis-le/);
   assert.match(prompt, /sans jeu de rôle romantique ou sexuel/);
 });
