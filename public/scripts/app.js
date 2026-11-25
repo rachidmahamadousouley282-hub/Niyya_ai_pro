@@ -450,7 +450,7 @@ document.addEventListener("DOMContentLoaded", () => {
     bubble.append(element("span", "chat-role", speaker), paragraph);
     container.append(bubble);
 
-    const words = String(content || "").match(/\\S+\\s*/g) || [String(content || "")];
+    const words = String(content || "").match(/\S+\s*/g) || [String(content || "")];
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
     const delay = words.length > 70 ? 16 : 28;
     let visibleText = "";
