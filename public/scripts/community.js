@@ -339,6 +339,9 @@
           stats.children[0].textContent=(p.post_count||0)+" publications";
           stats.children[1].textContent=(p.follower_count||0)+" abonnés";
           stats.children[2].textContent=(p.following_count||0)+" abonnements";
+          stats.children[1].type="button"; stats.children[2].type="button";
+          stats.children[1].addEventListener("click",()=>showRelations(userId,"followers"));
+          stats.children[2].addEventListener("click",()=>showRelations(userId,"following"));
           wrap.append(stats);
           const controls=el("div","community-profile-controls");
           if(!data.isOwnProfile){
@@ -365,6 +368,26 @@
           posts.replaceChildren();
           if(!postsData.posts.length)posts.append(el("p","community-empty","Aucune publication publique pour le moment."));
           postsData.posts.forEach(post=>posts.append(renderPost(post,posts)));
+        }catch(error){content.replaceChildren(el("p","community-muted",error.message));}
+      }
+
+      async function showRelations(userId,type){
+        content.replaceChildren(el("p","community-muted","Chargement de la liste…"));
+        try{
+          const data=await api("/profiles/"+encodeURIComponent(userId)+"/relations?type="+type);
+          const title=el("h3","community-section-title",type==="followers"?"Abonnés":"Abonnements");
+          const back=el("button","community-secondary","← Retour au profil");
+          back.type="button";back.addEventListener("click",()=>showProfile(userId));
+          const list=el("div","community-search-results");
+          if(!data.members.length)list.append(el("div","community-empty",type==="followers"?"Aucun abonné pour le moment.":"Ce membre ne suit encore personne."));
+          data.members.forEach(member=>{
+            const row=el("button","community-search-result");
+            row.type="button";
+            row.append(el("span","community-avatar",initials(member.pseudonym)),el("span","community-search-name",member.pseudonym),el("span","community-muted","Voir le profil →"));
+            row.addEventListener("click",()=>showProfile(member.id));
+            list.append(row);
+          });
+          content.replaceChildren(title,back,list);
         }catch(error){content.replaceChildren(el("p","community-muted",error.message));}
       }
 

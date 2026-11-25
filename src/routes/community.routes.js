@@ -43,11 +43,11 @@ async function requireOnboarded(userId) {
 async function getProfile(userId, viewerId) {
   const result = await query(
     "SELECT u.id, u.pseudonym, u.bio, u.created_at, " +
-    "(SELECT COUNT(*)::int FROM public.community_posts p WHERE p.author_user_id = u.id AND p.status = 'published') AS post_count, " +
+    "(SELECT COUNT(*)::int FROM public.community_posts p WHERE p.author_user_id = u.id AND p.status = 'published' AND (p.visibility = 'public' OR u.id = $2)) AS post_count, " +
     "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
     "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.follower_user_id = u.id) AS following_count, " +
     "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $2 AND f.followed_user_id = u.id) AS is_following, " +
-    "EXISTS (SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id = $2 AND b.blocked_user_id = u.id) OR (b.blocker_user_id = u.id AND b.blocked_user_id = $2)) AS is_blocked " +
+    "EXISTS (SELECT 1 FROM public.community_blocks b WHERE b.blocker_user_id = $2 AND b.blocked_user_id = u.id) AS is_blocked " +
     "FROM public.users u WHERE u.id = $1 AND u.onboarded_at IS NOT NULL AND u.pseudonym IS NOT NULL LIMIT 1",
     [userId, viewerId || null]
   );
@@ -164,6 +164,8 @@ router.post("/profiles/:userId/follow", requireAuth, sameOrigin, writeLimiter, a
   try {
     if (!await requireOnboarded(targetId)) return res.status(404).json({ error: "Profil introuvable." });
     if (!await requireOnboarded(req.user.id)) return res.status(403).json({ error: "Termine d'abord ton inscription." });
+    const blocked = await query("SELECT 1 FROM public.community_blocks WHERE (blocker_user_id=$1 AND blocked_user_id=$2) OR (blocker_user_id=$2 AND blocked_user_id=$1) LIMIT 1", [req.user.id,targetId]);
+    if (blocked.rows.length) return res.status(403).json({ error: "Cet abonnement n'est pas disponible." });
     const result = await query(
       "WITH removed AS (DELETE FROM public.community_follows WHERE follower_user_id = $1 AND followed_user_id = $2 RETURNING 1), " +
       "added AS (INSERT INTO public.community_follows (follower_user_id, followed_user_id) SELECT $1, $2 WHERE NOT EXISTS (SELECT 1 FROM removed) ON CONFLICT DO NOTHING RETURNING 1) " +
@@ -230,7 +232,7 @@ router.post("/posts/:postId/like", requireAuth, sameOrigin, writeLimiter, async 
   try {
     if (!await requireOnboarded(req.user.id)) return res.status(403).json({ error: "Termine d'abord ton inscription." });
     const result = await query(
-      "WITH target AS (SELECT id FROM public.community_posts WHERE id = $2 AND status = 'published'), " +
+      "WITH target AS (SELECT id FROM public.community_posts WHERE id = $2 AND status = 'published' AND (visibility = 'public' OR author_user_id = $1) AND NOT EXISTS (SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id = $1 AND b.blocked_user_id = author_user_id) OR (b.blocker_user_id = author_user_id AND b.blocked_user_id = $1))), " +
       "removed AS (DELETE FROM public.community_post_likes l USING target t WHERE l.post_id = t.id AND l.user_id = $1 RETURNING 1), " +
       "added AS (INSERT INTO public.community_post_likes (user_id, post_id) SELECT $1, id FROM target WHERE NOT EXISTS (SELECT 1 FROM removed) ON CONFLICT DO NOTHING RETURNING 1) " +
       "SELECT EXISTS(SELECT 1 FROM target) AS exists, EXISTS(SELECT 1 FROM added) AS liked",
@@ -255,8 +257,8 @@ router.get("/posts/:postId/comments", optionalAuth, async (req, res) => {
       "SELECT c.id, c.body, c.created_at, u.id AS author_id, u.pseudonym AS author_name " +
       "FROM public.community_comments c JOIN public.users u ON u.id = c.author_user_id " +
       "JOIN public.community_posts p ON p.id = c.post_id AND p.status = 'published' " +
-      "WHERE c.post_id = $1 AND c.status = 'published' ORDER BY c.created_at ASC LIMIT 50",
-      [req.params.postId]
+      "WHERE c.post_id = $1 AND c.status = 'published' AND (p.visibility = 'public' OR p.author_user_id = $2) AND ($2 IS NULL OR NOT EXISTS (SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id = $2 AND b.blocked_user_id = p.author_user_id) OR (b.blocker_user_id = p.author_user_id AND b.blocked_user_id = $2))) ORDER BY c.created_at ASC LIMIT 50",
+      [req.params.postId, req.user ? req.user.id : null]
     );
     return res.status(200).json({ success: true, comments: result.rows });
   } catch (error) {
@@ -273,7 +275,8 @@ router.post("/posts/:postId/comments", requireAuth, sameOrigin, writeLimiter, as
     const body = cleanText(req.body && req.body.body, 240, "commentaire", 1);
     const result = await query(
       "INSERT INTO public.community_comments (post_id, author_user_id, body) " +
-      "SELECT p.id, $2, $3 FROM public.community_posts p WHERE p.id = $1 AND p.status = 'published' " +
+      "SELECT p.id, $2, $3 FROM public.community_posts p WHERE p.id = $1 AND p.status = 'published' AND (p.visibility = 'public' OR p.author_user_id = $2) " +
+      "AND NOT EXISTS (SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id = $2 AND b.blocked_user_id = p.author_user_id) OR (b.blocker_user_id = p.author_user_id AND b.blocked_user_id = $2)) " +
       "RETURNING id, post_id, body, created_at",
       [req.params.postId, req.user.id, body]
     );
