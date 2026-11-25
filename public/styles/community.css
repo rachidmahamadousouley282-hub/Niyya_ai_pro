@@ -43,3 +43,19 @@
   .community-comment-form button { width:100%; }
   .bottom-nav .nav-label { font-size:8px; }
 }
+
+.community-input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid rgba(182,154,255,.22);
+  border-radius: 12px;
+  padding: 12px;
+  background: #0b0911;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.community-input:focus {
+  outline: 2px solid rgba(182,154,255,.6);
+  outline-offset: 1px;
+}
