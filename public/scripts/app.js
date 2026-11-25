@@ -952,11 +952,15 @@ async function openCreator() {
           throw new Error("L'atelier est accessible après le parcours d'inscription autorisé de NIYYA.");
         }
         const result = await window.NiyyaAPI.createCharacter(payload);
+        const reviewMessage = result.canSubmit
+          ? "Ton personnage est privé. Tu peux demander sa vérification avant de le rendre visible dans Explorer."
+          : "Ton personnage est enregistré en brouillon privé. La publication publique et l'envoi en vérification sont réservés aux comptes adultes.";
         form.replaceChildren(
           element("span", "eyebrow", "BROUILLON ENREGISTRÉ"),
           element("h3", "", result.character.name),
-          element("p", "creator-note", "Ton personnage est privé. Tu peux demander sa vérification avant de le rendre visible dans Explorer.")
+          element("p", "creator-note", reviewMessage)
         );
+        if (!result.canSubmit) return;
         const review = element("button", "chat-send creator-submit", "Envoyer en vérification");
         review.type = "button";
         const reviewStatus = element("p", "chat-status", "");

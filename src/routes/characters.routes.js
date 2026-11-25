@@ -37,7 +37,7 @@ function cleanText(value, maxLength, field, minLength = 0) {
   if (cleaned.length < minLength || cleaned.length > maxLength) {
     throw new Error(`Le champ ${field} doit contenir entre ${minLength} et ${maxLength} caractères.`);
   }
-  const risk = safetyEngine.detectRisk(cleaned);
+  const risk = safetyEngine.detectCommunityRisk(cleaned);
   if (risk.action !== "allow") {
     throw new Error("Ce contenu contient des informations personnelles ou un élément qui nécessite une vérification. Modifie-le avant de continuer.");
   }
@@ -81,6 +81,16 @@ async function requireCreatorAccess(userId) {
   const user = result.rows[0];
   return Boolean(user && user.onboarded_at && user.adult_confirmed_at &&
     user.terms_accepted_at && user.pseudonym);
+}
+
+async function requireCreatorDraftAccess(userId) {
+  const result = await query(
+    `SELECT onboarded_at, terms_accepted_at, pseudonym, age_band
+     FROM public.users WHERE id = $1 LIMIT 1`,
+    [userId]
+  );
+  const user = result.rows[0];
+  return Boolean(user && user.onboarded_at && user.terms_accepted_at && user.pseudonym && user.age_band);
 }
 
 function ownCharacter(character) {
@@ -168,9 +178,9 @@ router.get("/mine", requireAuth, async (req, res) => {
 // POST /api/characters — crée un brouillon privé.
 router.post("/", requireAuth, requireSameOrigin, async (req, res) => {
   try {
-    if (!await requireCreatorAccess(req.user.id)) {
+    if (!await requireCreatorDraftAccess(req.user.id)) {
       return res.status(403).json({
-        error: "Termine le parcours d'inscription autorisé avant de créer un personnage.",
+        error: "Termine ton inscription avant de créer un brouillon.",
         code: "creator_onboarding_required"
       });
     }
@@ -199,7 +209,11 @@ router.post("/", requireAuth, requireSameOrigin, async (req, res) => {
       [req.user.id, name, tagline, personalityPrompt, scenario, shortBio,
        backstory, traits, greeting, category, tags]
     );
-    return res.status(201).json({ success: true, character: ownCharacter(result.rows[0]) });
+    return res.status(201).json({
+      success: true,
+      character: ownCharacter(result.rows[0]),
+      canSubmit: await requireCreatorAccess(req.user.id)
+    });
   } catch (error) {
     if (/champ|liste|contenu|caractères/i.test(error.message || "")) {
       return res.status(400).json({ error: error.message });
