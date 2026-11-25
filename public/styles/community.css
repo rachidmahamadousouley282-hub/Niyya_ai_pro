@@ -236,3 +236,73 @@
   .community-comment-form { align-items:stretch; }
   .community-search-result { flex-wrap:wrap; }
 }
+
+
+/* Community is a first-class destination in the six-item app shell. */
+.community-page {
+  width: min(760px, 100%);
+  min-height: calc(100vh - 150px);
+  margin: 0 auto;
+  padding: 18px 0 125px;
+  color: #eaf2fc;
+}
+.community-page .community-heading {
+  position: relative;
+  align-items: flex-start;
+  padding: 8px 2px 16px;
+  border-bottom: 1px solid rgba(130,170,220,.14);
+}
+.community-page .community-heading h2 { color: #f4f8ff; }
+.community-page .community-heading .chat-subtitle { color: #91a7c3; }
+.community-page-close {
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(117,189,245,.28);
+  border-radius: 50%;
+  background: #111d30;
+  color: #eaf2fc;
+  font-size: 25px;
+  line-height: 1;
+}
+.community-page-close[hidden] { display: none !important; }
+.community-page .community-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 12px 0;
+  background: rgba(8,13,22,.96);
+  backdrop-filter: blur(16px);
+}
+.community-page .community-tab.active {
+  background: #1d4775;
+  border-color: #397fc3;
+  color: #fff;
+}
+.community-page .community-composer,
+.community-page .community-post,
+.community-page .community-profile-view,
+.community-page .community-empty,
+.community-page .community-notification {
+  background: linear-gradient(145deg,#111c2d,#0b111d);
+  border-color: rgba(117,189,245,.14);
+}
+.community-page .community-primary {
+  background: linear-gradient(135deg,#2864b8,#174477);
+  color: #fff;
+}
+.community-page .community-muted { color: #9aacc3; }
+.community-page .community-action,
+.community-page .community-secondary {
+  border-color: rgba(117,189,245,.22);
+  color: #cfe5ff;
+}
+@media (max-width: 520px) {
+  .community-page {
+    width: 100%;
+    min-height: calc(100vh - 132px);
+    padding: 10px 0 118px;
+  }
+  .community-page .community-heading { padding-inline: 2px; }
+  .community-page .community-tabs { margin-inline: -2px; }
+}

@@ -3,28 +3,34 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     const nav = document.querySelector(".bottom-nav");
-    if (!nav || document.getElementById("community-nav")) return;
+    const main = document.querySelector(".app-shell main");
+    const navLink = nav?.querySelector('[href="#community"]');
+    if (!nav || !main || !navLink) return;
 
-    const navLink = document.createElement("a");
-    navLink.className = "nav-item community-nav-item";
-    navLink.href = "#community";
-    navLink.id = "community-nav";
-    navLink.innerHTML = '<span class="nav-icon" aria-hidden="true">✦</span><span class="nav-label">Communauté</span>';
-    navLink.addEventListener("click", event => {
-      event.preventDefault();
-      selectNav(navLink);
-      openCommunity();
-    });
-    nav.insertBefore(navLink, nav.querySelector('[href="#create"]') || null);
-
-    function selectNav(active) {
+    let communityPage = null;
+    let hiddenHomeSections = [];
+    let selectNav = active => {
       nav.querySelectorAll(".nav-item").forEach(item => {
         const selected = item === active;
         item.classList.toggle("selected", selected);
         if (selected) item.setAttribute("aria-current", "page");
         else item.removeAttribute("aria-current");
       });
-    }
+    };
+    const restoreHome = () => {
+      communityPage?.remove();
+      communityPage = null;
+      hiddenHomeSections.forEach(section => { section.hidden = false; });
+      hiddenHomeSections = [];
+    };
+    navLink.addEventListener("click", event => {
+      event.preventDefault();
+      selectNav(navLink);
+      openCommunity();
+    });
+    nav.querySelectorAll('.nav-item:not([href="#community"])').forEach(item => {
+      item.addEventListener("click", () => restoreHome());
+    });
 
     const api = async (path, options = {}) => {
       const response = await fetch("/api/community" + path, {
@@ -81,35 +87,37 @@
     }
 
     async function openCommunity() {
-      document.querySelector(".niyya-modal")?.remove();
-      const modal = el("div", "niyya-modal community-modal");
-      const panel = el("section", "modal-panel community-panel");
-      panel.setAttribute("role", "dialog");
-      panel.setAttribute("aria-modal", "true");
-      panel.setAttribute("aria-labelledby", "community-title");
+      if (communityPage) {
+        communityPage.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      hiddenHomeSections = Array.from(main.children).filter(node => !node.classList.contains("community-page"));
+      hiddenHomeSections.forEach(section => { section.hidden = true; });
+      const page = el("section", "community-page");
+      page.setAttribute("aria-labelledby", "community-title");
+      communityPage = page;
       const header = el("header", "community-heading");
       const heading = el("div");
       heading.append(el("span", "eyebrow", "NIYYA.ai · ESPACE COMMUNAUTAIRE"));
       const title = el("h2", "", "La communauté");
       title.id = "community-title";
       heading.append(title, el("p", "chat-subtitle", "Découvre les créations, partage les tiennes et rencontre les membres NIYYA."));
-      const close = el("button", "modal-close", "×");
+      const close = el("button", "community-page-close", "×");
       close.type = "button";
-      close.setAttribute("aria-label", "Fermer");
+      close.setAttribute("aria-label", "Retour à la communauté");
+      close.hidden = true;
       header.append(heading, close);
       const tabs = el("div", "community-tabs");
       const content = el("div", "community-content");
-      panel.append(header, tabs, content);
-      modal.append(panel);
-      document.body.append(modal);
-
-      const dismiss = () => {
-        modal.remove();
-        const home = nav.querySelector('[href="#"]');
-        if (home) selectNav(home);
-      };
-      close.addEventListener("click", dismiss);
-      modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+      page.append(header, tabs, content);
+      main.append(page);
+      const showSubpageClose = () => { close.hidden = false; };
+      const hideSubpageClose = () => { close.hidden = true; };
+      close.addEventListener("click", () => {
+        hideSubpageClose();
+        setTab(currentMode);
+        page.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
 
       let currentMode = "all";
       let myId = null;
@@ -340,6 +348,7 @@
       }
 
       async function showProfile(userId) {
+        showSubpageClose();
         content.replaceChildren(el("p","community-muted","Chargement du profil…"));
         try{
           const data=await api("/profiles/"+encodeURIComponent(userId));
@@ -388,6 +397,7 @@
       }
 
       async function showRelations(userId,type){
+        showSubpageClose();
         content.replaceChildren(el("p","community-muted","Chargement de la liste…"));
         try{
           const data=await api("/profiles/"+encodeURIComponent(userId)+"/relations?type="+type);
@@ -454,6 +464,7 @@
         const me=await api("/profiles/me");
         myId=me.profile.id;
       } catch { myId=null; }
+      hideSubpageClose();
       setTab("all");
     }
   });

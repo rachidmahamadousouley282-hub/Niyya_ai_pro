@@ -12,6 +12,7 @@
     const expected = [
       { href: "#", label: "Accueil" },
       { href: "#discover", label: "Explorer" },
+      { href: "#community", label: "Communauté" },
       { href: "#create", label: "Créer" },
       { href: "#messages", label: "Messages" },
       { href: "#profile", label: "Profil" }
