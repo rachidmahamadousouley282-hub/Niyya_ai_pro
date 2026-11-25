@@ -322,7 +322,13 @@ async function generateWithCloudflare({
           ...history
         ],
         temperature: 0.75,
-        max_tokens: 700,
+        max_completion_tokens: 700,
+        // GLM-4.7 active le raisonnement par défaut : le désactiver
+        // garantit que la réponse destinée au chat arrive dans message.content.
+        chat_template_kwargs: {
+          enable_thinking: false,
+          clear_thinking: true
+        },
         stream: false
       }),
       signal: controller.signal
