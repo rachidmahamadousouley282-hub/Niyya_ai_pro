@@ -206,6 +206,16 @@
     });
     themeSelect.addEventListener("change", () => applyTheme(themeSelect.value));
 
+    const pauseLabel = document.createElement("label");
+    pauseLabel.className = "settings-toggle";
+    const pauseCheckbox = document.createElement("input");
+    pauseCheckbox.type = "checkbox";
+    pauseCheckbox.id = "niyya-thinking-pause";
+    const pauseText = document.createElement("span");
+    pauseText.textContent = current === "en" ? "Show thinking indicator" : current === "es" ? "Mostrar indicador de reflexión" : current === "ar" ? "إظهار مؤشر التفكير" : "Afficher l’indicateur de réflexion";
+    pauseLabel.append(pauseCheckbox, pauseText);
+    pauseCheckbox.addEventListener("change", () => save({ thinkingPause: pauseCheckbox.checked }));
+
     const note = document.createElement("p");
     note.className = "language-saved";
     note.setAttribute("role", "status");
@@ -231,6 +241,9 @@
       note.textContent = current === "en" ? "Saving…" : current === "es" ? "Guardando…" : current === "ar" ? "جارٍ الحفظ…" : "Enregistrement…";
       try {
         await window.NiyyaAPI.updateSettings(payload);
+        if (Object.prototype.hasOwnProperty.call(payload, "thinkingPause")) {
+          localStorage.setItem("niyya-thinking-pause", payload.thinkingPause ? "1" : "0");
+        }
         note.textContent = translations[current].saved;
       } catch (error) {
         note.textContent = error.message || (current === "en" ? "Could not save settings." : "Impossible d’enregistrer les paramètres.");
@@ -275,7 +288,7 @@
     });
     lengthSelect.addEventListener("change", () => save({ responseLength: lengthSelect.value }));
 
-    panel.append(title, languageLabel, languageSelect, lengthLabel, lengthSelect, themeLabel, themeSelect, note, close);
+    panel.append(title, languageLabel, languageSelect, lengthLabel, lengthSelect, themeLabel, themeSelect, pauseLabel, note, close);
     modal.append(panel);
     modal.addEventListener("click", event => {
       if (event.target === modal) modal.remove();
@@ -295,6 +308,8 @@
         }
         lengthSelect.value = ["short","normal","long"].includes(settings.responseLength)
           ? settings.responseLength : "normal";
+        pauseCheckbox.checked = settings.thinkingPause !== false;
+        localStorage.setItem("niyya-thinking-pause", pauseCheckbox.checked ? "1" : "0");
         settingsReady = true;
       })
       .catch(error => {
