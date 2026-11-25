@@ -208,8 +208,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const conversations = Array.isArray(data.conversations) ? data.conversations : [];
       if (!conversations.length) {
         list.append(element("p", "empty-state", t("historyEmpty")));
-        return;
       }
+
+      // Reserved, non-intrusive sponsor placement. It stays hidden until a
+      // verified ad provider supplies an approved creative and consent state.
+      const adSlot = element("aside", "history-ad-slot");
+      adSlot.dataset.adSlot = "history";
+      adSlot.hidden = true;
+      adSlot.setAttribute("aria-hidden", "true");
+      adSlot.setAttribute("aria-label", "Espace sponsorisé");
+      list.append(adSlot);
+
       conversations.forEach(conversation => {
         const row = element("button", "history-row");
         row.type = "button";
@@ -477,8 +486,49 @@ document.addEventListener("DOMContentLoaded", () => {
       (history.messages || []).forEach(message =>
         addMessage(ui.messages, message.role, message.content));
       if (!history.messages?.length) {
-        ui.messages.append(element("p", "chat-notice",
-          t("startConversation")));
+        const greeting = character.greeting ||
+          "Une nouvelle histoire commence ici. Par quoi veux-tu commencer ?";
+        addMessage(ui.messages, "assistant", greeting);
+
+        const startersBySlug = {
+          clara: [
+            "Lance-moi un défi vraiment inattendu.",
+            "Raconte-moi l'idée la plus folle que tu aies eue.",
+            "Inventons une histoire pleine de rebondissements."
+          ],
+          kenza: [
+            "Quel indice as-tu découvert ?",
+            "Propose-moi une énigme à résoudre.",
+            "Je veux comprendre ce que tu as trouvé."
+          ],
+          lea: [
+            "J'ai une idée dont j'aimerais te parler.",
+            "Aide-moi à imaginer un projet original.",
+            "Inventons quelque chose ensemble."
+          ],
+          kael: [
+            "Examinons cette mystérieuse boussole.",
+            "Je choisis la tour noyée.",
+            "Montre-moi les indices de la carte."
+          ]
+        };
+        const starters = startersBySlug[String(character.slug || "").toLowerCase()] || [
+          "Raconte-moi quelque chose d'inattendu.",
+          "Propose-moi un défi.",
+          "Inventons une histoire ensemble."
+        ];
+        const suggestions = element("div", "chat-starters");
+        suggestions.setAttribute("aria-label", "Idées pour commencer la conversation");
+        starters.forEach(prompt => {
+          const chip = element("button", "chat-starter", prompt);
+          chip.type = "button";
+          chip.addEventListener("click", () => {
+            ui.input.value = prompt;
+            ui.input.focus();
+          });
+          suggestions.append(chip);
+        });
+        ui.messages.append(suggestions);
       }
 
       ui.form.addEventListener("submit", async event => {
