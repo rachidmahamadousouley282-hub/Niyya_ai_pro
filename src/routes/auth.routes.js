@@ -9,6 +9,7 @@ const { pool, query } = require("../config/database");
 const { createSession } = require("../services/session.service");
 const { setSessionCookie, clearSessionCookie } = require("../utils/cookies");
 const { requireAuth } = require("../middleware/auth.middleware");
+const { isValidEmail } = require("../utils/validation");
 
 const router = express.Router();
 
@@ -25,7 +26,6 @@ router.get("/session", requireAuth, async (req, res) => {
 });
 
 
-const EMAIL_REGEX = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/;
 const SCRYPT_OPTIONS = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
 function normalizeEmail(value) {
@@ -51,7 +51,7 @@ async function verifyPassword(password, stored) {
 router.post("/register", requireAuth, requireSameOrigin, async (req, res) => {
   const email = normalizeEmail(req.body?.email);
   const password = req.body?.password;
-  if (!EMAIL_REGEX.test(email) || email.length > 254) {
+  if (!isValidEmail(email) || email.length > 254) {
     return res.status(400).json({ error: "Saisis une adresse e-mail valide." });
   }
   if (typeof password !== "string" || password.length < 10 || password.length > 128) {
@@ -90,7 +90,7 @@ router.post("/register", requireAuth, requireSameOrigin, async (req, res) => {
 router.post("/login", requireSameOrigin, async (req, res) => {
   const email = normalizeEmail(req.body?.email);
   const password = req.body?.password;
-  if (!EMAIL_REGEX.test(email) || email.length > 254 ||
+  if (!isValidEmail(email) || email.length > 254 ||
       typeof password !== "string" || password.length > 128) {
     return res.status(400).json({ error: "Adresse e-mail ou mot de passe invalide." });
   }

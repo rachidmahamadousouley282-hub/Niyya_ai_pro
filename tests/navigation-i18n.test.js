@@ -19,9 +19,9 @@ test("bottom navigation contains the six agreed destinations", () => {
   assert.doesNotMatch(html, /<span class="nav-label">Mes conversations<\/span>/);
 });
 
-test("all supported languages map exactly five labels without a favorites tab", () => {
-  const navMapping = i18n.match(/\[(t\.home, t\.exploreNav, t\.createNav, t\.messagesNav, t\.profile)\]/);
-  assert.ok(navMapping, "Translations must map home, explore, create, messages and profile");
+test("all supported languages map the six navigation labels without extra destinations", () => {
+  const navMapping = i18n.match(/\[(t\.home, t\.exploreNav, t\.communityNav, t\.createNav, t\.messagesNav, t\.profile)\]/);
+  assert.ok(navMapping, "Translations must map home, explore, community, create, messages and profile");
   assert.equal((i18n.match(/messagesNav:/g) || []).length, 4);
   assert.doesNotMatch(i18n, /\[t\.home, t\.exploreNav, t\.createNav, t\.favorites, t\.history, t\.profile\]/);
 });
