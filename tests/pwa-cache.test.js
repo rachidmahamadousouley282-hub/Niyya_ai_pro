@@ -24,6 +24,6 @@ test("The app cache version is advanced when shell assets change", () => {
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
-  assert.match(admin, /admin\.css\?v=community-moderation-v1-20261126/);
-  assert.match(admin, /admin\.js\?v=community-moderation-v1-20261126/);
+  assert.match(admin, /admin\.css\?v=admin-diagnostics-v1-20261126/);
+  assert.match(admin, /admin\.js\?v=admin-diagnostics-v1-20261126/);
 });
