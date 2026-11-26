@@ -34,3 +34,13 @@ test("Member discovery supports loading additional pages without replacing curre
   assert.match(source, /Charger plus de membres/);
   assert.match(source, /loadMembers\("",true\)/);
 });
+
+test("Community sync refreshes only the active view at a restrained interval", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  assert.match(source, /setInterval\(refreshVisibleCommunityView, 60000\)/);
+  assert.match(source, /if \(!communityPage \|\| document\.hidden \|\| syncInProgress\) return/);
+  assert.match(source, /document\.addEventListener\("visibilitychange"/);
+  assert.match(source, /window\.addEventListener\("focus"/);
+  assert.match(source, /loadNotifications\(false\)/);
+  assert.doesNotMatch(source, /location\.reload\(/);
+});

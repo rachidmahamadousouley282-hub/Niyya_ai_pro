@@ -9,6 +9,9 @@
 
     let communityPage = null;
     let hiddenHomeSections = [];
+    let communitySyncTimer = null;
+    let communitySyncCleanup = null;
+    let lastCommunitySyncAt = 0;
     let selectNav = active => {
       nav.querySelectorAll(".nav-item").forEach(item => {
         const selected = item === active;
@@ -18,6 +21,14 @@
       });
     };
     const restoreHome = () => {
+      if (communitySyncTimer) {
+        clearInterval(communitySyncTimer);
+        communitySyncTimer = null;
+      }
+      if (communitySyncCleanup) {
+        communitySyncCleanup();
+        communitySyncCleanup = null;
+      }
       communityPage?.remove();
       communityPage = null;
       hiddenHomeSections.forEach(section => { section.hidden = false; });
@@ -122,13 +133,18 @@
       let currentMode = "all";
       let myId = null;
       let isAdmin = false;
+      let activeProfileId = null;
+      let showingProfile = false;
       let offset = 0;
+      let syncInProgress = false;
       let loading = false;
       const tabItems = [
         ["all","Pour toi"],["following","Abonnements"],["mine","Mes publications"],["notifications","Notifications"],["search","Découvrir"]
       ];
       function setTab(mode) {
         currentMode = mode;
+        activeProfileId = null;
+        showingProfile = false;
         tabs.replaceChildren();
         const visibleTabs = isAdmin
           ? [...tabItems, ["image-review","Images à valider"]]
@@ -212,6 +228,8 @@
       }
 
       async function renderFeed(mode, refresh=false) {
+        activeProfileId = null;
+        showingProfile = false;
         offset=0; loading=false; content.replaceChildren();
         if(mode==="all") content.append(renderComposer());
         const intro=el("div","community-feed-intro");
@@ -353,6 +371,8 @@
       }
 
       async function showProfile(userId) {
+        activeProfileId = userId;
+        showingProfile = true;
         showSubpageClose();
         content.replaceChildren(el("p","community-muted","Chargement du profil…"));
         try{
@@ -402,6 +422,8 @@
       }
 
       async function showRelations(userId,type){
+        activeProfileId = null;
+        showingProfile = false;
         showSubpageClose();
         content.replaceChildren(el("p","community-muted","Chargement de la liste…"));
         try{
@@ -422,12 +444,14 @@
         }catch(error){content.replaceChildren(el("p","community-muted",error.message));}
       }
 
-      async function loadNotifications(){
+      async function loadNotifications(markRead = true){
+        activeProfileId = null;
+        showingProfile = false;
         content.replaceChildren(el("p","community-muted","Chargement des notifications…"));
         try{
           await ensureSession();
           const data=await api("/notifications");
-          await api("/notifications/read",{method:"POST",body:{}});
+          if (markRead) await api("/notifications/read",{method:"POST",body:{}});
           content.replaceChildren(el("h3","community-section-title","Ton activité"));
           if(!data.notifications.length){content.append(el("div","community-empty","Tu n'as pas encore de notification. Les nouveaux abonnés et les interactions apparaîtront ici."));return;}
           data.notifications.forEach(item=>{
@@ -558,6 +582,68 @@
         await loadMembers("");
       }
 
+      async function refreshVisibleCommunityView() {
+        if (!communityPage || document.hidden || syncInProgress) return;
+        const now = Date.now();
+        if (now - lastCommunitySyncAt < 15000) return;
+        const focused = document.activeElement;
+        if (focused && communityPage.contains(focused) && /^(INPUT|TEXTAREA|SELECT)$/.test(focused.tagName)) return;
+        syncInProgress = true;
+        lastCommunitySyncAt = now;
+        try {
+          if (showingProfile && activeProfileId) {
+            const data = await api("/profiles/" + encodeURIComponent(activeProfileId));
+            const stats = content.querySelector(".community-profile-stats");
+            if (stats && data.profile) {
+              stats.children[0].textContent = (data.profile.post_count || 0) + " publications";
+              stats.children[1].textContent = (data.profile.follower_count || 0) + " abonnés";
+              stats.children[2].textContent = (data.profile.following_count || 0) + " abonnements";
+            }
+          } else if (currentMode === "notifications") {
+            await loadNotifications(false);
+          } else if (["all", "following", "mine"].includes(currentMode)) {
+            const feed = content.querySelector(".community-feed-area");
+            if (!feed || loading) return;
+            const data = await api("/feed?mode=" + currentMode + "&limit=20&offset=0");
+            const cards = (data.posts || []).map(post => renderPost(post, feed));
+            if (!cards.length) {
+              feed.replaceChildren(el("div", "community-empty",
+                currentMode === "following" ? "Tu ne suis encore personne. Découvre des membres et abonne-toi à leurs profils." :
+                currentMode === "mine" ? "Tu n'as pas encore publié. Tes créations apparaîtront ici." :
+                "Aucune publication pour le moment."));
+            } else {
+              feed.replaceChildren(...cards);
+              offset = data.posts.length;
+              if (data.posts.length === 20) {
+                const more = el("button", "community-secondary community-load-more", "Charger la suite");
+                more.type = "button";
+                more.addEventListener("click", async () => { more.remove(); await loadPosts(feed, currentMode, true); });
+                feed.append(more);
+              }
+            }
+          }
+        } catch (error) {
+          // A temporary sync failure must not interrupt browsing or clear the page.
+          console.warn("Synchronisation communautaire différée :", error.message);
+        } finally {
+          syncInProgress = false;
+        }
+      }
+
+      function startCommunitySync() {
+        if (communitySyncTimer) clearInterval(communitySyncTimer);
+        communitySyncTimer = setInterval(refreshVisibleCommunityView, 60000);
+        const syncOnReturn = () => {
+          if (!document.hidden) refreshVisibleCommunityView();
+        };
+        document.addEventListener("visibilitychange", syncOnReturn);
+        window.addEventListener("focus", syncOnReturn);
+        communitySyncCleanup = () => {
+          document.removeEventListener("visibilitychange", syncOnReturn);
+          window.removeEventListener("focus", syncOnReturn);
+        };
+      }
+
       async function loadCommentsForPost(){/* reserved for lazy comment loading */}
       try {
         await ensureSession();
@@ -567,6 +653,7 @@
       } catch { myId=null; isAdmin=false; }
       hideSubpageClose();
       setTab("all");
+      startCommunitySync();
     }
   });
 })();
