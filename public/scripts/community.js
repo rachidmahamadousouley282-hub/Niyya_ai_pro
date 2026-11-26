@@ -10,6 +10,8 @@
     let communityPage = null;
     let hiddenHomeSections = [];
     let communitySyncTimer = null;
+    let communityEventSource = null;
+    let communitySyncDebounce = null;
     let communitySyncCleanup = null;
     let lastCommunitySyncAt = 0;
     let selectNav = active => {
@@ -582,10 +584,10 @@
         await loadMembers("");
       }
 
-      async function refreshVisibleCommunityView() {
+      async function refreshVisibleCommunityView(force = false) {
         if (!communityPage || document.hidden || syncInProgress) return;
         const now = Date.now();
-        if (now - lastCommunitySyncAt < 15000) return;
+        if (!force && now - lastCommunitySyncAt < 15000) return;
         const focused = document.activeElement;
         if (focused && communityPage.contains(focused) && /^(INPUT|TEXTAREA|SELECT)$/.test(focused.tagName)) return;
         syncInProgress = true;
@@ -630,17 +632,37 @@
         }
       }
 
+      function queueCommunitySync() {
+        if (communitySyncDebounce) clearTimeout(communitySyncDebounce);
+        communitySyncDebounce = setTimeout(() => {
+          communitySyncDebounce = null;
+          refreshVisibleCommunityView(true);
+        }, 400);
+      }
       function startCommunitySync() {
         if (communitySyncTimer) clearInterval(communitySyncTimer);
-        communitySyncTimer = setInterval(refreshVisibleCommunityView, 60000);
-        const syncOnReturn = () => {
-          if (!document.hidden) refreshVisibleCommunityView();
-        };
+        if (communityEventSource) communityEventSource.close();
+        communityEventSource = null;
+        if ("EventSource" in window) {
+          communityEventSource = new EventSource("/api/community/events");
+          communityEventSource.addEventListener("ready", queueCommunitySync);
+          communityEventSource.addEventListener("feed_changed", queueCommunitySync);
+          communityEventSource.addEventListener("activity", queueCommunitySync);
+        }
+        // Reconcile missed events only while the stream is unavailable.
+        communitySyncTimer = setInterval(() => {
+          if (!communityEventSource || communityEventSource.readyState !== EventSource.OPEN) refreshVisibleCommunityView();
+        }, 120000);
+        const syncOnReturn = () => { if (!document.hidden) refreshVisibleCommunityView(true); };
         document.addEventListener("visibilitychange", syncOnReturn);
         window.addEventListener("focus", syncOnReturn);
         communitySyncCleanup = () => {
           document.removeEventListener("visibilitychange", syncOnReturn);
           window.removeEventListener("focus", syncOnReturn);
+          if (communityEventSource) communityEventSource.close();
+          communityEventSource = null;
+          if (communitySyncDebounce) clearTimeout(communitySyncDebounce);
+          communitySyncDebounce = null;
         };
       }
 

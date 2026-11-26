@@ -4,10 +4,19 @@ const { rateLimit } = require("express-rate-limit");
 const { query } = require("../config/database");
 const { requireAuth, optionalAuth } = require("../middleware/auth.middleware");
 const safety = require("../engines/safety.engine");
+const { subscribeCommunityUser, publishCommunityEvent } = require("../services/community-events.service");
 
 const router = express.Router();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const writeLimiter = rateLimit({ windowMs: 60000, limit: 10, standardHeaders: "draft-8", legacyHeaders: false });
+
+router.get("/events", requireAuth, (req, res) => {
+  res.status(200);
+  res.set({ "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-cache, no-transform", "Connection": "keep-alive", "X-Accel-Buffering": "no" });
+  if (typeof res.flushHeaders === "function") res.flushHeaders();
+  if (!subscribeCommunityUser(req.user.id, res)) res.end("event: limit\\ndata: {}\\n\\n");
+});
+
 
 function sameOrigin(req, res, next) {
   const origin = req.get("origin");
@@ -173,6 +182,7 @@ router.post("/profiles/:userId/follow", requireAuth, sameOrigin, writeLimiter, a
       [req.user.id, targetId]
     );
     if (result.rows[0].following) await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type) VALUES ($1,$2,'follow')", [targetId, req.user.id]);
+    await publishCommunityEvent(targetId, "activity");
     const counts = await query("SELECT COUNT(*)::int AS follower_count FROM public.community_follows WHERE followed_user_id = $1", [targetId]);
     return res.status(200).json({ success: true, following: result.rows[0].following, followerCount: counts.rows[0].follower_count });
   } catch (error) {
@@ -207,6 +217,7 @@ router.post("/posts", requireAuth, sameOrigin, writeLimiter, async (req, res) =>
       "INSERT INTO public.community_posts (author_user_id, body, visibility, media_data, media_mime, status) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, body, visibility, status, (media_data IS NOT NULL) AS has_image, media_mime, created_at",
       [req.user.id, body, visibility, image ? image.data : null, image ? image.mime : null, image && visibility === "public" ? "pending_review" : "published"]
     );
+    if (result.rows[0].status === "published") await publishCommunityEvent(null, "feed_changed");
     return res.status(201).json({ success: true, post: { ...result.rows[0], author_id: user.id, author_name: user.pseudonym, like_count: 0, comment_count: 0, liked_by_me: false }, pendingReview: result.rows[0].status === "pending_review" });
   } catch (error) {
     if (/champ|contenu|caractères/i.test(error.message || "")) return res.status(400).json({ error: error.message });
@@ -220,6 +231,7 @@ router.delete("/posts/:postId", requireAuth, sameOrigin, writeLimiter, async (re
   try {
     const result = await query("UPDATE public.community_posts SET status = 'deleted', updated_at = NOW() WHERE id = $1 AND author_user_id = $2 AND status = 'published' RETURNING id", [req.params.postId, req.user.id]);
     if (!result.rows.length) return res.status(404).json({ error: "Publication introuvable." });
+    await publishCommunityEvent(null, "feed_changed");
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("Erreur de suppression de publication :", error.message);
@@ -240,7 +252,8 @@ router.post("/posts/:postId/like", requireAuth, sameOrigin, writeLimiter, async 
     );
     if (!result.rows[0] || !result.rows[0].exists) return res.status(404).json({ error: "Publication introuvable." });
     if (result.rows[0].liked) {
-      await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type, post_id) SELECT author_user_id, $1, 'like', id FROM public.community_posts WHERE id = $2 AND author_user_id <> $1", [req.user.id, req.params.postId]);
+      const notified = await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type, post_id) SELECT author_user_id, $1, 'like', id FROM public.community_posts WHERE id = $2 AND author_user_id <> $1 RETURNING recipient_user_id", [req.user.id, req.params.postId]);
+      if (notified.rows[0]) await publishCommunityEvent(notified.rows[0].recipient_user_id, "activity");
     }
     const count = await query("SELECT COUNT(*)::int AS like_count FROM public.community_post_likes WHERE post_id = $1", [req.params.postId]);
     return res.status(200).json({ success: true, liked: result.rows[0].liked, likeCount: count.rows[0].like_count });
@@ -281,7 +294,8 @@ router.post("/posts/:postId/comments", requireAuth, sameOrigin, writeLimiter, as
       [req.params.postId, req.user.id, body]
     );
     if (!result.rows.length) return res.status(404).json({ error: "Publication introuvable." });
-    await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type, post_id) SELECT author_user_id, $1, 'comment', id FROM public.community_posts WHERE id = $2 AND author_user_id <> $1", [req.user.id, req.params.postId]);
+    const notified = await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type, post_id) SELECT author_user_id, $1, 'comment', id FROM public.community_posts WHERE id = $2 AND author_user_id <> $1 RETURNING recipient_user_id", [req.user.id, req.params.postId]);
+    if (notified.rows[0]) await publishCommunityEvent(notified.rows[0].recipient_user_id, "activity");
     return res.status(201).json({ success: true, comment: { ...result.rows[0], author_id: user.id, author_name: user.pseudonym } });
   } catch (error) {
     if (/champ|contenu|caractères/i.test(error.message || "")) return res.status(400).json({ error: error.message });
@@ -372,6 +386,7 @@ router.patch("/moderation/image-posts/:postId", requireAuth, sameOrigin, writeLi
     const status = req.body.decision === "approve" ? "published" : "hidden";
     const result = await query("UPDATE public.community_posts SET status = $2, updated_at = NOW() WHERE id = $1 AND status = 'pending_review' AND media_data IS NOT NULL RETURNING id, status", [req.params.postId, status]);
     if (!result.rows.length) return res.status(404).json({ error: "Cette image n'est plus en attente de validation." });
+    if (status === "published") await publishCommunityEvent(null, "feed_changed");
     return res.status(200).json({ success: true, post: result.rows[0] });
   } catch (error) {
     console.error("Erreur de décision sur une image :", error.message);

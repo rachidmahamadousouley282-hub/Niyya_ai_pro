@@ -12,6 +12,7 @@ const routes = router.stack.filter(layer => layer.route).map(layer => ({
 test("Community API exposes feed, profiles, posts, comments, follows and reports", () => {
   const has = (method, path) => routes.some(route => route.path === path && route.methods.includes(method));
   assert.equal(has("get", "/feed"), true);
+  assert.equal(has("get", "/events"), true);
   assert.equal(has("get", "/members"), true);
   assert.equal(has("get", "/search"), true);
   assert.equal(has("get", "/profiles/me"), true);

@@ -7,6 +7,7 @@ const {
   testConnection,
   closeDatabase
 } = require("./config/database");
+const { startCommunityEvents, stopCommunityEvents } = require("./services/community-events.service");
 
 const PORT = process.env.PORT || 10000;
 
@@ -16,6 +17,7 @@ let isShuttingDown = false;
 async function startServer() {
   try {
     await testConnection();
+    await startCommunityEvents();
 
     console.log("Connexion à Neon réussie.");
 
@@ -56,6 +58,7 @@ async function shutdown(exitCode = 0) {
       });
     }
 
+    await stopCommunityEvents().catch(() => {});
     await closeDatabase();
 
     console.log("Serveur et connexions PostgreSQL fermés.");

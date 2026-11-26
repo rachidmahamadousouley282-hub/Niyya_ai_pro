@@ -35,12 +35,22 @@ test("Member discovery supports loading additional pages without replacing curre
   assert.match(source, /loadMembers\("",true\)/);
 });
 
-test("Community sync refreshes only the active view at a restrained interval", () => {
+test("Community sync uses authenticated server-sent events and a slow fallback", () => {
   const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
-  assert.match(source, /setInterval\(refreshVisibleCommunityView, 60000\)/);
-  assert.match(source, /if \(!communityPage \|\| document\.hidden \|\| syncInProgress\) return/);
+  assert.match(source, /new EventSource\("\/api\/community\/events"\)/);
+  assert.match(source, /addEventListener\("feed_changed"/);
+  assert.match(source, /addEventListener\("activity"/);
+  assert.match(source, /120000/);
   assert.match(source, /document\.addEventListener\("visibilitychange"/);
   assert.match(source, /window\.addEventListener\("focus"/);
-  assert.match(source, /loadNotifications\(false\)/);
   assert.doesNotMatch(source, /location\.reload\(/);
+});
+test("Community event service uses PostgreSQL notifications and user-scoped streams", () => {
+  const service = fs.readFileSync(path.join(__dirname, "../src/services/community-events.service.js"), "utf8");
+  const routes = fs.readFileSync(path.join(__dirname, "../src/routes/community.routes.js"), "utf8");
+  assert.match(service, /LISTEN/);
+  assert.match(service, /pg_notify/);
+  assert.match(service, /subscribersByUser/);
+  assert.match(routes, /router\.get\("\/events", requireAuth/);
+  assert.match(routes, /subscribeCommunityUser\(req\.user\.id, res\)/);
 });
