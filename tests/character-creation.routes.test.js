@@ -95,7 +95,8 @@ test("La création enregistre réellement un brouillon privé et renvoie son ide
   assert.match(recordedQueries[1].sql, /avatar_url/);
   assert.equal(res.body.canSubmit, false, "Un compte mineur ne reçoit pas le droit de publier");
   assert.match(recordedQueries[1].sql, /INSERT INTO public\.characters/);
-  assert.match(recordedQueries[1].sql, /'private', 'none', 'none'/);
+  assert.match(recordedQueries[1].sql, /'private', 'none'/);
+  assert.match(recordedQueries[1].sql, /avatar_url/);
   assert.deepEqual(recordedQueries[1].params.slice(0, 4), [
     OWNER_ID, "Mira", "Une exploratrice curieuse",
     "Mira est curieuse, réfléchie, patiente et respectueuse."
