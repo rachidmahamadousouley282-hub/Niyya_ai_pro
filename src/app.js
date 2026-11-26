@@ -58,7 +58,16 @@ const authLimiter = rateLimit({
 });
 
 app.use("/api", generalLimiter);
-app.use("/api/auth", authLimiter);
+
+// Only throttle endpoints that create or authenticate sessions. Read-only session
+// checks are used during normal navigation and must not consume login attempts.
+app.use("/api/auth", (req, res, next) => {
+  const protectedAuthActions = new Set(["/login", "/guest", "/register"]);
+  if (req.method === "POST" && protectedAuthActions.has(req.path)) {
+    return authLimiter(req, res, next);
+  }
+  return next();
+});
 
 app.get("/api/health", (req, res) => {
   return res.status(200).json({
