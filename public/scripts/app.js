@@ -1322,7 +1322,19 @@ async function openCreator(existingCharacter = null) {
           chatNow.disabled = true;
           chatNow.textContent = "Ouverture de la conversation…";
           try {
-            await openChat(savedCharacter, null);
+            let chatCharacter = savedCharacter;
+            if (!uuidPattern.test(String(chatCharacter.id || ""))) {
+              // Recover the saved row from the owner's list if an older or stale
+              // response omitted its UUID. The successful save remains successful.
+              const owned = await window.NiyyaAPI.getMyCharacters();
+              const matches = (Array.isArray(owned.characters) ? owned.characters : [])
+                .filter(item => item.name === savedCharacter.name && item.tagline === savedCharacter.tagline);
+              if (matches.length !== 1 || !uuidPattern.test(String(matches[0].id || ""))) {
+                throw new Error("Personnage enregistré, mais identifiant introuvable. Ouvre « Mes créations » puis réessaie.");
+              }
+              chatCharacter = matches[0];
+            }
+            await openChat(chatCharacter, null);
           } catch (error) {
             status.textContent = error.message || "Impossible d'ouvrir ce personnage.";
             chatNow.disabled = false;
