@@ -51,7 +51,7 @@ async function requireOnboarded(userId) {
 }
 async function getProfile(userId, viewerId) {
   const result = await query(
-    "SELECT u.id, u.pseudonym, u.bio, u.created_at, " +
+    "SELECT u.id, u.pseudonym, u.bio, u.created_at, u.is_official, u.is_verified, " +
     "(SELECT COUNT(*)::int FROM public.community_posts p WHERE p.author_user_id = u.id AND p.status = 'published' AND (p.visibility = 'public' OR u.id = $2)) AS post_count, " +
     "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
     "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.follower_user_id = u.id) AS following_count, " +
@@ -62,6 +62,23 @@ async function getProfile(userId, viewerId) {
   );
   return result.rows[0] || null;
 }
+
+router.get("/official", optionalAuth, async (req, res) => {
+  try {
+    const result = await query(
+      "SELECT u.id, u.pseudonym, u.bio, u.is_official, u.is_verified, " +
+      "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
+      "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $1 AND f.followed_user_id = u.id) AS is_following " +
+      "FROM public.users u WHERE u.is_official = TRUE AND u.onboarded_at IS NOT NULL LIMIT 1",
+      [req.user ? req.user.id : null]
+    );
+    if (!result.rows.length) return res.status(404).json({ error: "Le compte officiel n'est pas encore disponible." });
+    return res.status(200).json({ success: true, account: result.rows[0] });
+  } catch (error) {
+    console.error("Erreur du compte officiel :", error.message);
+    return res.status(500).json({ error: "Impossible de charger le compte officiel." });
+  }
+});
 
 router.get("/feed", optionalAuth, async (req, res) => {
   const limit = pagination(req.query.limit, 20, 30);

@@ -120,6 +120,35 @@
       close.setAttribute("aria-label", "Retour à la communauté");
       close.hidden = true;
       header.append(heading, close);
+      const officialBanner = el("section", "community-official-card");
+      officialBanner.append(el("div", "community-official-mark", "N"));
+      const officialCopy = el("div", "community-official-copy");
+      officialCopy.append(el("strong", "", "NIYYA Officiel"), el("span", "", "Compte officiel de la plateforme"));
+      const officialAction = el("button", "community-follow-small", "Chargement…");
+      officialAction.type = "button";
+      officialAction.disabled = true;
+      officialBanner.append(officialCopy, officialAction);
+      page.append(officialBanner);
+      api("/official").then(data => {
+        const account = data.account;
+        officialCopy.replaceChildren(el("strong", "", account.pseudonym), el("span", "", account.bio || "Compte officiel de NIYYA.ai"));
+        officialAction.disabled = account.id === myId;
+        officialAction.textContent = account.is_following ? "Abonné" : "S'abonner";
+        officialAction.classList.toggle("following", !!account.is_following);
+        officialAction.addEventListener("click", async () => {
+          officialAction.disabled = true;
+          try {
+            const result = await api("/profiles/" + encodeURIComponent(account.id) + "/follow", { method: "POST", body: {} });
+            account.is_following = result.following;
+            officialAction.textContent = result.following ? "Abonné" : "S'abonner";
+            officialAction.classList.toggle("following", result.following);
+          } catch (error) { window.alert(error.message); }
+          finally { officialAction.disabled = false; }
+        });
+      }).catch(() => {
+        officialCopy.append(el("span", "community-muted", "Le compte officiel sera bientôt disponible."));
+        officialAction.hidden = true;
+      });
       const tabs = el("div", "community-tabs");
       const content = el("div", "community-content");
       page.append(header, tabs, content);
@@ -271,7 +300,27 @@
         identity.type="button";
         const avatar=el("span","community-avatar",initials(post.author_name));
         const nameWrap=el("span","community-author-copy");
-        nameWrap.append(el("strong","",post.author_name||"Membre NIYYA"),el("small","",dateLabel(post.created_at)));
+        nameWrap.append(el("strong","",post.author_name||"Membre NIYYA"));
+        if (post.is_official || post.is_verified) {
+          const badge = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          badge.setAttribute("viewBox", "0 0 24 24");
+          badge.setAttribute("class", "community-verified-badge");
+          badge.setAttribute("role", "img");
+          badge.setAttribute("aria-label", post.is_official ? "Compte officiel NIYYA" : "Compte vérifié");
+          const shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          shape.setAttribute("d", "M12 1.8 14.7 4l3.5-.1 1.1 3.3 2.8 2.1-1.1 3.3 1.1 3.3-2.8 2.1-1.1 3.3-3.5-.1L12 23l-2.7-2.2-3.5.1-1.1-3.3-2.8-2.1L3 12.2 1.9 8.9l2.8-2.1 1.1-3.3 3.5.1Z");
+          shape.setAttribute("fill", "#2588F5");
+          const tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          tick.setAttribute("d", "m7.5 12.2 3 3 6.2-6.4");
+          tick.setAttribute("fill", "none");
+          tick.setAttribute("stroke", "#fff");
+          tick.setAttribute("stroke-width", "2");
+          tick.setAttribute("stroke-linecap", "round");
+          tick.setAttribute("stroke-linejoin", "round");
+          badge.append(shape, tick);
+          nameWrap.append(badge);
+        }
+        nameWrap.append(el("small","",dateLabel(post.created_at)));
         identity.append(avatar,nameWrap);
         identity.addEventListener("click",()=>showProfile(post.author_id));
         const right=el("div","community-post-top-actions");

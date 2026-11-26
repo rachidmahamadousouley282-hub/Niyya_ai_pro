@@ -102,6 +102,39 @@ router.get("/character-analytics", requireAuth, async (req, res) => {
   }
 });
 
+router.post("/official/announcements", requireAuth, async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Accès réservé à l'équipe NIYYA." });
+  }
+  const origin = req.get("origin");
+  const host = req.get("host");
+  try {
+    if (!origin || !host || new URL(origin).host !== host) {
+      return res.status(403).json({ error: "Origine de requête non autorisée." });
+    }
+  } catch {
+    return res.status(403).json({ error: "Origine de requête invalide." });
+  }
+  const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
+  if (body.length < 2 || body.length > 600) {
+    return res.status(400).json({ error: "Une annonce doit contenir entre 2 et 600 caractères." });
+  }
+  try {
+    const result = await query(
+      "INSERT INTO public.community_posts (author_user_id, body, visibility, status) " +
+      "SELECT id, $1, 'public', 'published' FROM public.users WHERE is_official = TRUE " +
+      "RETURNING id, body, visibility, status, created_at",
+      [body]
+    );
+    if (!result.rows.length) return res.status(503).json({ error: "Le compte officiel n'est pas disponible." });
+    return res.status(201).json({ success: true, post: result.rows[0] });
+  } catch (error) {
+    console.error("Erreur de publication officielle :", error.message);
+    return res.status(500).json({ error: "Impossible de publier l'annonce." });
+  }
+});
+
+
 module.exports = router;
 
 

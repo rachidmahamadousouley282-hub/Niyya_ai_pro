@@ -323,3 +323,12 @@
 .community-member-follow,.community-member-view{min-height:32px;padding:7px 10px;font-size:10px}
 .community-member-follow.following{background:#14283e!important;color:#a9c5df!important;border-color:rgba(123,180,239,.2)!important}
 @media(max-width:520px){.community-member-card{align-items:flex-start;flex-direction:column}.community-member-actions{width:100%}.community-member-actions button{flex:1}}
+
+
+/* Official NIYYA profile and platform-issued verification mark. */
+.community-official-card{display:flex;align-items:center;gap:12px;padding:14px 16px;margin:0 0 14px;border:1px solid rgba(65,139,235,.28);border-radius:18px;background:linear-gradient(110deg,rgba(37,136,245,.12),rgba(13,23,42,.72));}
+.community-official-mark{width:42px;height:42px;flex:0 0 42px;border-radius:14px;display:grid;place-items:center;background:#172f50;color:#8fc1ff;font-weight:800;font-size:20px;}
+.community-official-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;}
+.community-official-copy strong{color:var(--text-primary,#fff);font-size:14px;}
+.community-official-copy span{color:var(--text-muted,#9ba9bc);font-size:12px;line-height:1.35;}
+.community-verified-badge{width:16px;height:16px;flex:0 0 16px;vertical-align:middle;margin-left:4px;}
