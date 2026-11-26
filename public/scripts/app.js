@@ -763,7 +763,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("vip-home-button")?.addEventListener("click", openVipOffers);
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
   document.getElementById("profile-button")?.addEventListener("click", openAccount);
-  document.getElementById("settings-button")?.addEventListener("click", openAccountSettings);
 
   searchInput.addEventListener("input", renderCharacters);
 

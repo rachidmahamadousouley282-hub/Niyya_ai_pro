@@ -20,7 +20,7 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v33"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v34"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -35,7 +35,12 @@ test("VIP offer entry points and settings action are wired", () => {
   const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
   assert.match(app, /getElementById\("vip-offer-button"\).*openVipOffers/);
   assert.match(app, /getElementById\("vip-home-button"\).*openVipOffers/);
-  assert.match(app, /getElementById\("settings-button"\).*openAccountSettings/);
+  assert.doesNotMatch(app, /getElementById\("settings-button"\).*openAccountSettings/);
+  const i18n = fs.readFileSync(path.join(root, "public/scripts/i18n.js"), "utf8");
+  assert.match(i18n, /getElementById\("settings-button"\)\?\.addEventListener\("click", openSettings\)/);
+  assert.match(i18n, /niyya-language-select/);
+  assert.match(i18n, /niyya-response-length/);
+  assert.match(i18n, /niyya-theme-select/);
   assert.match(app, /"Compte et sécurité"/);
   assert.match(app, /≈ \$2\.50 \/ mois · ≈ \$25 \/ an/);
   assert.doesNotMatch(app, /FCFA \/ mois/);
