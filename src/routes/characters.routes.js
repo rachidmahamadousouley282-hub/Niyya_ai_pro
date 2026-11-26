@@ -6,7 +6,7 @@ const { requireAuth, optionalAuth } = require("../middleware/auth.middleware");
 const safetyEngine = require("../engines/safety.engine");
 
 const router = express.Router();
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CATEGORIES = new Set(["original", "anime", "fantasy", "mystery", "comedy", "friendship", "adventure", "science-fiction"]);
 
 const PUBLIC_CHARACTER_FIELDS = [

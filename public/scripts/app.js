@@ -1231,14 +1231,8 @@ async function openCreator(existingCharacter = null) {
     const form = element("form", "creator-form");
     const fields = [
       ["name", "Nom du personnage", "Ex. : Mira", 40, true, "input"],
-      ["tagline", "Phrase de présentation", "En une phrase, qui est ce personnage ?", 100, true, "input"],
-      ["shortBio", "Présentation", "Décris brièvement son caractère et ce qui le rend intéressant…", 500, true, "textarea"],
-      ["backstory", "Histoire du personnage", "Son passé, ses objectifs et son univers…", 3000, true, "textarea"],
-      ["personalityPrompt", "Personnalité et façon de parler", "Décris sa personnalité, ses valeurs et son style de conversation…", 4000, true, "textarea"],
-      ["scenario", "Contexte de départ", "Dans quel univers ou quelle situation commence l'histoire ?", 1000, false, "textarea"],
-      ["greeting", "Premier message", "Que dit le personnage quand une conversation commence ?", 800, true, "textarea"],
-      ["traits", "Traits de personnalité", "Curieux, drôle, réfléchi (séparés par des virgules)", 256, false, "input"],
-      ["tags", "Mots-clés", "Aventure, mystère, fantasy… (séparés par des virgules)", 192, false, "input"]
+      ["description", "Description du personnage", "Décris son caractère, son histoire et sa façon de parler…", 3000, true, "textarea"],
+      ["greeting", "Premier message", "Que dit le personnage quand une conversation commence ?", 800, true, "textarea"]
     ];
     const controls = {};
     fields.forEach(([key, labelText, placeholder, max, required, kind]) => {
@@ -1249,7 +1243,9 @@ async function openCreator(existingCharacter = null) {
       control.placeholder = placeholder;
       control.maxLength = max;
       control.required = required;
-      const existingValues = { shortBio: existingCharacter?.short_bio, personalityPrompt: existingCharacter?.personality_prompt, traits: existingCharacter?.personality_traits?.join(", "), tags: existingCharacter?.tags?.join(", ") };
+      const existingValues = {
+        description: existingCharacter?.short_bio || existingCharacter?.backstory || existingCharacter?.personality_prompt || ""
+      };
       const existingValue = existingValues[key] ?? existingCharacter?.[key];
       if (existingValue !== undefined && existingValue !== null) control.value = existingValue;
       if (kind === "textarea") control.rows = key === "personalityPrompt" || key === "backstory" ? 4 : 3;
@@ -1285,17 +1281,20 @@ async function openCreator(existingCharacter = null) {
       if (submit.disabled) return;
       submit.disabled = true;
       status.textContent = "Vérification et enregistrement…";
+      const description = controls.description.value.trim();
+      const firstSentence = description.split(/[.!?\n]/)[0].trim();
+      const tagline = (firstSentence.length >= 3 ? firstSentence : description).slice(0, 100);
       const payload = {
-        name: controls.name.value,
-        tagline: controls.tagline.value,
-        shortBio: controls.shortBio.value,
-        backstory: controls.backstory.value,
-        personalityPrompt: controls.personalityPrompt.value,
-        scenario: controls.scenario.value,
-        greeting: controls.greeting.value,
+        name: controls.name.value.trim(),
+        tagline,
+        shortBio: description.slice(0, 500),
+        backstory: description,
+        personalityPrompt: description,
+        scenario: "Un univers fictif et bienveillant.",
+        greeting: controls.greeting.value.trim(),
         category: category.value,
-        traits: controls.traits.value.split(",").map(value => value.trim()).filter(Boolean),
-        tags: controls.tags.value.split(",").map(value => value.trim()).filter(Boolean)
+        traits: [],
+        tags: []
       };
       try {
         await ensureGuest();
@@ -1303,15 +1302,26 @@ async function openCreator(existingCharacter = null) {
         if (!access.onboarded) {
           throw new Error("L'atelier est accessible après le parcours d'inscription autorisé de NIYYA.");
         }
+        let editCharacterId = existingCharacter?.id;
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (existingCharacter && !uuidPattern.test(String(editCharacterId || ""))) {
+          const owned = await window.NiyyaAPI.getMyCharacters();
+          const matches = (Array.isArray(owned.characters) ? owned.characters : [])
+            .filter(item => item.name === existingCharacter.name && item.tagline === existingCharacter.tagline);
+          if (matches.length !== 1 || !uuidPattern.test(String(matches[0].id || ""))) {
+            throw new Error("Impossible de retrouver l'identifiant de ce brouillon. Retourne dans « Mes créations » puis réessaie.");
+          }
+          editCharacterId = matches[0].id;
+        }
         const result = existingCharacter
-          ? await window.NiyyaAPI.updateCharacter(existingCharacter.id, payload)
+          ? await window.NiyyaAPI.updateCharacter(editCharacterId, payload)
           : await window.NiyyaAPI.createCharacter(payload);
         if (!result.character) throw new Error("Le serveur n'a pas renvoyé le personnage enregistré.");
         // The create/update endpoint already returns the canonical saved database row.
         // Do not make saving depend on a second /mine request or a name-based lookup:
         // a failed refresh must never turn a successful save into a displayed failure.
         const savedCharacter = result.character;
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         const reviewMessage = result.canSubmit
           ? "Ton personnage est privé. Tu peux demander sa vérification avant de le rendre visible dans Explorer."
           : "Ton personnage est enregistré en brouillon privé. La publication publique et l'envoi en vérification sont réservés aux comptes adultes.";

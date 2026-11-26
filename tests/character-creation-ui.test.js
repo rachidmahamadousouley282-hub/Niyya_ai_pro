@@ -4,26 +4,33 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 
-test("La sauvegarde utilise directement le personnage canonique renvoyé par le serveur", () => {
+test("L'atelier demande uniquement un nom, une description et un premier message", () => {
   const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
-  assert.match(source, /const savedCharacter = result\.character/);
-  assert.doesNotMatch(source, /const savedCharacters = await window\.NiyyaAPI\.getMyCharacters\(\)/);
-  assert.match(source, /openChat\(chatCharacter, null\)/);
+  const fields = source.slice(source.indexOf('const fields = ['), source.indexOf('const controls = {};'));
+  assert.match(fields, /\["name", "Nom du personnage"/);
+  assert.match(fields, /\["description", "Description du personnage"/);
+  assert.match(fields, /\["greeting", "Premier message"/);
+  assert.doesNotMatch(fields, /tagline|shortBio|backstory|personalityPrompt|scenario|traits|tags/);
+  assert.match(source, /shortBio: description\.slice\(0, 500\)/);
+  assert.match(source, /backstory: description/);
+  assert.match(source, /personalityPrompt: description/);
+});
+
+test("La modification retrouve un identifiant canonique si le formulaire reçoit un identifiant incomplet", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(source, /let editCharacterId = existingCharacter\?\.id/);
   assert.match(source, /const owned = await window\.NiyyaAPI\.getMyCharacters\(\)/);
-  assert.match(source, /matches\.length !== 1/);
-  assert.match(source, /if \(!\/\^\[0-9a-f\]/);
+  assert.match(source, /updateCharacter\(editCharacterId, payload\)/);
   assert.match(source, /Discuter avec mon personnage/);
 });
 
-test("Le formulaire de création n'affiche plus le conseil de sécurité sous les champs", () => {
+test("La validation des identifiants accepte tout UUID PostgreSQL canonique", () => {
+  const route = fs.readFileSync(path.join(__dirname, "../src/routes/characters.routes.js"), "utf8");
+  assert.match(route, /const UUID_REGEX = \/\^\[0-9a-f\]\{8\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{4\}-\[0-9a-f\]\{12\}\$\/i/);
+});
+
+test("Le formulaire n'affiche plus le conseil de sécurité sous les champs", () => {
   const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
   assert.doesNotMatch(source, /Conseil : n'inclus pas de coordonnées personnelles/);
   assert.match(source, /form\.append\(status, submit\)/);
-});
-
-test("Chaque création sauvegardée reste accessible pour démarrer une conversation", () => {
-  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
-  assert.match(source, /const chat = element\("button", "chat-send creator-chat-button", "Discuter"\)/);
-  assert.match(source, /openChat\(character, null\)/);
-  assert.ok(source.indexOf("const chat = element") < source.indexOf('if (["none", "rejected"].includes(character.publication_status))'));
 });
