@@ -456,30 +456,5 @@ router.post("/profiles/:userId/block", requireAuth, sameOrigin, writeLimiter, as
   }catch(error){return res.status(500).json({error:"Impossible de modifier le blocage."});}
 });
 
-router.get("/profiles/:userId/relations", optionalAuth, async(req,res)=>{
-  const target=req.params.userId;
-  const type=req.query.type==="following"?"following":"followers";
-  if(!validId(target))return res.status(400).json({error:"Profil invalide."});
-  try{
-    const col=type==="followers"?"followed_user_id":"follower_user_id";
-    const join=type==="followers"?"f.follower_user_id":"f.followed_user_id";
-    const result=await query(
-      "SELECT u.id,u.pseudonym,u.bio FROM public.community_follows f JOIN public.users u ON u.id="+join+
-      " WHERE f."+col+"=$1 AND u.onboarded_at IS NOT NULL AND ($2 IS NULL OR NOT EXISTS(SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id=$2 AND b.blocked_user_id=u.id) OR (b.blocker_user_id=u.id AND b.blocked_user_id=$2))) ORDER BY f.created_at DESC LIMIT 100",
-      [target,req.user?req.user.id:null]);
-    return res.json({success:true,members:result.rows,type});
-  }catch(error){return res.status(500).json({error:"Impossible de charger cette liste."});}
-});
-
-router.post("/comments/:commentId/report", requireAuth, sameOrigin, writeLimiter, async(req,res)=>{
-  if(!validId(req.params.commentId))return res.status(400).json({error:"Commentaire invalide."});
-  const reason=["spam","harassment","unsafe","personal_info","other"].includes(req.body&&req.body.reason)?req.body.reason:"other";
-  try{
-    const exists=await query("SELECT id FROM public.community_comments WHERE id=$1 AND status='published'",[req.params.commentId]);
-    if(!exists.rows.length)return res.status(404).json({error:"Commentaire introuvable."});
-    const result=await query("INSERT INTO public.community_reports(reporter_user_id,target_type,target_id,reason) VALUES($1,'comment',$2,$3) ON CONFLICT(reporter_user_id,target_type,target_id) DO NOTHING RETURNING id",[req.user.id,req.params.commentId,reason]);
-    return res.status(201).json({success:true,reported:Boolean(result.rows.length)});
-  }catch(error){return res.status(500).json({error:"Impossible de signaler ce commentaire."});}
-});
 
 module.exports = router;
