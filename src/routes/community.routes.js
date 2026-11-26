@@ -204,10 +204,10 @@ router.post("/posts", requireAuth, sameOrigin, writeLimiter, async (req, res) =>
     }
     if (body.length < 2 && !image) return res.status(400).json({ error: "Ajoute un texte ou une image à ta publication." });
     const result = await query(
-      "INSERT INTO public.community_posts (author_user_id, body, visibility, media_data, media_mime) VALUES ($1,$2,$3,$4,$5) RETURNING id, body, visibility, (media_data IS NOT NULL) AS has_image, media_mime, created_at",
-      [req.user.id, body, visibility, image ? image.data : null, image ? image.mime : null]
+      "INSERT INTO public.community_posts (author_user_id, body, visibility, media_data, media_mime, status) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id, body, visibility, status, (media_data IS NOT NULL) AS has_image, media_mime, created_at",
+      [req.user.id, body, visibility, image ? image.data : null, image ? image.mime : null, image && visibility === "public" ? "pending_review" : "published"]
     );
-    return res.status(201).json({ success: true, post: { ...result.rows[0], author_id: user.id, author_name: user.pseudonym, like_count: 0, comment_count: 0, liked_by_me: false } });
+    return res.status(201).json({ success: true, post: { ...result.rows[0], author_id: user.id, author_name: user.pseudonym, like_count: 0, comment_count: 0, liked_by_me: false }, pendingReview: result.rows[0].status === "pending_review" });
   } catch (error) {
     if (/champ|contenu|caractères/i.test(error.message || "")) return res.status(400).json({ error: error.message });
     console.error("Erreur de publication :", error.message);
@@ -349,6 +349,36 @@ router.patch("/moderation/reports/:reportId", requireAuth, sameOrigin, writeLimi
 });
 
 
+
+
+// Image posts stay private from the public feed until an administrator approves them.
+router.get("/moderation/image-posts", requireAuth, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ error: "Accès réservé à l'administration." });
+  try {
+    const result = await query(
+      "SELECT p.id, p.body, p.visibility, p.created_at, u.pseudonym AS author_name FROM public.community_posts p JOIN public.users u ON u.id = p.author_user_id WHERE p.status = 'pending_review' AND p.media_data IS NOT NULL ORDER BY p.created_at ASC LIMIT 100"
+    );
+    return res.status(200).json({ success: true, posts: result.rows });
+  } catch (error) {
+    console.error("Erreur de validation des images :", error.message);
+    return res.status(500).json({ error: "Impossible de charger les images à valider." });
+  }
+});
+
+router.patch("/moderation/image-posts/:postId", requireAuth, sameOrigin, writeLimiter, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ error: "Accès réservé à l'administration." });
+  if (!validId(req.params.postId) || !["approve", "reject"].includes(req.body && req.body.decision)) return res.status(400).json({ error: "Décision invalide." });
+  try {
+    const status = req.body.decision === "approve" ? "published" : "hidden";
+    const result = await query("UPDATE public.community_posts SET status = $2, updated_at = NOW() WHERE id = $1 AND status = 'pending_review' AND media_data IS NOT NULL RETURNING id, status", [req.params.postId, status]);
+    if (!result.rows.length) return res.status(404).json({ error: "Cette image n'est plus en attente de validation." });
+    return res.status(200).json({ success: true, post: result.rows[0] });
+  } catch (error) {
+    console.error("Erreur de décision sur une image :", error.message);
+    return res.status(500).json({ error: "Impossible d'enregistrer cette décision." });
+  }
+});
+
 router.get("/profiles/:userId/relations", optionalAuth, async(req,res)=>{
   const target=req.params.userId;
   const type=req.query.type==="following"?"following":"followers";
@@ -381,7 +411,7 @@ router.get("/posts/:postId/media", optionalAuth, async (req, res) => {
   try {
     const result = await query("SELECT media_data, media_mime, author_user_id, visibility, status FROM public.community_posts WHERE id=$1 LIMIT 1", [req.params.postId]);
     const item = result.rows[0];
-    if (!item || !item.media_data || item.status !== "published") return res.sendStatus(404);
+    if (!item || !item.media_data || (item.status !== "published" && !(item.status === "pending_review" && req.user && req.user.role === "admin"))) return res.sendStatus(404);
     if (item.visibility === "private" && (!req.user || req.user.id !== item.author_user_id)) return res.sendStatus(404);
     if (req.user) {
       const blocked = await query("SELECT 1 FROM public.community_blocks WHERE (blocker_user_id=$1 AND blocked_user_id=$2) OR (blocker_user_id=$2 AND blocked_user_id=$1) LIMIT 1", [req.user.id,item.author_user_id]);

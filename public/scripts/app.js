@@ -760,6 +760,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   searchInput.addEventListener("input", renderCharacters);
 
+
+
+  function openVipOffers() {
+    const modal = element("div", "niyya-modal niyya-vip-modal");
+    const panel = element("section", "modal-panel niyya-vip-panel");
+    panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("aria-labelledby", "niyya-vip-title");
+    const header = element("div", "niyya-profile-header");
+    const heading = element("div"); heading.append(element("span", "eyebrow", "NIYYA.ai · ABONNEMENT"));
+    const title = element("h2", "", "Découvrir NIYYA VIP"); title.id = "niyya-vip-title"; heading.append(title);
+    const close = element("button", "modal-close", "×"); close.type = "button"; close.setAttribute("aria-label", "Fermer");
+    header.append(heading, close);
+    const body = element("div", "niyya-profile-content");
+    const free = element("section", "niyya-vip-plan");
+    free.append(element("span", "eyebrow", "OFFRE GRATUITE"), element("h3", "", "NIYYA Free"), element("p", "", "30 messages par jour. Jusqu'à 5 vidéos récompensées par jour peuvent ajouter des messages lorsque le système publicitaire sera réellement disponible."));
+    const vip = element("section", "niyya-vip-plan niyya-vip-featured");
+    vip.append(element("span", "eyebrow", "OFFRE PREMIUM"), element("h3", "", "NIYYA VIP"), element("p", "", "Messages sans limite selon les règles d'utilisation, expérience sans publicité récompensée, badge VIP distinctif et avantages réservés aux abonnés."), element("strong", "niyya-vip-price", "Tarif mensuel bientôt annoncé"));
+    const note = element("p", "niyya-vip-note", "Les paiements ne sont pas encore ouverts. Aucun débit ne sera effectué depuis cette page. Les offres, tarifs, renouvellements et reçus seront affichés avant toute activation.");
+    const verified = element("section", "niyya-vip-plan");
+    verified.append(element("span", "eyebrow", "STATUT INDÉPENDANT"), element("h3", "", "Compte certifié"), element("p", "", "La certification servira à confirmer l'authenticité d'un profil. Elle sera examinée séparément par l'équipe NIYYA et ne sera pas achetée avec l'abonnement VIP."));
+    body.append(free, vip, note, verified); panel.append(header, body); modal.append(panel); document.body.append(modal);
+    const dismiss = () => modal.remove(); close.addEventListener("click", dismiss);
+    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+  }
+
   async function openAccount() {
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal niyya-profile-modal");
@@ -883,6 +908,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const menuTitle = element("h3", "niyya-profile-section-title", "Mon espace");
       content.append(menuTitle);
+      addMenu("NIYYA VIP", "Découvrir les offres et avantages premium", "★", openVipOffers);
       addMenu("Messages", "Retrouver toutes tes discussions", "▤", openConversationHistory);
       addMenu("Mes personnages", "Gérer les personnages que tu as créés", "✦", openMyCharacters);
       addMenu("Communauté", "Publications et membres NIYYA", "◎", () => {
