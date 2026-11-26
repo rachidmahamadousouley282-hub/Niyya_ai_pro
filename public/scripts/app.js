@@ -1266,6 +1266,94 @@ async function openCreator(existingCharacter = null) {
     category.value = existingCharacter?.category || "original";
     categoryGroup.append(category);
     form.append(categoryGroup);
+
+    const avatarGroup = element("div", "creator-field creator-avatar-field");
+    const avatarLabel = element("span", "creator-label", "Photo du personnage (facultatif)");
+    const avatarPicker = element("input", "creator-avatar-input");
+    avatarPicker.type = "file";
+    avatarPicker.accept = "image/*";
+    avatarPicker.setAttribute("aria-label", "Choisir une photo du personnage");
+    const avatarActions = element("div", "creator-avatar-actions");
+    const avatarChoose = element("button", "profile-link-button creator-avatar-choose", "Ajouter une image");
+    avatarChoose.type = "button";
+    avatarChoose.addEventListener("click", () => avatarPicker.click());
+    const avatarRemove = element("button", "profile-link-button creator-avatar-remove", "Retirer");
+    avatarRemove.type = "button";
+    avatarRemove.hidden = true;
+    const avatarHint = element("span", "creator-avatar-hint", "Choisis une photo dans ta galerie ou tes fichiers. Elle sera optimisée avant l'enregistrement.");
+    const avatarPreview = element("img", "creator-avatar-preview");
+    avatarPreview.alt = "Aperçu de la photo du personnage";
+    avatarPreview.hidden = true;
+    let avatarData = null;
+    let removeAvatar = false;
+    const showAvatar = src => {
+      if (src) {
+        avatarPreview.src = src;
+        avatarPreview.hidden = false;
+        avatarRemove.hidden = false;
+        avatarChoose.textContent = "Changer l'image";
+      } else {
+        avatarPreview.removeAttribute("src");
+        avatarPreview.hidden = true;
+        avatarRemove.hidden = true;
+        avatarChoose.textContent = "Ajouter une image";
+      }
+    };
+    if (existingCharacter?.avatar_url) showAvatar(existingCharacter.avatar_url);
+    avatarRemove.addEventListener("click", () => {
+      avatarData = null;
+      removeAvatar = true;
+      showAvatar("");
+      avatarHint.textContent = "La photo sera retirée lors de l'enregistrement.";
+    });
+    avatarPicker.addEventListener("change", () => {
+      const file = avatarPicker.files && avatarPicker.files[0];
+      if (!file) return;
+      if (!file.type.startsWith("image/") || file.size > 12 * 1024 * 1024) {
+        avatarPicker.value = "";
+        avatarHint.textContent = "Choisis une image valide de moins de 12 Mo.";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onerror = () => { avatarHint.textContent = "Impossible de lire cette image. Essaie-en une autre."; };
+      reader.onload = () => {
+        const image = new Image();
+        image.onerror = () => { avatarHint.textContent = "Ce format d'image n'est pas pris en charge par ton navigateur."; };
+        image.onload = () => {
+          const maxSide = 640;
+          const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          const context = canvas.getContext("2d");
+          if (!context) { avatarHint.textContent = "Impossible de préparer cette image sur cet appareil."; return; }
+          context.fillStyle = "#ffffff";
+          context.fillRect(0, 0, canvas.width, canvas.height);
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(blob => {
+            if (!blob || blob.size > 680 * 1024) {
+              avatarHint.textContent = "Cette image est trop volumineuse. Essaie une photo plus légère.";
+              return;
+            }
+            const encoded = new FileReader();
+            encoded.onerror = () => { avatarHint.textContent = "Impossible de préparer la photo. Réessaie."; };
+            encoded.onload = () => {
+              avatarData = String(encoded.result || "");
+              removeAvatar = false;
+              showAvatar(avatarData);
+              avatarHint.textContent = "Photo prête. Elle sera enregistrée avec ton personnage.";
+            };
+            encoded.readAsDataURL(blob);
+          }, "image/jpeg", 0.78);
+        };
+        image.src = String(reader.result || "");
+      };
+      reader.readAsDataURL(file);
+    });
+    avatarActions.append(avatarChoose, avatarRemove);
+    avatarGroup.append(avatarLabel, avatarActions, avatarPicker, avatarPreview, avatarHint);
+    form.append(avatarGroup);
+
     const status = element("p", "chat-status", "");
     const submit = element("button", "chat-send creator-submit", existingCharacter ? "Enregistrer les modifications" : "Créer mon personnage");
     submit.type = "submit";
@@ -1295,7 +1383,9 @@ async function openCreator(existingCharacter = null) {
         greeting: controls.greeting.value.trim(),
         category: category.value,
         traits: [],
-        tags: []
+        tags: [],
+        avatarData: avatarData || undefined,
+        removeAvatar
       };
       try {
         await ensureGuest();
