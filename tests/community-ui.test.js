@@ -26,3 +26,11 @@ test("Community member discovery includes a directory, search, profile and follo
   assert.match(source, /showProfile\(member\.id\)/);
   assert.ok(source.includes('api("/profiles/"+encodeURIComponent(member.id)+"/follow"'));
 });
+
+test("Member discovery supports loading additional pages without replacing current results", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  assert.match(source, /api\("\/members\?limit=20&offset="\+offset\)/);
+  assert.match(source, /data\.hasMore&&members\.length/);
+  assert.match(source, /Charger plus de membres/);
+  assert.match(source, /loadMembers\("",true\)/);
+});

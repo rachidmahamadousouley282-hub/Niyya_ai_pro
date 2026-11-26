@@ -472,17 +472,21 @@
         const input=el("input","community-search-input");input.type="search";input.placeholder="Rechercher un pseudo…";input.minLength=2;
         const button=el("button","community-primary","Rechercher");button.type="submit";form.append(input,button);
         const results=el("div","community-search-results");
+        let offset=0;
         let currentQuery="";
-        async function loadMembers(term=""){
+        let loading=false;
+        async function loadMembers(term="",append=false){
+          if(loading)return;
+          loading=true;
           currentQuery=term;
-          results.replaceChildren(el("p","community-muted",term?"Recherche des membres…":"Chargement des membres à découvrir…"));
+          if(!append){offset=0;results.replaceChildren(el("p","community-muted",term?"Recherche des membres…":"Chargement des membres à découvrir…"));}
           try{
             const data=term
               ? await api("/search?q="+encodeURIComponent(term))
-              : await api("/members?limit=20&offset=0");
-            results.replaceChildren();
+              : await api("/members?limit=20&offset="+offset);
+            if(!append)results.replaceChildren();
             const members=Array.isArray(data.profiles)?data.profiles:[];
-            if(!members.length){
+            if(!members.length&&!append){
               results.append(el("div","community-empty",term?"Aucun compte trouvé. Vérifie le pseudo ou essaie un autre terme.":"Il n'y a pas encore de membres à découvrir."));
               return;
             }
@@ -510,7 +514,7 @@
                     member.is_following=result.following;
                     follow.textContent=result.following?"Abonné":"Suivre";
                     follow.classList.toggle("following",result.following);
-                    const count= row.querySelector(".community-member-count");
+                    const count=row.querySelector(".community-member-count");
                     if(count)count.textContent=result.followerCount+" abonnés";
                   }catch(error){window.alert(error.message);}
                   finally{follow.disabled=false;}
@@ -523,13 +527,32 @@
               row.append(identity,actions);
               results.append(row);
             });
-          }catch(error){results.replaceChildren(el("p","community-muted",error.message));}
+            if(!term){
+              offset+=members.length;
+              const oldMore=results.querySelector(".community-load-more");
+              if(oldMore)oldMore.remove();
+              if(data.hasMore&&members.length){
+                const more=el("button","community-secondary community-load-more","Charger plus de membres");
+                more.type="button";
+                more.addEventListener("click",()=>loadMembers("",true));
+                results.append(more);
+              }
+            }
+          }catch(error){
+            if(!append)results.replaceChildren();
+            results.append(el("p","community-muted",error.message));
+          }finally{loading=false;}
         }
         form.addEventListener("submit",async event=>{
           event.preventDefault();
           const term=input.value.trim();
           if(term.length<2){input.focus();return;}
           await loadMembers(term);
+        });
+        input.addEventListener("input",()=>{
+          if(!input.value.trim()){
+            loadMembers("");
+          }
         });
         content.append(intro,form,results);
         await loadMembers("");
