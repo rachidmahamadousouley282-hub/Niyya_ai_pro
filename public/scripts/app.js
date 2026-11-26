@@ -1303,12 +1303,12 @@ async function openCreator(existingCharacter = null) {
           throw new Error("L'atelier est accessible après le parcours d'inscription autorisé de NIYYA.");
         }
         let editCharacterId = existingCharacter?.id;
-        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-        if (existingCharacter && !uuidPattern.test(String(editCharacterId || ""))) {
+        const editUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (existingCharacter && !editUuidPattern.test(String(editCharacterId || ""))) {
           const owned = await window.NiyyaAPI.getMyCharacters();
           const matches = (Array.isArray(owned.characters) ? owned.characters : [])
             .filter(item => item.name === existingCharacter.name && item.tagline === existingCharacter.tagline);
-          if (matches.length !== 1 || !uuidPattern.test(String(matches[0].id || ""))) {
+          if (matches.length !== 1 || !editUuidPattern.test(String(matches[0].id || ""))) {
             throw new Error("Impossible de retrouver l'identifiant de ce brouillon. Retourne dans « Mes créations » puis réessaie.");
           }
           editCharacterId = matches[0].id;
