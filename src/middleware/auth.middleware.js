@@ -49,6 +49,7 @@ async function resolveSession(req) {
     id: session.user_id,
     role: session.role,
     isGuest: session.is_guest,
+    email: session.email || null,
     sessionId: session.session_id
   };
 }
