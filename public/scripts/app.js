@@ -1230,18 +1230,19 @@ async function openCreator(existingCharacter = null) {
     header.append(titleWrap, myCharacters, close);
     const form = element("form", "creator-form");
     const fields = [
-      ["name", "Nom du personnage", "Ex. : Mira", 40, true, "input"],
-      ["description", "Description du personnage", "Décris son caractère, son histoire et sa façon de parler…", 3000, true, "textarea"],
-      ["greeting", "Premier message", "Que dit le personnage quand une conversation commence ?", 800, true, "textarea"]
+      ["name", "Nom du personnage", "Ex. : Mira", 40, true, "input", 2],
+      ["description", "Description du personnage", "Décris son caractère, son histoire et sa façon de parler…", 3000, true, "textarea", 10],
+      ["greeting", "Premier message", "Que dit le personnage quand une conversation commence ?", 800, true, "textarea", 2]
     ];
     const controls = {};
-    fields.forEach(([key, labelText, placeholder, max, required, kind]) => {
+    fields.forEach(([key, labelText, placeholder, max, required, kind, min]) => {
       const group = element("label", "creator-field");
       group.append(element("span", "creator-label", labelText + (required ? " *" : "")));
       const control = element(kind === "textarea" ? "textarea" : "input", "creator-control");
       control.name = key;
       control.placeholder = placeholder;
       control.maxLength = max;
+      control.minLength = min || 0;
       control.required = required;
       const existingValues = {
         description: existingCharacter?.short_bio || existingCharacter?.backstory || existingCharacter?.personality_prompt || ""
@@ -1298,10 +1299,7 @@ async function openCreator(existingCharacter = null) {
       };
       try {
         await ensureGuest();
-        const access = await window.NiyyaAPI.getQuota();
-        if (!access.onboarded) {
-          throw new Error("L'atelier est accessible après le parcours d'inscription autorisé de NIYYA.");
-        }
+        // Le serveur vérifie les conditions du compte et renvoie le motif précis si le profil est incomplet.
         let editCharacterId = existingCharacter?.id;
         const editUuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         if (existingCharacter && !editUuidPattern.test(String(editCharacterId || ""))) {

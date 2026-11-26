@@ -47,3 +47,13 @@ test("La résolution d'identifiant de brouillon est limitée au parcours de modi
   assert.match(source, /if \(existingCharacter && !editUuidPattern\.test/);
   assert.match(source, /existingCharacter\s*\?\s*await window\.NiyyaAPI\.updateCharacter\(editCharacterId, payload\)\s*:\s*await window\.NiyyaAPI\.createCharacter\(payload\)/);
 });
+
+
+test("La création ne dépend pas du badge quota côté navigateur et les champs appliquent les longueurs minimales du serveur", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.doesNotMatch(source, /const access = await window\.NiyyaAPI\.getQuota\(\);[\s\S]{0,180}if \(!access\.onboarded\)/);
+  assert.match(source, /control\.minLength = min \|\| 0/);
+  assert.match(source, /\["name", "Nom du personnage"[^\n]+, 2\]/);
+  assert.match(source, /\["description", "Description du personnage"[^\n]+, 10\]/);
+  assert.match(source, /\["greeting", "Premier message"[^\n]+, 2\]/);
+});

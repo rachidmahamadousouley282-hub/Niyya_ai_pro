@@ -180,7 +180,7 @@ router.post("/", requireAuth, requireSameOrigin, async (req, res) => {
   try {
     if (!await requireCreatorDraftAccess(req.user.id)) {
       return res.status(403).json({
-        error: "Termine ton inscription avant de créer un brouillon.",
+        error: "Pour créer un personnage, termine d’abord ton profil : choisis un pseudonyme, indique ta tranche d’âge et accepte les conditions de NIYYA.",
         code: "creator_onboarding_required"
       });
     }
