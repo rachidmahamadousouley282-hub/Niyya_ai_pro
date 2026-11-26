@@ -38,3 +38,16 @@ test("Community API exposes profile relations, blocking, media and notifications
   assert.equal(has("get", "/notifications"), true);
   assert.equal(has("post", "/comments/:commentId/report"), true);
 });
+
+
+test("Public image posts require pre-publication administrator review", () => {
+  const has = (method, path) => routes.some(route => route.path === path && route.methods.includes(method));
+  assert.equal(has("get", "/moderation/image-posts"), true);
+  assert.equal(has("patch", "/moderation/image-posts/:postId"), true);
+  const migration = fs.readFileSync(path.join(__dirname, "../database/migrations/0012_image_post_review.sql"), "utf8");
+  const source = fs.readFileSync(path.join(__dirname, "../src/routes/community.routes.js"), "utf8");
+  assert.match(migration, /pending_review/);
+  assert.match(source, /image\s*&&\s*visibility\s*===\s*"public"\s*\?\s*"pending_review"\s*:\s*"published"/);
+  assert.match(source, /req\.user\.role\s*!==\s*"admin"/);
+  assert.match(source, /item\.status\s*===\s*"pending_review"[\s\S]{0,100}req\.user\.role\s*===\s*"admin"/);
+});
