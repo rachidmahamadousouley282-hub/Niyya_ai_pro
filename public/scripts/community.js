@@ -68,6 +68,34 @@
       catch { return ""; }
     };
     const initials = name => (name || "N").trim().slice(0,1).toUpperCase();
+    const verifiedBadge = (isOfficial, isVerified) => {
+      if (!isOfficial && !isVerified) return null;
+      const badge = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      badge.setAttribute("viewBox", "0 0 24 24");
+      badge.setAttribute("class", "community-verified-badge");
+      badge.setAttribute("role", "img");
+      badge.setAttribute("aria-label", isOfficial ? "Compte officiel NIYYA" : "Compte vérifié");
+      const shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      shape.setAttribute("d", "M12 1.8 14.7 4l3.5-.1 1.1 3.3 2.8 2.1-1.1 3.3 1.1 3.3-2.8 2.1-1.1 3.3-3.5-.1L12 23l-2.7-2.2-3.5.1-1.1-3.3-2.8-2.1L3 12.2 1.9 8.9l2.8-2.1 1.1-3.3 3.5.1Z");
+      shape.setAttribute("fill", "#2588F5");
+      const tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      tick.setAttribute("d", "m7.5 12.2 3 3 6.2-6.4");
+      tick.setAttribute("fill", "none");
+      tick.setAttribute("stroke", "#fff");
+      tick.setAttribute("stroke-width", "2");
+      tick.setAttribute("stroke-linecap", "round");
+      tick.setAttribute("stroke-linejoin", "round");
+      badge.append(shape, tick);
+      return badge;
+    };
+    const appendNameWithBadge = (parent, name, isOfficial, isVerified) => {
+      const line = el("span", "community-name-line");
+      line.append(el("strong", "", name || "Membre NIYYA"));
+      const badge = verifiedBadge(isOfficial, isVerified);
+      if (badge) line.append(badge);
+      parent.append(line);
+      return line;
+    };
     const ensureSession = async () => {
       try { await window.NiyyaAPI.getSession(); }
       catch { await window.NiyyaAPI.createGuest(); }
@@ -131,7 +159,9 @@
       page.append(officialBanner);
       api("/official").then(data => {
         const account = data.account;
-        officialCopy.replaceChildren(el("strong", "", account.pseudonym), el("span", "", account.bio || "Compte officiel de NIYYA.ai"));
+        officialCopy.replaceChildren();
+        appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified);
+        officialCopy.append(el("span", "", account.bio || "Compte officiel de NIYYA.ai"));
         officialAction.disabled = account.id === myId;
         officialAction.textContent = account.is_following ? "Abonné" : "S'abonner";
         officialAction.classList.toggle("following", !!account.is_following);
@@ -280,7 +310,11 @@
           const data=await api("/feed?mode="+mode+"&limit=20&offset="+offset);
           if(!append)feed.replaceChildren();
           if(!data.posts.length&&!append){
-            feed.append(el("div","community-empty",mode==="following"?"Tu ne suis encore personne. Découvre des membres et abonne-toi à leurs profils.":mode==="mine"?"Tu n'as pas encore publié. Tes créations apparaîtront ici.":"Aucune publication pour le moment. Tu peux lancer la communauté en partageant la première création."));
+            const emptyMessage = mode === "following"
+              ? (data.followedCount > 0 ? "Tu suis déjà " + data.followedCount + " membre(s), mais aucun n'a encore publié. Leurs prochaines publications apparaîtront ici." : "Tu ne suis encore personne. Découvre des membres et abonne-toi à leurs profils.")
+              : mode === "mine" ? "Tu n'as pas encore publié. Tes créations apparaîtront ici."
+              : "Aucune publication pour le moment. Tu peux lancer la communauté en partageant la première création.";
+            feed.append(el("div","community-empty",emptyMessage));
           }
           data.posts.forEach(post=>feed.append(renderPost(post,feed)));
           offset+=data.posts.length;
@@ -300,26 +334,7 @@
         identity.type="button";
         const avatar=el("span","community-avatar",initials(post.author_name));
         const nameWrap=el("span","community-author-copy");
-        nameWrap.append(el("strong","",post.author_name||"Membre NIYYA"));
-        if (post.is_official || post.is_verified) {
-          const badge = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-          badge.setAttribute("viewBox", "0 0 24 24");
-          badge.setAttribute("class", "community-verified-badge");
-          badge.setAttribute("role", "img");
-          badge.setAttribute("aria-label", post.is_official ? "Compte officiel NIYYA" : "Compte vérifié");
-          const shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          shape.setAttribute("d", "M12 1.8 14.7 4l3.5-.1 1.1 3.3 2.8 2.1-1.1 3.3 1.1 3.3-2.8 2.1-1.1 3.3-3.5-.1L12 23l-2.7-2.2-3.5.1-1.1-3.3-2.8-2.1L3 12.2 1.9 8.9l2.8-2.1 1.1-3.3 3.5.1Z");
-          shape.setAttribute("fill", "#2588F5");
-          const tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          tick.setAttribute("d", "m7.5 12.2 3 3 6.2-6.4");
-          tick.setAttribute("fill", "none");
-          tick.setAttribute("stroke", "#fff");
-          tick.setAttribute("stroke-width", "2");
-          tick.setAttribute("stroke-linecap", "round");
-          tick.setAttribute("stroke-linejoin", "round");
-          badge.append(shape, tick);
-          nameWrap.append(badge);
-        }
+        appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified);
         nameWrap.append(el("small","",dateLabel(post.created_at)));
         identity.append(avatar,nameWrap);
         identity.addEventListener("click",()=>showProfile(post.author_id));
@@ -433,7 +448,9 @@
           const top=el("div","community-profile-hero");
           const avatar=el("div","community-profile-avatar",initials(p.pseudonym));
           const info=el("div","community-profile-info");
-          info.append(el("h3","",p.pseudonym),el("p","community-muted",p.bio||"Ce membre n'a pas encore ajouté de présentation."));
+          const profileName = el("div", "community-profile-name-line");
+          appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified);
+          info.append(profileName,el("p","community-muted",p.bio||"Ce membre n'a pas encore ajouté de présentation."));
           top.append(avatar,info);wrap.append(top);
           const stats=el("div","community-profile-stats");
           stats.append(el("button","",""),el("button","",""),el("button","",""));
@@ -571,7 +588,7 @@
               identity.type="button";
               identity.append(el("span","community-avatar",initials(member.pseudonym)));
               const details=el("span","community-member-details");
-              details.append(el("strong","",member.pseudonym));
+              appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified);
               if(member.bio)details.append(el("small","",member.bio));
               details.append(el("small","community-member-count",(member.follower_count||0)+" abonnés"));
               identity.append(details);
@@ -659,7 +676,7 @@
             const cards = (data.posts || []).map(post => renderPost(post, feed));
             if (!cards.length) {
               feed.replaceChildren(el("div", "community-empty",
-                currentMode === "following" ? "Tu ne suis encore personne. Découvre des membres et abonne-toi à leurs profils." :
+                currentMode === "following" ? ((data.followedCount || 0) > 0 ? "Tu suis déjà " + data.followedCount + " membre(s), mais aucun n'a encore publié. Leurs prochaines publications apparaîtront ici." : "Tu ne suis encore personne. Découvre des membres et abonne-toi à leurs profils.") :
                 currentMode === "mine" ? "Tu n'as pas encore publié. Tes créations apparaîtront ici." :
                 "Aucune publication pour le moment."));
             } else {

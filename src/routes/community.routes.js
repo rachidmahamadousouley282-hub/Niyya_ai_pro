@@ -88,7 +88,7 @@ router.get("/feed", optionalAuth, async (req, res) => {
   try {
     const viewer = req.user ? req.user.id : null;
     const result = await query(
-      "SELECT p.id, p.body, p.visibility, (p.media_data IS NOT NULL) AS has_image, p.media_mime, p.created_at, u.id AS author_id, u.pseudonym AS author_name, " +
+      "SELECT p.id, p.body, p.visibility, (p.media_data IS NOT NULL) AS has_image, p.media_mime, p.created_at, u.id AS author_id, u.pseudonym AS author_name, u.is_official, u.is_verified, " +
       "(SELECT COUNT(*)::int FROM public.community_post_likes l WHERE l.post_id = p.id) AS like_count, " +
       "(SELECT COUNT(*)::int FROM public.community_comments c WHERE c.post_id = p.id AND c.status = 'published') AS comment_count, " +
       "EXISTS (SELECT 1 FROM public.community_post_likes l WHERE l.post_id = p.id AND l.user_id = $3) AS liked_by_me, " +
@@ -102,7 +102,10 @@ router.get("/feed", optionalAuth, async (req, res) => {
       "ORDER BY p.created_at DESC, p.id DESC LIMIT $1 OFFSET $2",
       [limit, offset, viewer, mode]
     );
-    return res.status(200).json({ success: true, posts: result.rows, mode });
+    const followedCount = mode === "following" && viewer
+      ? (await query("SELECT COUNT(*)::int AS count FROM public.community_follows WHERE follower_user_id = $1", [viewer])).rows[0].count
+      : null;
+    return res.status(200).json({ success: true, posts: result.rows, mode, followedCount });
   } catch (error) {
     console.error("Erreur du fil communautaire :", error.message);
     return res.status(500).json({ error: "Impossible de charger la communauté." });
@@ -482,7 +485,7 @@ router.get("/members", optionalAuth, async (req, res) => {
   try {
     const viewer = req.user ? req.user.id : null;
     const result = await query(
-      "SELECT u.id, u.pseudonym, u.bio, u.created_at, " +
+      "SELECT u.id, u.pseudonym, u.bio, u.created_at, u.is_official, u.is_verified, " +
       "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
       "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $3 AND f.followed_user_id = u.id) AS is_following " +
       "FROM public.users u WHERE u.onboarded_at IS NOT NULL AND u.pseudonym IS NOT NULL " +
@@ -503,7 +506,7 @@ router.get("/search", optionalAuth, async (req,res)=>{
   if(term.length<2) return res.json({success:true,profiles:[]});
   try{
     const result=await query(
-      "SELECT u.id,u.pseudonym,u.bio,(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id=u.id) AS follower_count, "+
+      "SELECT u.id,u.pseudonym,u.bio,u.is_official,u.is_verified,(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id=u.id) AS follower_count, "+
       "EXISTS(SELECT 1 FROM public.community_follows f WHERE f.follower_user_id=$2 AND f.followed_user_id=u.id) AS is_following "+
       "FROM public.users u WHERE u.onboarded_at IS NOT NULL AND u.pseudonym ILIKE $1 "+
       "AND ($2 IS NULL OR u.id <> $2) "+

@@ -67,3 +67,11 @@ test("Official NIYYA account API and admin announcement route are protected", ()
   assert.match(admin, /req\.user\.role !== "admin"/);
   assert.match(admin, /INSERT INTO public\.community_posts \(author_user_id, body, visibility, status\)/);
 });
+
+
+test("Community feed and member discovery include official verification flags", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../src/routes/community.routes.js"), "utf8");
+  assert.match(source, /u\.is_official, u\.is_verified/);
+  assert.match(source, /followedCount/);
+  assert.match(source, /SELECT u\.id,u\.pseudonym,u\.bio,u\.is_official,u\.is_verified/);
+});
