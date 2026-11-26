@@ -8,7 +8,9 @@ test("La sauvegarde utilise directement le personnage canonique renvoyé par le 
   const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
   assert.match(source, /const savedCharacter = result\.character/);
   assert.doesNotMatch(source, /const savedCharacters = await window\.NiyyaAPI\.getMyCharacters\(\)/);
-  assert.match(source, /openChat\(savedCharacter, null\)/);
+  assert.match(source, /openChat\(chatCharacter, null\)/);
+  assert.match(source, /const owned = await window\.NiyyaAPI\.getMyCharacters\(\)/);
+  assert.match(source, /matches\.length !== 1/);
   assert.match(source, /if \(!\/\^\[0-9a-f\]/);
   assert.match(source, /Discuter avec mon personnage/);
 });
