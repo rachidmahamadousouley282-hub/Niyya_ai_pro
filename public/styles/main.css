@@ -792,3 +792,59 @@ body { background-image: none !important; }
 .niyya-vip-benefits li::marker { color:#8bc7ff; }
 .niyya-vip-price { display:block; margin-top:18px; color:#f5f5f5; font-size:17px; }
 .niyya-vip-note { color:#999 !important; line-height:1.6; }
+
+
+/* Consistent header controls: neutral surfaces, restrained blue accents. */
+.header-actions .icon-button,
+.header-actions .profile-button,
+.header-actions .vip-header-button {
+  min-height: 40px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 12px;
+  background: #111;
+  color: #ededed;
+  box-shadow: none;
+}
+.header-actions .profile-button {
+  width: 40px;
+  background: #111;
+  color: #e5e5e5;
+}
+.header-actions .icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  padding: 0;
+}
+.header-actions .icon-button svg,
+.header-actions .profile-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.header-actions .vip-header-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border-color: rgba(111,177,232,.35);
+  color: #9bcfff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.header-actions .vip-header-button span { color: #9bcfff; }
+.header-actions .icon-button:hover,
+.header-actions .profile-button:hover { border-color: rgba(111,177,232,.4); color: #a8d4ff; }
+.header-actions .vip-header-button:hover { background: #151b22; }
+@media (max-width: 520px) {
+  .header-actions { gap: 6px; }
+  .header-actions .vip-header-button { padding: 0 9px; font-size: 12px; min-height: 36px; }
+  .header-actions .icon-button, .header-actions .profile-button { width: 36px; min-height: 36px; }
+}

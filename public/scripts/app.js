@@ -759,6 +759,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  document.getElementById("vip-offer-button")?.addEventListener("click", openVipOffers);
+  document.getElementById("vip-home-button")?.addEventListener("click", openVipOffers);
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
   document.getElementById("profile-button")?.addEventListener("click", openAccount);
   document.getElementById("settings-button")?.addEventListener("click", openAccountSettings);
@@ -797,8 +799,8 @@ document.addEventListener("DOMContentLoaded", () => {
     plan.append(
       element("h3", "", "Les avantages"),
       benefits,
-      element("strong", "niyya-vip-price", "1 500 FCFA / mois · 15 000 FCFA / an"),
-      element("p", "niyya-vip-note", "Tarifs proposés, à confirmer. L’abonnement et les paiements ne sont pas encore ouverts.")
+      element("strong", "niyya-vip-price", "≈ $2.50 / mois · ≈ $25 / an"),
+      element("p", "niyya-vip-note", "Tarifs indicatifs en dollars, à confirmer. L’abonnement et les paiements ne sont pas encore ouverts.")
     );
 
     body.append(plan);
@@ -936,7 +938,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const menuTitle = element("h3", "niyya-profile-section-title", "Mon espace");
       content.append(menuTitle);
-      addMenu("NIYYA VIP", "Découvrir les offres et avantages premium", "★", openVipOffers);
+      addMenu("Offre VIP", "Découvrir les avantages premium", "✦", openVipOffers);
       addMenu("Messages", "Retrouver toutes tes discussions", "▤", openConversationHistory);
       addMenu("Mes personnages", "Gérer les personnages que tu as créés", "✦", openMyCharacters);
       addMenu("Communauté", "Publications et membres NIYYA", "◎", () => {
@@ -963,8 +965,8 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.setAttribute("aria-labelledby", "account-title");
     const header = element("div", "account-heading");
     const heading = element("div");
-    heading.append(element("span", "eyebrow", "NIYYA.ai · COMPTE"));
-    const title = element("h2", "", "Ton compte");
+    heading.append(element("span", "eyebrow", "PARAMÈTRES"));
+    const title = element("h2", "", "Compte et sécurité");
     title.id = "account-title";
     heading.append(title);
     const close = element("button", "modal-close", "×");

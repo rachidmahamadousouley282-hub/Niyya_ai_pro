@@ -20,10 +20,23 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v29"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v31"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
   assert.match(admin, /admin\.css\?v=admin-diagnostics-v1-20261126/);
   assert.match(admin, /admin\.js\?v=admin-diagnostics-v1-20261126/);
+});
+
+
+test("VIP offer entry points and settings action are wired", () => {
+  assert.match(html, /id="vip-offer-button"/);
+  assert.match(html, /id="vip-home-button"/);
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  assert.match(app, /getElementById\("vip-offer-button"\).*openVipOffers/);
+  assert.match(app, /getElementById\("vip-home-button"\).*openVipOffers/);
+  assert.match(app, /getElementById\("settings-button"\).*openAccountSettings/);
+  assert.match(app, /"Compte et sécurité"/);
+  assert.match(app, /≈ \$2\.50 \/ mois · ≈ \$25 \/ an/);
+  assert.doesNotMatch(app, /FCFA \/ mois/);
 });

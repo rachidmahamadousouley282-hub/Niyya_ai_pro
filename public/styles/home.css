@@ -366,3 +366,41 @@ body { background-image:none !important; }
 .character-info h3 { color:#8bc7ff !important; }
 .character-info p, .character-tag { color:#a1a1a1 !important; }
 .companion-name { color:#e2e2e2 !important; }
+
+
+/* Compact VIP entry point on the home screen. */
+.vip-home-promo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin: 0 0 38px;
+  padding: 22px 24px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 18px;
+  background: linear-gradient(120deg,#111 0%,#080808 100%);
+}
+.vip-home-copy { min-width: 0; }
+.vip-home-copy .eyebrow { color: #999 !important; margin-bottom: 7px; }
+.vip-home-copy h2 { margin: 0 0 6px; color: #9bcfff; font-size: 21px; }
+.vip-home-copy p { margin: 0; color: #b7b7b7; font-size: 14px; line-height: 1.55; }
+.vip-home-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid rgba(111,177,232,.35);
+  border-radius: 12px;
+  background: #151b22;
+  color: #dceeff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.vip-home-button span { color: #9bcfff; }
+@media (max-width: 620px) {
+  .vip-home-promo { align-items: flex-start; flex-direction: column; padding: 18px; gap: 14px; }
+  .vip-home-button { width: 100%; justify-content: center; }
+}
