@@ -24,5 +24,5 @@ test("Community member discovery includes a directory, search, profile and follo
   assert.match(source, /api\("\/members\?limit=20&offset=0"\)/);
   assert.match(source, /api\("\/search\?q="/);
   assert.match(source, /showProfile\(member\.id\)/);
-  assert.match(source, /\/profiles\/\+encodeURIComponent\(member\.id\)\+"\/follow"/);
+  assert.ok(source.includes('api("/profiles/"+encodeURIComponent(member.id)+"/follow"'));
 });
