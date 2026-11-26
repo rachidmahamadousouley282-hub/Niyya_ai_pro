@@ -17,7 +17,7 @@ const SHELL_URLS = [
   "/scripts/app.js?v=vip-offers-v1-20261126",
   "/styles/community.css?v=community-image-review-v2-20261126",
   "/styles/home.css?v=community-facebook-shell-v2-20261126",
-  "/scripts/community.js?v=community-facebook-shell-v2-20261126",
+  "/scripts/community.js?v=image-review-admin-v1-20261126",
   "/scripts/pwa.js?v=pwa-20261124"
 ];
 
