@@ -78,3 +78,25 @@
   color: #ffd9dd;
 }
 .admin-report-actions button:disabled { opacity: .55; cursor: wait; }
+
+
+.admin-system-status {
+  padding: 14px 16px;
+  border: 1px solid rgba(140,160,195,.2);
+  border-radius: 12px;
+  background: rgba(15,22,36,.72);
+  color: #d7e1f0;
+  line-height: 1.55;
+}
+.admin-system-status[data-state="ready"] {
+  border-color: rgba(85,180,145,.35);
+  color: #b9f0d9;
+}
+.admin-system-status[data-state="warning"] {
+  border-color: rgba(220,165,90,.35);
+  color: #f0d2a4;
+}
+.admin-system-status[data-state="error"] {
+  border-color: rgba(215,110,110,.35);
+  color: #ffd0d5;
+}

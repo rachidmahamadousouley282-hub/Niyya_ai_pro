@@ -7,7 +7,7 @@
   <title>NIYYA.ai — Dashboard Direction</title>
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/components.css">
-  <link rel="stylesheet" href="/styles/admin.css?v=community-moderation-v1-20261126">
+  <link rel="stylesheet" href="/styles/admin.css?v=admin-diagnostics-v1-20261126">
 </head>
 <body>
   <main class="admin-shell">
@@ -46,6 +46,13 @@
         <span class="eyebrow">ÉVOLUTION</span><h2>Activité quotidienne</h2>
         <div id="daily-activity" class="daily-activity"></div>
       </section>
+      <section class="admin-panel" id="system-status-panel">
+        <span class="eyebrow">CONFIGURATION</span>
+        <h2>État du moteur IA</h2>
+        <div id="ai-provider-status" class="admin-system-status" role="status">
+          Vérification de la configuration IA…
+        </div>
+      </section>
       <section class="admin-panel" id="community-moderation">
         <div class="admin-panel-heading">
           <div><span class="eyebrow">SÉCURITÉ</span><h2>Signalements de la communauté</h2></div>
@@ -58,6 +65,6 @@
       <p class="admin-footnote">Données agrégées uniquement. Ce tableau ne donne pas accès aux messages privés ni au contenu des conversations.</p>
     </section>
   </main>
-  <script src="/scripts/admin.js?v=community-moderation-v1-20261126"></script>
+  <script src="/scripts/admin.js?v=admin-diagnostics-v1-20261126"></script>
 </body>
 </html>

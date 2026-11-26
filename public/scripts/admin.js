@@ -11,7 +11,36 @@
     status.hidden = false;
     status.textContent = "Chargement des statistiques…";
     dashboard.hidden = true;
-    const reportReasons = {
+    async function loadSystemStatus() {
+    const container = document.getElementById("ai-provider-status");
+    if (!container) return;
+    container.textContent = "Vérification de la configuration IA…";
+    try {
+      const response = await fetch("/api/admin/system-status", {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        cache: "no-store"
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Configuration IA indisponible.");
+      const ai = data.ai || {};
+      if (ai.provider === "mock") {
+        container.textContent = "Mode simulation actif : les réponses sont des réponses de démonstration, pas celles d'un fournisseur IA externe.";
+        container.dataset.state = "warning";
+      } else if (ai.provider === "cloudflare" && ai.configured) {
+        container.textContent = "Cloudflare Workers AI est configuré. Mode : " + ai.mode + ".";
+        container.dataset.state = "ready";
+      } else {
+        container.textContent = "Le fournisseur IA sélectionné n'est pas configuré ou n'est pas disponible en mode gratuit. Aucun fournisseur payant n'est activé automatiquement.";
+        container.dataset.state = "warning";
+      }
+    } catch (error) {
+      container.textContent = error.message || "Impossible de vérifier le moteur IA.";
+      container.dataset.state = "error";
+    }
+  }
+
+  const reportReasons = {
     spam: "Spam",
     harassment: "Harcèlement",
     unsafe: "Contenu dangereux",
@@ -143,7 +172,7 @@
       document.getElementById("metric-characters").textContent = number(data.summary.public_characters);
       renderRanking(data.topCharacters || []);
       renderDaily(data.daily || {});
-      await loadCommunityReports();
+      await Promise.all([loadCommunityReports(), loadSystemStatus()]);
       status.hidden = true;
       dashboard.hidden = false;
     } catch (error) {

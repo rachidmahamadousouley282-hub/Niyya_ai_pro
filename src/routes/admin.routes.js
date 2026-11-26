@@ -2,6 +2,7 @@
 
 const express = require("express");
 const { query } = require("../config/database");
+const providerEngine = require("../engines/provider.engine");
 const { requireAuth } = require("../middleware/auth.middleware");
 
 const router = express.Router();
@@ -102,3 +103,26 @@ router.get("/character-analytics", requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+
+
+router.get("/system-status", requireAuth, async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Accès réservé à la direction NIYYA.ai." });
+  }
+  try {
+    const activeName = String(process.env.AI_PROVIDER || providerEngine.DEFAULT_PROVIDER).trim().toLowerCase();
+    const available = providerEngine.getAvailableProviders();
+    const selected = available.find(item => item.name === activeName);
+    return res.status(200).json({
+      success: true,
+      ai: {
+        provider: selected ? selected.name : "unknown",
+        configured: Boolean(selected && selected.configured),
+        mode: selected ? selected.mode : "disabled"
+      }
+    });
+  } catch (error) {
+    console.error("Erreur de diagnostic IA :", error.message);
+    return res.status(500).json({ error: "Impossible de vérifier la configuration IA." });
+  }
+});
