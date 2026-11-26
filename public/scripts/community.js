@@ -121,10 +121,12 @@
 
       let currentMode = "all";
       let myId = null;
+      let isAdmin = false;
       let offset = 0;
       let loading = false;
       const tabItems = [
-        ["all","Pour toi"],["following","Abonnements"],["mine","Mes publications"],["notifications","Notifications"],["search","Membres"]
+        ["all","Pour toi"],["following","Abonnements"],["mine","Mes publications"],["notifications","Notifications"],["search","Membres"],
+        ...(isAdmin ? [["image-review","Images à valider"]] : [])
       ];
       function setTab(mode) {
         currentMode = mode;
@@ -137,6 +139,7 @@
         });
         if (mode === "notifications") loadNotifications();
         else if (mode === "search") renderSearch();
+        else if (mode === "image-review") loadImageReviews();
         else renderFeed(mode);
       }
 
@@ -436,6 +439,28 @@
         }catch(error){content.replaceChildren(el("p","community-muted",error.message));}
       }
 
+      async function loadImageReviews(){
+        showSubpageClose();
+        content.replaceChildren(el("h3","community-section-title","Images en attente de validation"),el("p","community-muted","Ces images ne sont pas visibles dans le fil public tant qu'un administrateur ne les a pas approuvées."));
+        const list=el("div","community-image-review-list");
+        list.append(el("p","community-muted","Chargement des images…")); content.append(list);
+        try{
+          const data=await api("/moderation/image-posts"); list.replaceChildren();
+          if(!data.posts.length){list.append(el("div","community-empty","Aucune image en attente. La file de modération est à jour."));return;}
+          data.posts.forEach(post=>{
+            const card=el("article","community-image-review-card");
+            card.append(el("strong","","Publication de "+post.author_name),el("p","community-muted",post.body||"Publication avec image sans texte"),el("time","community-date",dateLabel(post.created_at)));
+            const image=el("img","community-review-image"); image.alt="Image soumise à validation"; image.loading="lazy"; image.src="/api/community/posts/"+encodeURIComponent(post.id)+"/media"; card.append(image);
+            const actions=el("div","community-post-actions");
+            const approve=el("button","community-primary","Approuver"); approve.type="button";
+            const reject=el("button","community-secondary","Refuser"); reject.type="button";
+            const decide=async(decision,button)=>{if(button.disabled)return;button.disabled=true;try{await api("/moderation/image-posts/"+encodeURIComponent(post.id),{method:"PATCH",body:{decision}});card.remove();if(!list.querySelector(".community-image-review-card"))list.append(el("div","community-empty","Aucune image en attente."));}catch(error){alert(error.message);button.disabled=false;}};
+            approve.addEventListener("click",()=>decide("approve",approve)); reject.addEventListener("click",()=>decide("reject",reject));
+            actions.append(approve,reject);card.append(actions);list.append(card);
+          });
+        }catch(error){list.replaceChildren(el("p","community-muted",error.message));}
+      }
+
       async function renderSearch(){
         content.replaceChildren();
         const form=el("form","community-search-form");
@@ -463,7 +488,8 @@
         await ensureSession();
         const me=await api("/profiles/me");
         myId=me.profile.id;
-      } catch { myId=null; }
+        try { const session=await window.NiyyaAPI.getSession(); isAdmin=session?.user?.role==="admin"; } catch { isAdmin=false; }
+      } catch { myId=null; isAdmin=false; }
       hideSubpageClose();
       setTab("all");
     }
