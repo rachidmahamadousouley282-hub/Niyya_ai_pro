@@ -125,13 +125,15 @@
       let offset = 0;
       let loading = false;
       const tabItems = [
-        ["all","Pour toi"],["following","Abonnements"],["mine","Mes publications"],["notifications","Notifications"],["search","Membres"],
-        ...(isAdmin ? [["image-review","Images à valider"]] : [])
+        ["all","Pour toi"],["following","Abonnements"],["mine","Mes publications"],["notifications","Notifications"],["search","Membres"]
       ];
       function setTab(mode) {
         currentMode = mode;
         tabs.replaceChildren();
-        tabItems.forEach(([key,label]) => {
+        const visibleTabs = isAdmin
+          ? [...tabItems, ["image-review","Images à valider"]]
+          : tabItems;
+        visibleTabs.forEach(([key,label]) => {
           const button = el("button", "community-tab" + (mode===key?" active":""), label);
           button.type = "button";
           button.addEventListener("click", () => setTab(key));
