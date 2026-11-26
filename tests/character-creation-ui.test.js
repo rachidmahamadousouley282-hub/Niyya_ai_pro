@@ -57,3 +57,12 @@ test("La création ne dépend pas du badge quota côté navigateur et les champs
   assert.match(source, /\["description", "Description du personnage"[^\n]+, 10\]/);
   assert.match(source, /\["greeting", "Premier message"[^\n]+, 2\]/);
 });
+
+test("La création propose une photo facultative, un aperçu et une compression JPEG", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.ok(source.includes("Photo du personnage (facultatif)"));
+  assert.ok(source.includes('avatarPicker.accept = "image/*"'));
+  assert.ok(source.includes("canvas.toBlob"));
+  assert.ok(source.includes("avatarData: avatarData || undefined"));
+  assert.ok(source.includes("removeAvatar"));
+});

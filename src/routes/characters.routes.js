@@ -44,6 +44,15 @@ function cleanText(value, maxLength, field, minLength = 0) {
   return cleaned;
 }
 
+function cleanAvatarData(value) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value !== "string" || value.length > 280000 ||
+      !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(value)) {
+    throw new Error("La photo doit être un JPEG compressé de 200 Ko maximum.");
+  }
+  return value;
+}
+
 function cleanList(value, maxItems, maxLength, field) {
   if (value === undefined || value === null) return [];
   if (!Array.isArray(value) || value.length > maxItems) {
@@ -196,18 +205,20 @@ router.post("/", requireAuth, requireSameOrigin, async (req, res) => {
       ? body.category : "original";
     const traits = cleanList(body.traits, 8, 32, "traits de personnalité");
     const tags = cleanList(body.tags, 8, 24, "mots-clés");
+    const avatarData = cleanAvatarData(body.avatarData);
     const result = await query(
       `INSERT INTO public.characters
         (owner_user_id, is_system, name, tagline, personality_prompt, scenario,
-         visibility, publication_status, avatar_status, short_bio, backstory,
+         visibility, publication_status, avatar_status, avatar_url, short_bio, backstory,
          personality_traits, greeting, category, tags, profile_i18n)
-       VALUES ($1, FALSE, $2, $3, $4, $5, 'private', 'none', 'none',
+       VALUES ($1, FALSE, $2, $3, $4, $5, 'private', 'none',
+               CASE WHEN $12::text IS NULL THEN 'none' ELSE 'pending' END, $12,
                $6, $7, $8::text[], $9, $10, $11::text[], '{}'::jsonb)
        RETURNING id, name, tagline, short_bio, backstory, personality_prompt,
-                 scenario, greeting, category, personality_traits, tags,
+                 scenario, greeting, category, personality_traits, tags, avatar_url,
                  visibility, publication_status, created_at, updated_at`,
       [req.user.id, name, tagline, personalityPrompt, scenario, shortBio,
-       backstory, traits, greeting, category, tags]
+       backstory, traits, greeting, category, tags, avatarData]
     );
     return res.status(201).json({
       success: true,
@@ -215,7 +226,7 @@ router.post("/", requireAuth, requireSameOrigin, async (req, res) => {
       canSubmit: await requireCreatorAccess(req.user.id)
     });
   } catch (error) {
-    if (/champ|liste|contenu|caractères/i.test(error.message || "")) {
+    if (/champ|liste|contenu|caractères|photo/i.test(error.message || "")) {
       return res.status(400).json({ error: error.message });
     }
     console.error("Erreur de création de personnage :", error.message);
@@ -248,20 +259,23 @@ router.patch("/:characterId", requireAuth, requireSameOrigin, async (req, res) =
       ? body.category : "original";
     const traits = cleanList(body.traits, 8, 32, "traits de personnalité");
     const tags = cleanList(body.tags, 8, 24, "mots-clés");
+    const avatarData = cleanAvatarData(body.avatarData);
     const result = await query(
       `UPDATE public.characters
        SET name = $3, tagline = $4, short_bio = $5, backstory = $6,
            personality_prompt = $7, scenario = $8, greeting = $9,
            category = $10, personality_traits = $11::text[], tags = $12::text[],
+           avatar_url = CASE WHEN $14::boolean THEN NULL WHEN $13::text IS NOT NULL THEN $13 ELSE avatar_url END,
+           avatar_status = CASE WHEN $14::boolean THEN 'none' WHEN $13::text IS NULL THEN avatar_status ELSE 'pending' END,
            updated_at = NOW()
        WHERE id = $1 AND owner_user_id = $2 AND is_system = FALSE
          AND status = 'active' AND visibility = 'private'
          AND publication_status IN ('none', 'rejected')
        RETURNING id, name, tagline, short_bio, backstory, personality_prompt,
-                 scenario, greeting, category, personality_traits, tags,
+                 scenario, greeting, category, personality_traits, tags, avatar_url,
                  visibility, publication_status, created_at, updated_at`,
       [characterId, req.user.id, name, tagline, shortBio, backstory,
-       personalityPrompt, scenario, greeting, category, traits, tags]
+       personalityPrompt, scenario, greeting, category, traits, tags, avatarData, Boolean(body.removeAvatar)]
     );
     if (!result.rows.length) {
       return res.status(409).json({
@@ -274,7 +288,7 @@ router.patch("/:characterId", requireAuth, requireSameOrigin, async (req, res) =
       canSubmit: await requireCreatorAccess(req.user.id)
     });
   } catch (error) {
-    if (/champ|liste|contenu|caractères/i.test(error.message || "")) {
+    if (/champ|liste|contenu|caractères|photo/i.test(error.message || "")) {
       return res.status(400).json({ error: error.message });
     }
     console.error("Erreur de modification de personnage :", error.message);

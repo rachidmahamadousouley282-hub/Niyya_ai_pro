@@ -850,3 +850,12 @@ html[data-theme="light"] .settings-toggle { color: #30263d; }
 }
 .settings-policy-links a { color: #bca2f8; text-decoration: underline; }
 html[data-theme="light"] .settings-policy-links a { color: #6943b5; }
+
+/* Optional character portrait picker — touch-friendly on iOS and Android. */
+.creator-avatar-field { grid-column: 1 / -1; }
+.creator-avatar-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.creator-avatar-choose, .creator-avatar-remove { min-height:42px; padding:10px 14px; cursor:pointer; }
+.creator-avatar-input { position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+.creator-avatar-preview { display:block; width:112px; height:112px; object-fit:cover; border-radius:18px; border:1px solid rgba(182,154,255,.3); background:#17121f; }
+.creator-avatar-preview[hidden], .creator-avatar-remove[hidden] { display:none; }
+.creator-avatar-hint { color:#aaa0b8; font-size:12px; line-height:1.5; }
