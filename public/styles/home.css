@@ -351,3 +351,18 @@ body {
 .home-hero .search-box { background:rgba(5,10,17,.7); border-color:rgba(111,177,232,.2); }
 .creator-banner { background:linear-gradient(135deg,#142d46,#0a111b); border-color:rgba(111,177,232,.22); }
 .creator-banner button { background:linear-gradient(120deg,#3989d3,#1b568a); }
+
+
+/* Keep the page canvas black; blue is reserved for key names and selected actions. */
+:root { --bg:#000; --surface:#111; --surface-light:#1a1a1a; --text:#f5f5f5; --muted:#a1a1a1; }
+html, body { background:#000 !important; }
+body { background-image:none !important; }
+.home-hero { background:linear-gradient(145deg,#101010,#050505) !important; border-color:rgba(255,255,255,.1) !important; }
+.home-welcome h1 { color:#f5f5f5; }
+.home-welcome p { color:#a1a1a1 !important; }
+.home-hero .search-box { background:#0c0c0c !important; border-color:rgba(255,255,255,.12) !important; }
+.creator-banner { background:#101010 !important; border-color:rgba(255,255,255,.1) !important; }
+.character-card { background:#101010 !important; }
+.character-info h3 { color:#8bc7ff !important; }
+.character-info p, .character-tag { color:#a1a1a1 !important; }
+.companion-name { color:#e2e2e2 !important; }

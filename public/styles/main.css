@@ -750,3 +750,34 @@ body { background:radial-gradient(ellipse at 50% -18%,rgba(31,91,147,.14),transp
 .bottom-nav .nav-item.selected { color:#9bd1ff; }
 .bottom-nav .nav-item.selected .nav-icon { background:rgba(49,129,194,.2); color:#9bd1ff; }
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline-color:#83c6ff; }
+
+
+/* V2 visual correction: true black canvas, restrained blue accents. */
+:root {
+  --bg: #000000;
+  --surface: #111111;
+  --surface-light: #1a1a1a;
+  --text: #f5f5f5;
+  --muted: #a1a1a1;
+  --border: rgba(255,255,255,.09);
+}
+html, body { background: #000 !important; color: #f5f5f5; }
+body { background-image: none !important; }
+.app-shell { background: transparent; }
+.eyebrow { color: #929292 !important; }
+.section-heading > a, .text-link-button { color: #d0d0d0 !important; }
+.hero h1 span, .brand-ai, .character-info h3 { color: #82bfff !important; }
+.character-tag { color: #a0a0a0 !important; }
+.search-box { background: #111 !important; border-color: rgba(255,255,255,.12) !important; color: #c9c9c9 !important; }
+.search-box input { color: #f5f5f5 !important; }
+.category, .icon-button { background: #111 !important; color: #e5e5e5 !important; }
+.category.active, .category:hover { color: #a8d4ff !important; border-color: rgba(90,160,220,.48) !important; background: #151b22 !important; }
+.character-card { background: #101010 !important; border-color: rgba(255,255,255,.1) !important; }
+.character-art { background: #151515 !important; }
+.creator-banner { background: #101010 !important; border-color: rgba(255,255,255,.1) !important; }
+.creator-banner button, .chat-button { background: #17283a !important; border-color: rgba(111,177,232,.28) !important; color: #e8f4ff !important; }
+.bottom-nav { background: rgba(8,8,8,.97) !important; border-color: rgba(255,255,255,.12) !important; }
+.bottom-nav .nav-item { color: #999 !important; }
+.bottom-nav .nav-item.selected { color: #a8d4ff !important; }
+.bottom-nav .nav-icon { background: #151515 !important; border-color: rgba(255,255,255,.1) !important; color: #bdbdbd !important; }
+.bottom-nav .nav-item.selected .nav-icon { background: #17283a !important; border-color: rgba(111,177,232,.45) !important; color: #a8d4ff !important; }

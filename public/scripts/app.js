@@ -770,38 +770,47 @@ document.addEventListener("DOMContentLoaded", () => {
   function openVipOffers() {
     const modal = element("div", "niyya-modal niyya-vip-modal");
     const panel = element("section", "modal-panel niyya-vip-panel");
-    panel.setAttribute("role", "dialog"); panel.setAttribute("aria-modal", "true");
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-labelledby", "niyya-vip-title");
+
     const header = element("div", "niyya-profile-header");
-    const heading = element("div"); heading.append(element("span", "eyebrow", "NIYYA.ai · ABONNEMENT"));
-    const title = element("h2", "", "Découvrir NIYYA VIP"); title.id = "niyya-vip-title"; heading.append(title);
-    const close = element("button", "modal-close", "×"); close.type = "button"; close.setAttribute("aria-label", "Fermer");
+    const heading = element("div");
+    heading.append(element("span", "eyebrow", "ABONNEMENT"));
+    const title = element("h2", "", "Offre VIP");
+    title.id = "niyya-vip-title";
+    heading.append(title);
+    const close = element("button", "modal-close", "×");
+    close.type = "button";
+    close.setAttribute("aria-label", "Fermer");
     header.append(heading, close);
+
     const body = element("div", "niyya-profile-content");
-    const free = element("section", "niyya-vip-plan");
-    free.append(
-      element("span", "eyebrow", "OFFRE GRATUITE"),
-      element("h3", "", "NIYYA Free"),
-      element("p", "", "30 messages par jour. Les bonus publicitaires ne sont pas encore disponibles : aucune vidéo récompensée ne peut actuellement ajouter de messages.")
-    );
-    const vip = element("section", "niyya-vip-plan niyya-vip-featured");
-    vip.append(
-      element("span", "eyebrow", "OFFRE PREMIUM · TARIFS ENVISAGÉS"),
-      element("h3", "", "NIYYA VIP"),
-      element("p", "", "Accès au quota VIP étendu, badge VIP distinctif et accès aux avantages premium disponibles. L'utilisation reste soumise aux règles anti-abus et à la disponibilité du service."),
+    const plan = element("section", "niyya-vip-plan niyya-vip-featured");
+    const benefits = element("ul", "niyya-vip-benefits");
+    [
+      "Un quota de messages plus élevé, soumis à des règles d’utilisation raisonnable.",
+      "Un badge VIP distinctif affiché sur ton profil.",
+      "L’accès aux fonctionnalités premium au fur et à mesure de leur disponibilité."
+    ].forEach(benefit => benefits.append(element("li", "", benefit)));
+
+    plan.append(
+      element("h3", "", "Les avantages"),
+      benefits,
       element("strong", "niyya-vip-price", "1 500 FCFA / mois · 15 000 FCFA / an"),
-      element("p", "niyya-vip-note", "Le tarif annuel reviendrait à 1 250 FCFA par mois. Ces montants sont des propositions à confirmer, pas une offre actuellement achetable.")
+      element("p", "niyya-vip-note", "Tarifs proposés, à confirmer. L’abonnement et les paiements ne sont pas encore ouverts.")
     );
-    const note = element("p", "niyya-vip-note", "Paiements et renouvellements non ouverts. Aucun bouton d'achat ni débit n'est actif. Les publicités récompensées, la génération d'images et certaines options premium ne sont pas encore intégrées : elles ne sont donc pas promises dans cette offre.");
-    const verified = element("section", "niyya-vip-plan");
-    verified.append(
-      element("span", "eyebrow", "BADGE INDÉPENDANT DU VIP"),
-      element("h3", "", "Identité vérifiée"),
-      element("p", "", "Ce badge devra être accordé après un contrôle réel effectué par l'équipe NIYYA via une procédure sécurisée. Il indiquera qu'un contrôle a été réalisé, pas que toutes les publications d'un membre sont vraies. La vérification n'est pas encore ouverte et ne s'achète pas avec VIP.")
-    );
-    body.append(free, vip, note, verified); panel.append(header, body); modal.append(panel); document.body.append(modal);
-    const dismiss = () => modal.remove(); close.addEventListener("click", dismiss);
-    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+
+    body.append(plan);
+    panel.append(header, body);
+    modal.append(panel);
+    document.body.append(modal);
+
+    const dismiss = () => modal.remove();
+    close.addEventListener("click", dismiss);
+    modal.addEventListener("click", event => {
+      if (event.target === modal) dismiss();
+    });
   }
 
   async function openAccount() {
