@@ -34,3 +34,47 @@
 [hidden]{display:none!important}
 @media(max-width:760px){.admin-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.daily-activity{grid-template-columns:1fr}.admin-panel{padding:15px}.admin-panel-heading{align-items:flex-start;flex-direction:column}}
 @media(max-width:420px){.admin-shell{width:calc(100% - 24px)}.admin-chip{font-size:8px}.admin-period button{flex:1;padding:0 8px}.admin-metric{padding:14px}.admin-metric small{font-size:9px}}
+
+
+.admin-reports { display: grid; gap: 12px; }
+.admin-report-card {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(140,160,195,.18);
+  border-radius: 14px;
+  background: rgba(15,22,36,.72);
+}
+.admin-report-heading, .admin-report-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.admin-report-heading strong { color: #eef4ff; }
+.admin-report-reason {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(220,150,80,.12);
+  color: #e6bd8b;
+  font-size: .82rem;
+}
+.admin-report-body { margin: 0; color: #d7e1f0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.admin-report-meta, .admin-report-feedback, .admin-report-empty { color: #91a1b8; font-size: .88rem; }
+.admin-report-meta { margin: 0; }
+.admin-report-actions button {
+  min-height: 38px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: 1px solid rgba(130,160,205,.24);
+  background: #17243a;
+  color: #edf4ff;
+  cursor: pointer;
+}
+.admin-report-actions .admin-report-remove {
+  border-color: rgba(215,110,110,.35);
+  background: rgba(125,42,55,.25);
+  color: #ffd9dd;
+}
+.admin-report-actions button:disabled { opacity: .55; cursor: wait; }
