@@ -781,3 +781,14 @@ body { background-image: none !important; }
 .bottom-nav .nav-item.selected { color: #a8d4ff !important; }
 .bottom-nav .nav-icon { background: #151515 !important; border-color: rgba(255,255,255,.1) !important; color: #bdbdbd !important; }
 .bottom-nav .nav-item.selected .nav-icon { background: #17283a !important; border-color: rgba(111,177,232,.45) !important; color: #a8d4ff !important; }
+
+
+/* VIP offer presentation */
+.niyya-vip-panel { background:#080808 !important; border-color:rgba(255,255,255,.12) !important; color:#f5f5f5; }
+.niyya-vip-panel .niyya-profile-header h2 { color:#f5f5f5 !important; }
+.niyya-vip-plan { background:#111 !important; border-color:rgba(255,255,255,.1) !important; }
+.niyya-vip-plan h3 { color:#8bc7ff !important; }
+.niyya-vip-benefits { display:grid; gap:13px; margin:4px 0 12px; padding-left:22px; color:#dedede; line-height:1.6; }
+.niyya-vip-benefits li::marker { color:#8bc7ff; }
+.niyya-vip-price { display:block; margin-top:18px; color:#f5f5f5; font-size:17px; }
+.niyya-vip-note { color:#999 !important; line-height:1.6; }
