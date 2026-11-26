@@ -1307,24 +1307,11 @@ async function openCreator(existingCharacter = null) {
           ? await window.NiyyaAPI.updateCharacter(existingCharacter.id, payload)
           : await window.NiyyaAPI.createCharacter(payload);
         if (!result.character) throw new Error("Le serveur n'a pas renvoyé le personnage enregistré.");
-        // Reload the canonical database record before starting a conversation.
-        // This avoids carrying a missing or malformed ID from a stale client response.
-        const savedCharacters = await window.NiyyaAPI.getMyCharacters();
-        const ownedCharacters = Array.isArray(savedCharacters.characters) ? savedCharacters.characters : [];
-        const returnedId = String(result.character.id || "");
+        // The create/update endpoint already returns the canonical saved database row.
+        // Do not make saving depend on a second /mine request or a name-based lookup:
+        // a failed refresh must never turn a successful save into a displayed failure.
+        const savedCharacter = result.character;
         const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-        let savedCharacter = uuidPattern.test(returnedId)
-          ? ownedCharacters.find(item => item.id === returnedId)
-          : null;
-        if (!savedCharacter) {
-          const candidates = ownedCharacters.filter(item =>
-            item.name === result.character.name && item.tagline === result.character.tagline
-          );
-          if (candidates.length === 1) savedCharacter = candidates[0];
-        }
-        if (!savedCharacter || !uuidPattern.test(String(savedCharacter.id || ""))) {
-          throw new Error("Ton personnage est peut-être enregistré, mais son identifiant n'a pas pu être confirmé. Ouvre « Mes créations » et réessaie.");
-        }
         const reviewMessage = result.canSubmit
           ? "Ton personnage est privé. Tu peux demander sa vérification avant de le rendre visible dans Explorer."
           : "Ton personnage est enregistré en brouillon privé. La publication publique et l'envoi en vérification sont réservés aux comptes adultes.";
