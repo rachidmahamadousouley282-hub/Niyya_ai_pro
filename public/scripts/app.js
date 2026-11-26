@@ -383,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dismiss();
             // Open the permanent character thread; legacy dated threads are
             // consolidated by the conversation endpoint when it is resumed.
-            openChat(result.character, null);
+            openChat(savedCharacter, null);
           } catch (error) {
             row.disabled = false;
             showToast(error.message || "Impossible d'ouvrir cette conversation.");
@@ -637,7 +637,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function openChat(character, trigger, existingConversationId = null) {
-    if (!character.id) return;
+    const characterId = character && String(character.id || "");
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(characterId)) {
+      throw new Error("Identifiant de personnage invalide. Recharge « Mes créations » puis réessaie.");
+    }
     if (trigger) trigger.disabled = true;
     const ui = openChatShell(character);
     ui.profile.addEventListener("click", () => openProfile(character, ui.profile, activeCharacterId === character.id ? activeConversation : null));
@@ -1266,11 +1269,10 @@ async function openCreator(existingCharacter = null) {
     category.value = existingCharacter?.category || "original";
     categoryGroup.append(category);
     form.append(categoryGroup);
-    const note = element("p", "creator-note", "Conseil : n'inclus pas de coordonnées personnelles, de contenu sexuel, de violence graphique ni de personnages présentés comme des personnes réelles.");
     const status = element("p", "chat-status", "");
     const submit = element("button", "chat-send creator-submit", existingCharacter ? "Enregistrer les modifications" : "Enregistrer le brouillon");
     submit.type = "submit";
-    form.append(note, status, submit);
+    form.append(status, submit);
     panel.append(header, form);
     modal.append(panel);
     document.body.append(modal);
@@ -1304,6 +1306,25 @@ async function openCreator(existingCharacter = null) {
         const result = existingCharacter
           ? await window.NiyyaAPI.updateCharacter(existingCharacter.id, payload)
           : await window.NiyyaAPI.createCharacter(payload);
+        if (!result.character) throw new Error("Le serveur n'a pas renvoyé le personnage enregistré.");
+        // Reload the canonical database record before starting a conversation.
+        // This avoids carrying a missing or malformed ID from a stale client response.
+        const savedCharacters = await window.NiyyaAPI.getMyCharacters();
+        const ownedCharacters = Array.isArray(savedCharacters.characters) ? savedCharacters.characters : [];
+        const returnedId = String(result.character.id || "");
+        const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        let savedCharacter = uuidPattern.test(returnedId)
+          ? ownedCharacters.find(item => item.id === returnedId)
+          : null;
+        if (!savedCharacter) {
+          const candidates = ownedCharacters.filter(item =>
+            item.name === result.character.name && item.tagline === result.character.tagline
+          );
+          if (candidates.length === 1) savedCharacter = candidates[0];
+        }
+        if (!savedCharacter || !uuidPattern.test(String(savedCharacter.id || ""))) {
+          throw new Error("Ton personnage est peut-être enregistré, mais son identifiant n'a pas pu être confirmé. Ouvre « Mes créations » et réessaie.");
+        }
         const reviewMessage = result.canSubmit
           ? "Ton personnage est privé. Tu peux demander sa vérification avant de le rendre visible dans Explorer."
           : "Ton personnage est enregistré en brouillon privé. La publication publique et l'envoi en vérification sont réservés aux comptes adultes.";
@@ -1314,7 +1335,7 @@ async function openCreator(existingCharacter = null) {
           chatNow.disabled = true;
           chatNow.textContent = "Ouverture de la conversation…";
           try {
-            await openChat(result.character, null);
+            await openChat(savedCharacter, null);
           } catch (error) {
             status.textContent = error.message || "Impossible d'ouvrir ce personnage.";
             chatNow.disabled = false;
@@ -1327,7 +1348,7 @@ async function openCreator(existingCharacter = null) {
         successActions.append(chatNow, viewCreations);
         form.replaceChildren(
           element("span", "eyebrow", existingCharacter ? "MODIFICATIONS ENREGISTRÉES" : "PERSONNAGE ENREGISTRÉ"),
-          element("h3", "", result.character.name),
+          element("h3", "", savedCharacter.name),
           element("p", "creator-note", reviewMessage),
           successActions
         );
@@ -1340,7 +1361,7 @@ async function openCreator(existingCharacter = null) {
           review.disabled = true;
           reviewStatus.textContent = "Envoi de la demande…";
           try {
-            await window.NiyyaAPI.submitCharacter(result.character.id);
+            await window.NiyyaAPI.submitCharacter(savedCharacter.id);
             reviewStatus.textContent = "Demande envoyée. Le personnage restera privé pendant sa vérification.";
             review.textContent = "Demande envoyée";
           } catch (error) {
