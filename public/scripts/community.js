@@ -200,7 +200,7 @@
           try{
             const result=await api("/posts",{method:"POST",body:{body:textarea.value,visibility:visibility.value,image:imageData}});
             textarea.value="";file.value="";imageData=null;preview.hidden=true;preview.replaceChildren();
-            status.textContent=result.post.visibility==="private"?"Publication enregistrée dans ton espace privé.":"Ta publication est en ligne.";
+            status.textContent=result.pendingReview?"Image envoyée à l'administration. Elle sera visible publiquement après validation.":result.post.visibility==="private"?"Publication enregistrée dans ton espace privé.":"Ta publication est en ligne.";
             await renderFeed(currentMode,true);
           }catch(error){status.textContent=error.message;}
           finally{submit.disabled=false;}
