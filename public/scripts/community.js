@@ -125,7 +125,7 @@
       let offset = 0;
       let loading = false;
       const tabItems = [
-        ["all","Pour toi"],["following","Abonnements"],["mine","Mes publications"],["notifications","Notifications"],["search","Membres"]
+        ["all","Pour toi"],["following","Abonnements"],["mine","Mes publications"],["notifications","Notifications"],["search","Découvrir"]
       ];
       function setTab(mode) {
         currentMode = mode;
@@ -465,24 +465,74 @@
 
       async function renderSearch(){
         content.replaceChildren();
+        const intro=el("div","community-feed-intro");
+        intro.append(el("h3","community-section-title","Découvrir les membres"));
+        intro.append(el("p","community-muted","Trouve des personnes sur NIYYA, consulte leurs profils et suis les comptes qui t'intéressent."));
         const form=el("form","community-search-form");
         const input=el("input","community-search-input");input.type="search";input.placeholder="Rechercher un pseudo…";input.minLength=2;
         const button=el("button","community-primary","Rechercher");button.type="submit";form.append(input,button);
         const results=el("div","community-search-results");
-        form.addEventListener("submit",async event=>{
-          event.preventDefault();if(input.value.trim().length<2)return;
-          results.replaceChildren(el("p","community-muted","Recherche…"));
+        let currentQuery="";
+        async function loadMembers(term=""){
+          currentQuery=term;
+          results.replaceChildren(el("p","community-muted",term?"Recherche des membres…":"Chargement des membres à découvrir…"));
           try{
-            const data=await api("/search?q="+encodeURIComponent(input.value.trim()));results.replaceChildren();
-            if(!data.profiles.length)results.append(el("p","community-empty","Aucun membre trouvé."));
-            data.profiles.forEach(p=>{
-              const row=el("div","community-search-result");
-              row.append(el("span","community-avatar",initials(p.pseudonym)),el("span","community-search-name",p.pseudonym),el("span","community-muted",p.follower_count+" abonnés"));
-              const view=el("button","community-secondary","Voir le profil");view.type="button";view.addEventListener("click",()=>showProfile(p.id));row.append(view);results.append(row);
+            const data=term
+              ? await api("/search?q="+encodeURIComponent(term))
+              : await api("/members?limit=20&offset=0");
+            results.replaceChildren();
+            const members=Array.isArray(data.profiles)?data.profiles:[];
+            if(!members.length){
+              results.append(el("div","community-empty",term?"Aucun compte trouvé. Vérifie le pseudo ou essaie un autre terme.":"Il n'y a pas encore de membres à découvrir."));
+              return;
+            }
+            members.forEach(member=>{
+              const row=el("article","community-member-card");
+              const identity=el("button","community-member-identity");
+              identity.type="button";
+              identity.append(el("span","community-avatar",initials(member.pseudonym)));
+              const details=el("span","community-member-details");
+              details.append(el("strong","",member.pseudonym));
+              if(member.bio)details.append(el("small","",member.bio));
+              details.append(el("small","community-member-count",(member.follower_count||0)+" abonnés"));
+              identity.append(details);
+              identity.addEventListener("click",()=>showProfile(member.id));
+              const actions=el("div","community-member-actions");
+              if(myId&&member.id!==myId){
+                const follow=el("button","community-primary community-member-follow",member.is_following?"Abonné":"Suivre");
+                follow.type="button";
+                follow.classList.toggle("following",!!member.is_following);
+                follow.addEventListener("click",async()=>{
+                  if(follow.disabled)return;
+                  follow.disabled=true;
+                  try{
+                    const result=await api("/profiles/"+encodeURIComponent(member.id)+"/follow",{method:"POST",body:{}});
+                    member.is_following=result.following;
+                    follow.textContent=result.following?"Abonné":"Suivre";
+                    follow.classList.toggle("following",result.following);
+                    const count= row.querySelector(".community-member-count");
+                    if(count)count.textContent=result.followerCount+" abonnés";
+                  }catch(error){window.alert(error.message);}
+                  finally{follow.disabled=false;}
+                });
+                actions.append(follow);
+              }
+              const view=el("button","community-secondary community-member-view","Voir le profil");
+              view.type="button";view.addEventListener("click",()=>showProfile(member.id));
+              actions.append(view);
+              row.append(identity,actions);
+              results.append(row);
             });
           }catch(error){results.replaceChildren(el("p","community-muted",error.message));}
+        }
+        form.addEventListener("submit",async event=>{
+          event.preventDefault();
+          const term=input.value.trim();
+          if(term.length<2){input.focus();return;}
+          await loadMembers(term);
         });
-        content.append(form,results);
+        content.append(intro,form,results);
+        await loadMembers("");
       }
 
       async function loadCommentsForPost(){/* reserved for lazy comment loading */}

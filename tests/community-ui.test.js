@@ -16,3 +16,13 @@ test("Image-only posts are accepted by the database constraint, text-only posts 
   assert.match(migration, /media_data IS NOT NULL AND char_length\(btrim\(body\)\) BETWEEN 0 AND 600/);
   assert.match(migration, /media_data IS NULL AND char_length\(btrim\(body\)\) BETWEEN 2 AND 600/);
 });
+
+
+test("Community member discovery includes a directory, search, profile and follow actions", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  assert.match(source, /\["search","Découvrir"\]/);
+  assert.match(source, /api\("\/members\?limit=20&offset=0"\)/);
+  assert.match(source, /api\("\/search\?q="/);
+  assert.match(source, /showProfile\(member\.id\)/);
+  assert.match(source, /\/profiles\/\+encodeURIComponent\(member\.id\)\+"\/follow"/);
+});

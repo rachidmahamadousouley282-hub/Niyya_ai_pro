@@ -443,13 +443,38 @@ router.get("/profiles/:userId/posts", optionalAuth, async (req,res) => {
   } catch(error){console.error("Erreur publications profil :",error.message);return res.status(500).json({error:"Impossible de charger les publications."});}
 });
 
+router.get("/members", optionalAuth, async (req, res) => {
+  const limit = pagination(req.query.limit, 20, 30);
+  const offset = pagination(req.query.offset, 0, 5000);
+  if (limit === null || offset === null) return res.status(400).json({ error: "Pagination invalide." });
+  try {
+    const viewer = req.user ? req.user.id : null;
+    const result = await query(
+      "SELECT u.id, u.pseudonym, u.bio, u.created_at, " +
+      "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
+      "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $3 AND f.followed_user_id = u.id) AS is_following " +
+      "FROM public.users u WHERE u.onboarded_at IS NOT NULL AND u.pseudonym IS NOT NULL " +
+      "AND ($3 IS NULL OR u.id <> $3) " +
+      "AND ($3 IS NULL OR NOT EXISTS (SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id = $3 AND b.blocked_user_id = u.id) OR (b.blocker_user_id = u.id AND b.blocked_user_id = $3))) " +
+      "ORDER BY follower_count DESC, u.created_at DESC LIMIT $1 OFFSET $2",
+      [limit, offset, viewer]
+    );
+    return res.status(200).json({ success: true, profiles: result.rows, offset, hasMore: result.rows.length === limit });
+  } catch (error) {
+    console.error("Erreur de découverte des membres :", error.message);
+    return res.status(500).json({ error: "Impossible de découvrir les membres pour le moment." });
+  }
+});
+
 router.get("/search", optionalAuth, async (req,res)=>{
   const term=typeof req.query.q==="string"?req.query.q.trim().slice(0,40):"";
   if(term.length<2) return res.json({success:true,profiles:[]});
   try{
     const result=await query(
-      "SELECT u.id,u.pseudonym,u.bio,(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id=u.id) AS follower_count "+
+      "SELECT u.id,u.pseudonym,u.bio,(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id=u.id) AS follower_count, "+
+      "EXISTS(SELECT 1 FROM public.community_follows f WHERE f.follower_user_id=$2 AND f.followed_user_id=u.id) AS is_following "+
       "FROM public.users u WHERE u.onboarded_at IS NOT NULL AND u.pseudonym ILIKE $1 "+
+      "AND ($2 IS NULL OR u.id <> $2) "+
       "AND ($2 IS NULL OR NOT EXISTS(SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id=$2 AND b.blocked_user_id=u.id) OR (b.blocker_user_id=u.id AND b.blocked_user_id=$2))) "+
       "ORDER BY follower_count DESC,u.pseudonym LIMIT 20",["%"+term+"%",req.user?req.user.id:null]);
     return res.json({success:true,profiles:result.rows});
