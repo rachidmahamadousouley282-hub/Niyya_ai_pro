@@ -1180,6 +1180,19 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         const status = element("span", "creator-character-status", statusLabels[character.publication_status] || "Statut inconnu");
         row.append(details, status);
+        const chat = element("button", "chat-send creator-chat-button", "Discuter");
+        chat.type = "button";
+        chat.addEventListener("click", async () => {
+          chat.disabled = true;
+          try {
+            await openChat(character, null);
+          } catch (error) {
+            showToast(error.message || "Impossible d'ouvrir ce personnage.");
+          } finally {
+            chat.disabled = false;
+          }
+        });
+        row.append(chat);
         if (["none", "rejected"].includes(character.publication_status)) {
           const edit = element("button", "profile-link-button", "Modifier");
           edit.type = "button";
@@ -1294,10 +1307,29 @@ async function openCreator(existingCharacter = null) {
         const reviewMessage = result.canSubmit
           ? "Ton personnage est privé. Tu peux demander sa vérification avant de le rendre visible dans Explorer."
           : "Ton personnage est enregistré en brouillon privé. La publication publique et l'envoi en vérification sont réservés aux comptes adultes.";
+        const successActions = element("div", "creator-success-actions");
+        const chatNow = element("button", "chat-send creator-submit", "Discuter avec mon personnage");
+        chatNow.type = "button";
+        chatNow.addEventListener("click", async () => {
+          chatNow.disabled = true;
+          chatNow.textContent = "Ouverture de la conversation…";
+          try {
+            await openChat(result.character, null);
+          } catch (error) {
+            status.textContent = error.message || "Impossible d'ouvrir ce personnage.";
+            chatNow.disabled = false;
+            chatNow.textContent = "Réessayer";
+          }
+        });
+        const viewCreations = element("button", "profile-link-button", "Mes créations");
+        viewCreations.type = "button";
+        viewCreations.addEventListener("click", openMyCharacters);
+        successActions.append(chatNow, viewCreations);
         form.replaceChildren(
-          element("span", "eyebrow", existingCharacter ? "MODIFICATIONS ENREGISTRÉES" : "BROUILLON ENREGISTRÉ"),
+          element("span", "eyebrow", existingCharacter ? "MODIFICATIONS ENREGISTRÉES" : "PERSONNAGE ENREGISTRÉ"),
           element("h3", "", result.character.name),
-          element("p", "creator-note", reviewMessage)
+          element("p", "creator-note", reviewMessage),
+          successActions
         );
         if (!result.canSubmit) return;
         const review = element("button", "chat-send creator-submit", "Envoyer en vérification");
