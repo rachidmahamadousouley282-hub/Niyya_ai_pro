@@ -18,7 +18,7 @@ const SHELL_URLS = [
   "/styles/community.css?v=community-image-review-v2-20261126",
   "/styles/home.css?v=community-facebook-shell-v2-20261126",
   "/scripts/community.js?v=image-review-admin-v1-20261126",
-  "/scripts/pwa.js?v=pwa-cache-v22-20261126"
+  "/scripts/pwa.js?v=pwa-cache-v24-20261126"
 ];
 
 self.addEventListener("install", event => {
