@@ -70,3 +70,11 @@ test("Following feed distinguishes no followed accounts from followed accounts w
   assert.match(source, /data\.followedCount > 0/);
   assert.match(source, /Tu suis déjà /);
 });
+
+
+test("Verification badge stays on the same unwrapped line as account name", () => {
+  const styles = fs.readFileSync(path.join(__dirname, "../public/styles/community.css"), "utf8");
+  assert.match(styles, /\.community-name-line\{[^}]*flex-wrap:nowrap/);
+  assert.match(styles, /\.community-name-line strong\{[^}]*white-space:nowrap/);
+  assert.match(styles, /\.community-name-line \.community-verified-badge\{[^}]*flex:0 0 16px/);
+});
