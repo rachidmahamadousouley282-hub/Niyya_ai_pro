@@ -383,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dismiss();
             // Open the permanent character thread; legacy dated threads are
             // consolidated by the conversation endpoint when it is resumed.
-            openChat(savedCharacter, null);
+            openChat(result.character, null);
           } catch (error) {
             row.disabled = false;
             showToast(error.message || "Impossible d'ouvrir cette conversation.");
