@@ -1154,6 +1154,12 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         const status = element("span", "creator-character-status", statusLabels[character.publication_status] || "Statut inconnu");
         row.append(details, status);
+        if (["none", "rejected"].includes(character.publication_status)) {
+          const edit = element("button", "profile-link-button", "Modifier");
+          edit.type = "button";
+          edit.addEventListener("click", () => openCreator(character));
+          row.append(edit);
+        }
         content.append(row);
       });
     } catch (error) {
@@ -1161,7 +1167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-async function openCreator() {
+async function openCreator(existingCharacter = null) {
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal creator-fullscreen-modal");
     const panel = element("section", "modal-panel creator-panel");
@@ -1171,7 +1177,7 @@ async function openCreator() {
     const header = element("div", "creator-heading");
     const titleWrap = element("div");
     titleWrap.append(element("span", "eyebrow", "NIYYA.ai · ATELIER"),
-      element("h2", "", "Donne vie à ton personnage"),
+      element("h2", "", existingCharacter ? "Modifier ton personnage" : "Donne vie à ton personnage"),
       element("p", "chat-subtitle", "Crée un personnage fictif. Il restera privé jusqu'à sa validation."));
     const close = element("button", "modal-close", "×");
     close.type = "button";
@@ -1201,6 +1207,9 @@ async function openCreator() {
       control.placeholder = placeholder;
       control.maxLength = max;
       control.required = required;
+      const existingValues = { shortBio: existingCharacter?.short_bio, personalityPrompt: existingCharacter?.personality_prompt, traits: existingCharacter?.personality_traits?.join(", "), tags: existingCharacter?.tags?.join(", ") };
+      const existingValue = existingValues[key] ?? existingCharacter?.[key];
+      if (existingValue !== undefined && existingValue !== null) control.value = existingValue;
       if (kind === "textarea") control.rows = key === "personalityPrompt" || key === "backstory" ? 4 : 3;
       controls[key] = control;
       group.append(control);
@@ -1215,11 +1224,12 @@ async function openCreator() {
       option.value = value;
       category.append(option);
     });
+    category.value = existingCharacter?.category || "original";
     categoryGroup.append(category);
     form.append(categoryGroup);
     const note = element("p", "creator-note", "Conseil : n'inclus pas de coordonnées personnelles, de contenu sexuel, de violence graphique ni de personnages présentés comme des personnes réelles.");
     const status = element("p", "chat-status", "");
-    const submit = element("button", "chat-send creator-submit", "Enregistrer le brouillon");
+    const submit = element("button", "chat-send creator-submit", existingCharacter ? "Enregistrer les modifications" : "Enregistrer le brouillon");
     submit.type = "submit";
     form.append(note, status, submit);
     panel.append(header, form);
@@ -1252,12 +1262,14 @@ async function openCreator() {
         if (!access.onboarded) {
           throw new Error("L'atelier est accessible après le parcours d'inscription autorisé de NIYYA.");
         }
-        const result = await window.NiyyaAPI.createCharacter(payload);
+        const result = existingCharacter
+          ? await window.NiyyaAPI.updateCharacter(existingCharacter.id, payload)
+          : await window.NiyyaAPI.createCharacter(payload);
         const reviewMessage = result.canSubmit
           ? "Ton personnage est privé. Tu peux demander sa vérification avant de le rendre visible dans Explorer."
           : "Ton personnage est enregistré en brouillon privé. La publication publique et l'envoi en vérification sont réservés aux comptes adultes.";
         form.replaceChildren(
-          element("span", "eyebrow", "BROUILLON ENREGISTRÉ"),
+          element("span", "eyebrow", existingCharacter ? "MODIFICATIONS ENREGISTRÉES" : "BROUILLON ENREGISTRÉ"),
           element("h3", "", result.character.name),
           element("p", "creator-note", reviewMessage)
         );

@@ -223,6 +223,65 @@ router.post("/", requireAuth, requireSameOrigin, async (req, res) => {
   }
 });
 
+// PATCH /api/characters/:characterId — modifie un brouillon privé ou refusé.
+router.patch("/:characterId", requireAuth, requireSameOrigin, async (req, res) => {
+  const { characterId } = req.params;
+  if (!UUID_REGEX.test(characterId)) {
+    return res.status(400).json({ error: "Identifiant de personnage invalide." });
+  }
+  try {
+    if (!await requireCreatorDraftAccess(req.user.id)) {
+      return res.status(403).json({
+        error: "Termine ton inscription avant de modifier un personnage.",
+        code: "creator_onboarding_required"
+      });
+    }
+    const body = req.body || {};
+    const name = cleanText(body.name, 40, "nom", 2);
+    const tagline = cleanText(body.tagline, 100, "description courte", 3);
+    const shortBio = cleanText(body.shortBio, 500, "présentation", 10);
+    const backstory = cleanText(body.backstory, 3000, "histoire", 10);
+    const personalityPrompt = cleanText(body.personalityPrompt, 4000, "personnalité", 10);
+    const scenario = cleanText(body.scenario || "Un univers fictif et bienveillant.", 1000, "scénario", 5);
+    const greeting = cleanText(body.greeting, 800, "message d'accueil", 2);
+    const category = typeof body.category === "string" && CATEGORIES.has(body.category)
+      ? body.category : "original";
+    const traits = cleanList(body.traits, 8, 32, "traits de personnalité");
+    const tags = cleanList(body.tags, 8, 24, "mots-clés");
+    const result = await query(
+      `UPDATE public.characters
+       SET name = $3, tagline = $4, short_bio = $5, backstory = $6,
+           personality_prompt = $7, scenario = $8, greeting = $9,
+           category = $10, personality_traits = $11::text[], tags = $12::text[],
+           updated_at = NOW()
+       WHERE id = $1 AND owner_user_id = $2 AND is_system = FALSE
+         AND status = 'active' AND visibility = 'private'
+         AND publication_status IN ('none', 'rejected')
+       RETURNING id, name, tagline, short_bio, backstory, personality_prompt,
+                 scenario, greeting, category, personality_traits, tags,
+                 visibility, publication_status, created_at, updated_at`,
+      [characterId, req.user.id, name, tagline, shortBio, backstory,
+       personalityPrompt, scenario, greeting, category, traits, tags]
+    );
+    if (!result.rows.length) {
+      return res.status(409).json({
+        error: "Ce personnage n'est pas modifiable : seuls tes brouillons privés et les demandes refusées peuvent être modifiés."
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      character: ownCharacter(result.rows[0]),
+      canSubmit: await requireCreatorAccess(req.user.id)
+    });
+  } catch (error) {
+    if (/champ|liste|contenu|caractères/i.test(error.message || "")) {
+      return res.status(400).json({ error: error.message });
+    }
+    console.error("Erreur de modification de personnage :", error.message);
+    return res.status(500).json({ error: "Impossible de modifier ce personnage." });
+  }
+});
+
 // POST /api/characters/:characterId/submit — demande une validation avant publication.
 router.post("/:characterId/submit", requireAuth, requireSameOrigin, async (req, res) => {
   const { characterId } = req.params;

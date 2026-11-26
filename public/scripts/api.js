@@ -116,6 +116,13 @@
       return request("/characters", { method: "POST", body: character });
     },
 
+    updateCharacter(characterId, character) {
+      return request(`/characters/${encodeURIComponent(characterId)}`, {
+        method: "PATCH",
+        body: character
+      });
+    },
+
     submitCharacter(characterId) {
       return request(`/characters/${encodeURIComponent(characterId)}/submit`, { method: "POST" });
     },

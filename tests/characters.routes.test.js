@@ -125,3 +125,12 @@ test("Un identifiant de personnage invalide est refusé avant toute requête SQL
   assert.equal(res.statusCode, 400);
   assert.equal(lastQuery, null);
 });
+
+
+test("La route de modification des brouillons existe et est protégée", () => {
+  const layer = router.stack.find(item =>
+    item.route && item.route.path === "/:characterId" && item.route.methods.patch
+  );
+  assert.ok(layer, "La route PATCH /:characterId doit exister");
+  assert.equal(layer.route.stack.length, 3, "La modification doit passer par authentification et contrôle d'origine");
+});
