@@ -21,7 +21,7 @@ test("Image-only posts are accepted by the database constraint, text-only posts 
 test("Community member discovery includes a directory, search, profile and follow actions", () => {
   const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
   assert.match(source, /\["search","Découvrir"\]/);
-  assert.match(source, /api\("\/members\?limit=20&offset=0"\)/);
+  assert.match(source, /api\("\/members\?limit=20&offset="\+offset\)/);
   assert.match(source, /api\("\/search\?q="/);
   assert.match(source, /showProfile\(member\.id\)/);
   assert.ok(source.includes('api("/profiles/"+encodeURIComponent(member.id)+"/follow"'));
