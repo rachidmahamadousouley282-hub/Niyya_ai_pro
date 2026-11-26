@@ -34,3 +34,16 @@ test("Le formulaire n'affiche plus le conseil de sécurité sous les champs", ()
   assert.doesNotMatch(source, /Conseil : n'inclus pas de coordonnées personnelles/);
   assert.match(source, /form\.append\(status, submit\)/);
 });
+
+
+test("Le bouton de création ouvre toujours un formulaire de création, sans transmettre l'événement comme personnage", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(source, /getElementById\("create-character"\)\.addEventListener\("click", \(\) => openCreator\(\)\)/);
+  assert.match(source, /existingCharacter \? "Enregistrer les modifications" : "Créer mon personnage"/);
+});
+
+test("La résolution d'identifiant de brouillon est limitée au parcours de modification", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(source, /if \(existingCharacter && !editUuidPattern\.test/);
+  assert.match(source, /existingCharacter\s*\?\s*await window\.NiyyaAPI\.updateCharacter\(editCharacterId, payload\)\s*:\s*await window\.NiyyaAPI\.createCharacter\(payload\)/);
+});

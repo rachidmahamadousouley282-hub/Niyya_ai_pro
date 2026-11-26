@@ -1266,7 +1266,7 @@ async function openCreator(existingCharacter = null) {
     categoryGroup.append(category);
     form.append(categoryGroup);
     const status = element("p", "chat-status", "");
-    const submit = element("button", "chat-send creator-submit", existingCharacter ? "Enregistrer les modifications" : "Enregistrer le brouillon");
+    const submit = element("button", "chat-send creator-submit", existingCharacter ? "Enregistrer les modifications" : "Créer mon personnage");
     submit.type = "submit";
     form.append(status, submit);
     panel.append(header, form);
@@ -1385,7 +1385,7 @@ async function openCreator(existingCharacter = null) {
     });
   }
 
-  document.getElementById("create-character").addEventListener("click", openCreator);
+  document.getElementById("create-character").addEventListener("click", () => openCreator());
 
   document.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", async event => {
