@@ -18,7 +18,7 @@ const creatorLayer = charactersRouter.stack.find(layer =>
   layer.route && layer.route.path === "/" && layer.route.methods.post
 );
 assert.ok(creatorLayer, "La route POST /api/characters doit exister");
-const createHandler = creatorLayer.route.stack.at(-1);
+const createHandler = creatorLayer.route.stack.at(-1).handle;
 
 const CHARACTER_ID = "123e4567-e89b-42d3-a456-426614174000";
 const OWNER_ID = "owner-user-id";
@@ -47,8 +47,8 @@ function validCharacterPayload() {
   };
 }
 
-test("La création enregistre réellement un brouillon privé et renvoie son identifiant", async () => {
-  const saved = {
+function savedCharacter() {
+  return {
     id: CHARACTER_ID,
     name: "Mira",
     tagline: "Une exploratrice curieuse",
@@ -65,9 +65,12 @@ test("La création enregistre réellement un brouillon privé et renvoie son ide
     created_at: new Date("2026-01-01T00:00:00Z"),
     updated_at: new Date("2026-01-01T00:00:00Z")
   };
+}
+
+test("La création enregistre réellement un brouillon privé et renvoie son identifiant", async () => {
   queryQueue = [
     { rows: [{ onboarded_at: new Date(), terms_accepted_at: new Date(), pseudonym: "Membre", age_band: "16_17" }] },
-    { rows: [saved] },
+    { rows: [savedCharacter()] },
     { rows: [{ onboarded_at: new Date(), adult_confirmed_at: null, terms_accepted_at: new Date(), pseudonym: "Membre" }] }
   ];
   recordedQueries = [];
@@ -100,21 +103,8 @@ test("La création enregistre réellement un brouillon privé et renvoie son ide
 
 test("Un brouillon privé est utilisable par son propriétaire dans le moteur de conversation", async () => {
   const characterEngine = require("../src/engines/character.engine");
-  let captured = null;
-  database.query = async (sql, params = []) => {
-    captured = { sql, params };
-    return { rows: [{
-      id: CHARACTER_ID,
-      owner_user_id: OWNER_ID,
-      name: "Mira",
-      visibility: "private",
-      publication_status: "none",
-      status: "active",
-      is_system: false,
-      personality_prompt: "Personnalité de test",
-      greeting: "Bonjour"
-    }] };
-  };
+  queryQueue = [{ rows: [savedCharacter()] }];
+  recordedQueries = [];
 
   const character = await characterEngine.getCharacterForConversation({
     characterId: CHARACTER_ID,
@@ -123,17 +113,14 @@ test("Un brouillon privé est utilisable par son propriétaire dans le moteur de
 
   assert.equal(character.id, CHARACTER_ID);
   assert.equal(character.visibility, "private");
-  assert.match(captured.sql, /owner_user_id = \$2/);
-  assert.deepEqual(captured.params, [CHARACTER_ID, OWNER_ID]);
+  assert.match(recordedQueries[0].sql, /owner_user_id = \$2/);
+  assert.deepEqual(recordedQueries[0].params, [CHARACTER_ID, OWNER_ID]);
 });
 
 test("L'accès à un brouillon privé dépend du propriétaire et non de sa visibilité publique", async () => {
   const characterEngine = require("../src/engines/character.engine");
-  let captured = null;
-  database.query = async (sql, params = []) => {
-    captured = { sql, params };
-    return { rows: [] };
-  };
+  queryQueue = [{ rows: [] }];
+  recordedQueries = [];
 
   const character = await characterEngine.getCharacterForConversation({
     characterId: CHARACTER_ID,
@@ -141,6 +128,6 @@ test("L'accès à un brouillon privé dépend du propriétaire et non de sa visi
   });
 
   assert.equal(character, null);
-  assert.deepEqual(captured.params, [CHARACTER_ID, "another-user-id"]);
-  assert.match(captured.sql, /visibility = 'public'[\s\S]*publication_status = 'approved'[\s\S]*owner_user_id = \$2/);
+  assert.deepEqual(recordedQueries[0].params, [CHARACTER_ID, "another-user-id"]);
+  assert.match(recordedQueries[0].sql, /visibility = 'public'[\s\S]*publication_status = 'approved'[\s\S]*owner_user_id = \$2/);
 });
