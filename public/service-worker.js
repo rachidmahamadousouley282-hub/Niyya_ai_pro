@@ -1,24 +1,24 @@
 "use strict";
 
-const CACHE_NAME = "niyya-shell-v27";
+const CACHE_NAME = "niyya-shell-v28";
 const SHELL_URLS = [
   "/",
   "/index.html",
   "/offline.html",
   "/manifest.webmanifest",
   "/icons/niyya-icon.svg",
-  "/styles/main.css?v=nav5-20261124",
+  "/styles/main.css?v=black-blue-v1-20261126",
   "/styles/components.css?v=character-avatar-picker-v1-20261126",
   "/styles/responsive.css?v=nav5-20261124",
   "/scripts/i18n.js?v=six-tabs-labels-v4-20261126",
   "/scripts/api.js?v=creator-edit-v1-20261126",
   "/scripts/onboarding.js",
   "/scripts/navigation.js?v=six-tabs-labels-v3-20261126",
-  "/scripts/app.js?v=character-avatar-picker-v1-20261126",
+  "/scripts/app.js?v=vip-clarity-settings-v1-20261126",
   "/styles/community.css?v=member-discovery-v2-20261126",
-  "/styles/home.css?v=community-facebook-shell-v2-20261126",
+  "/styles/home.css?v=black-blue-v1-20261126",
   "/scripts/community.js?v=member-discovery-v2-20261126",
-  "/scripts/pwa.js?v=pwa-cache-v27-20261126"
+  "/scripts/pwa.js?v=pwa-cache-v28-20261126"
 ];
 
 self.addEventListener("install", event => {

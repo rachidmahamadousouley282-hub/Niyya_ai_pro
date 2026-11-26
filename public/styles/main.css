@@ -2,11 +2,11 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg: #0b0912;
-  --surface: #14111e;
-  --surface-light: #1c1729;
-  --purple: #9565f5;
-  --purple-light: #b69aff;
+  --bg: #05070b;
+  --surface: #101722;
+  --surface-light: #172334;
+  --purple: #3989d3;
+  --purple-light: #8ec8ff;
   --text: #f8f6ff;
   --muted: #9992aa;
   --border: rgba(255,255,255,.08);
@@ -26,7 +26,7 @@ html {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse at 50% -15%, rgba(112,65,190,.18), transparent 55%),
+    radial-gradient(ellipse at 50% -18%, rgba(40,112,184,.13), transparent 54%),
     var(--bg);
   color: var(--text);
   font-family: 'DM Sans', sans-serif;
@@ -732,3 +732,21 @@ a {
     min-height: 48px;
   }
 }
+
+
+/* NIYYA V2 — black + midnight-blue finish */
+:root { --bg:#05070b; --surface:#101722; --surface-light:#172334; --purple:#3989d3; --purple-light:#8ec8ff; --border:rgba(143,190,235,.13); }
+body { background:radial-gradient(ellipse at 50% -18%,rgba(31,91,147,.14),transparent 54%),#05070b; }
+.brand-icon { background:linear-gradient(140deg,#3989d3,#17436e); box-shadow:0 5px 22px rgba(49,137,211,.22); }
+.profile-button { background:linear-gradient(135deg,#3989d3,#17436e); }
+.eyebrow,.section-heading > a { color:#8ec8ff; }
+.search-box { border-color:rgba(111,177,232,.22); background:rgba(13,21,32,.94); color:#8ec8ff; }
+.category.active,.category:hover { background:rgba(48,126,190,.18); color:#a8d7ff; border-color:rgba(91,166,226,.55); }
+.character-card { background:linear-gradient(160deg,#121d2b,#090e16); }
+.character-card:hover { border-color:rgba(91,166,226,.5); }
+.art-one,.art-two,.art-three,.art-four { background:linear-gradient(145deg,#183552,#0b1420); }
+.art-one::before,.art-two::before,.art-three::before,.art-four::before { background:#287fbd; }
+.bottom-nav { background:rgba(7,12,19,.96); border-color:rgba(116,174,224,.18); }
+.bottom-nav .nav-item.selected { color:#9bd1ff; }
+.bottom-nav .nav-item.selected .nav-icon { background:rgba(49,129,194,.2); color:#9bd1ff; }
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline-color:#83c6ff; }

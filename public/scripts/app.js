@@ -403,12 +403,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await window.NiyyaAPI.getQuota();
       const lang = window.NiyyaI18n?.getLanguage() || "fr";
       if (data.tier === "vip") {
-        badge.textContent = lang === "en" ? "VIP · Unlimited" :
-          lang === "es" ? "VIP · Ilimitado" :
-          lang === "ar" ? "VIP · غير محدود" : "VIP · Illimité";
-        badge.title = lang === "en" ? "VIP access is active." :
-          lang === "es" ? "El acceso VIP está activo." :
-          lang === "ar" ? "اشتراك VIP نشط." : "Accès VIP actif.";
+        badge.textContent = lang === "en" ? "VIP · Extended access" :
+          lang === "es" ? "VIP · Acceso ampliado" :
+          lang === "ar" ? "VIP · وصول موسّع" : "VIP · Accès étendu";
+        badge.title = lang === "en" ? "VIP access is active; subject to fair-use protections." :
+          lang === "es" ? "El acceso VIP está activo, sujeto a reglas de uso razonable." :
+          lang === "ar" ? "اشتراك VIP نشط وفق قواعد الاستخدام العادل." : "Accès VIP actif, soumis aux règles d’utilisation raisonnable.";
       } else {
         const labels = {
           fr: `${data.remaining} messages restants`,
@@ -472,7 +472,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const actions = element("div", "chat-header-actions");
     const profile = element("button", "profile-link-button", t("profileTitle"));
     profile.type = "button";
-    profile.disabled = true;
+    profile.disabled = false;
+    profile.addEventListener("click", () => openProfile(character, profile));
     const close = element("button", "modal-close", "×");
     close.type = "button";
     close.setAttribute("aria-label", t("close"));
@@ -760,6 +761,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
   document.getElementById("profile-button")?.addEventListener("click", openAccount);
+  document.getElementById("settings-button")?.addEventListener("click", openAccountSettings);
 
   searchInput.addEventListener("input", renderCharacters);
 
@@ -777,12 +779,26 @@ document.addEventListener("DOMContentLoaded", () => {
     header.append(heading, close);
     const body = element("div", "niyya-profile-content");
     const free = element("section", "niyya-vip-plan");
-    free.append(element("span", "eyebrow", "OFFRE GRATUITE"), element("h3", "", "NIYYA Free"), element("p", "", "30 messages par jour. Jusqu'à 5 vidéos récompensées par jour peuvent ajouter des messages lorsque le système publicitaire sera réellement disponible."));
+    free.append(
+      element("span", "eyebrow", "OFFRE GRATUITE"),
+      element("h3", "", "NIYYA Free"),
+      element("p", "", "30 messages par jour. Les bonus publicitaires ne sont pas encore disponibles : aucune vidéo récompensée ne peut actuellement ajouter de messages.")
+    );
     const vip = element("section", "niyya-vip-plan niyya-vip-featured");
-    vip.append(element("span", "eyebrow", "OFFRE PREMIUM"), element("h3", "", "NIYYA VIP"), element("p", "", "Messages sans limite selon les règles d'utilisation, expérience sans publicité récompensée, badge VIP distinctif et avantages réservés aux abonnés."), element("strong", "niyya-vip-price", "Tarif mensuel bientôt annoncé"));
-    const note = element("p", "niyya-vip-note", "Les paiements ne sont pas encore ouverts. Aucun débit ne sera effectué depuis cette page. Les offres, tarifs, renouvellements et reçus seront affichés avant toute activation.");
+    vip.append(
+      element("span", "eyebrow", "OFFRE PREMIUM · TARIFS ENVISAGÉS"),
+      element("h3", "", "NIYYA VIP"),
+      element("p", "", "Accès au quota VIP étendu, badge VIP distinctif et accès aux avantages premium disponibles. L'utilisation reste soumise aux règles anti-abus et à la disponibilité du service."),
+      element("strong", "niyya-vip-price", "1 500 FCFA / mois · 15 000 FCFA / an"),
+      element("p", "niyya-vip-note", "Le tarif annuel reviendrait à 1 250 FCFA par mois. Ces montants sont des propositions à confirmer, pas une offre actuellement achetable.")
+    );
+    const note = element("p", "niyya-vip-note", "Paiements et renouvellements non ouverts. Aucun bouton d'achat ni débit n'est actif. Les publicités récompensées, la génération d'images et certaines options premium ne sont pas encore intégrées : elles ne sont donc pas promises dans cette offre.");
     const verified = element("section", "niyya-vip-plan");
-    verified.append(element("span", "eyebrow", "STATUT INDÉPENDANT"), element("h3", "", "Compte certifié"), element("p", "", "La certification servira à confirmer l'authenticité d'un profil. Elle sera examinée séparément par l'équipe NIYYA et ne sera pas achetée avec l'abonnement VIP."));
+    verified.append(
+      element("span", "eyebrow", "BADGE INDÉPENDANT DU VIP"),
+      element("h3", "", "Identité vérifiée"),
+      element("p", "", "Ce badge devra être accordé après un contrôle réel effectué par l'équipe NIYYA via une procédure sécurisée. Il indiquera qu'un contrôle a été réalisé, pas que toutes les publications d'un membre sont vraies. La vérification n'est pas encore ouverte et ne s'achète pas avec VIP.")
+    );
     body.append(free, vip, note, verified); panel.append(header, body); modal.append(panel); document.body.append(modal);
     const dismiss = () => modal.remove(); close.addEventListener("click", dismiss);
     modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
