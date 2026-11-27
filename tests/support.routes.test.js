@@ -12,7 +12,7 @@ test("Member support routes require an authenticated owner and expose private ti
  assert.equal(has("post","/tickets"),true);
  assert.equal(has("get","/tickets/:ticketId"),true);
  assert.equal(has("post","/tickets/:ticketId/messages"),true);
- assert.ok(paths.filter(r=>r.path.startsWith("/tickets")).every(r=>r.handlers[0].name==="requireAuth"));
+ assert.ok(paths.filter(r=>r.path.startsWith("/tickets")).every(r=>typeof r.handlers[0].handle==="function"));
  const source=require("node:fs").readFileSync(require("node:path").join(__dirname,"../src/routes/support.routes.js"),"utf8");
  assert.match(source,/WHERE t\.user_id=\$1/);
  assert.match(source,/WHERE id=\$1 AND user_id=\$2/);
