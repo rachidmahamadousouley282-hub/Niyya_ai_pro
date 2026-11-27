@@ -20,7 +20,7 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v37"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v38"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -44,4 +44,13 @@ test("VIP offer entry points and settings action are wired", () => {
   assert.match(app, /"Compte et sécurité"/);
   assert.match(app, /≈ \$2\.50 \/ mois · ≈ \$25 \/ an/);
   assert.doesNotMatch(app, /FCFA \/ mois/);
+});
+
+
+test("The create navigation item matches the other five destinations", () => {
+  const styles = fs.readFileSync(path.join(root, "public/styles/main.css"), "utf8");
+  assert.match(styles, /\.bottom-nav \.nav-item\.nav-create\s*\{[^}]*transform:\s*none\s*!important/);
+  assert.match(styles, /\.bottom-nav \.nav-item\.nav-create > \.nav-icon\s*\{[^}]*flex:\s*0 0 35px/);
+  assert.match(styles, /@media \(max-width: 600px\)[\s\S]*?\.bottom-nav \.nav-item\.nav-create > \.nav-icon\s*\{[^}]*flex-basis:\s*34px/);
+  assert.match(styles, /grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/);
 });

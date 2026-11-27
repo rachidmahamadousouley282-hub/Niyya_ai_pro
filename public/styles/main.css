@@ -848,3 +848,55 @@ body { background-image: none !important; }
   .header-actions .vip-header-button { padding: 0 9px; font-size: 12px; min-height: 36px; }
   .header-actions .icon-button, .header-actions .profile-button { width: 36px; min-height: 36px; }
 }
+
+
+/* Navigation polish: all six destinations share one baseline and icon size. */
+.bottom-nav {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.bottom-nav .nav-item.nav-create {
+  transform: none !important;
+  color: inherit;
+}
+.bottom-nav .nav-item.nav-create > .nav-icon {
+  flex: 0 0 35px;
+  width: 35px;
+  height: 35px;
+  min-width: 35px;
+  min-height: 35px;
+  border: 1px solid rgba(111,177,232,.35);
+  border-radius: 11px;
+  color: #a8d4ff;
+  background: #17283a;
+  box-shadow: none;
+}
+.bottom-nav .nav-item.nav-create > .nav-icon svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 1.75;
+}
+.bottom-nav .nav-item.nav-create > .nav-label {
+  font-size: 8px !important;
+  font-weight: 600;
+  color: inherit;
+}
+@media (max-width: 600px) {
+  .bottom-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .bottom-nav .nav-item.nav-create { transform: none !important; }
+  .bottom-nav .nav-item.nav-create > .nav-icon {
+    flex-basis: 34px;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
+  }
+}
+@media (max-width: 380px) {
+  .bottom-nav .nav-item.nav-create > .nav-icon {
+    flex-basis: 31px;
+    width: 31px;
+    height: 31px;
+    min-width: 31px;
+    min-height: 31px;
+  }
+}
