@@ -97,3 +97,16 @@ test("Admin dashboard appears before secondary panels finish loading and offers 
   assert.match(script, /button\.textContent = "Réessayer"/);
   assert.match(html, /admin\.js\?v=admin-dashboard-v4-20261127/);
 });
+
+
+test("Official NIYYA announcements support validated images and render their media", () => {
+  assert.match(html, /id="official-announcement-image"[^>]*type="file"/);
+  assert.match(html, /id="official-announcement-image-preview"/);
+  assert.match(script, /compressAnnouncementImage/);
+  assert.match(script, /\/api\/community\/posts\/.*\/media/);
+  assert.match(script, /image: announcementImageData/);
+  assert.match(route, /p\\.media_data IS NOT NULL\\) AS has_image/);
+  assert.match(route, /imageBytes\\.length > 1500000/);
+  assert.match(route, /INSERT INTO public\\.community_posts \\(author_user_id, body, visibility, media_data, media_mime, status\\)/);
+  assert.match(route, /image\\\\\\/png/);
+});

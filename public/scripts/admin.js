@@ -463,11 +463,22 @@
       data.announcements.forEach(item => {
         const card = document.createElement("article");
         card.className = "admin-announcement-item";
-        const body = document.createElement("p");
-        body.textContent = item.body;
+        if (item.has_image) {
+          const image = document.createElement("img");
+          image.className = "admin-announcement-image";
+          image.src = "/api/community/posts/" + encodeURIComponent(item.id) + "/media";
+          image.alt = "Image de l'annonce officielle";
+          image.loading = "lazy";
+          card.append(image);
+        }
+        if (item.body) {
+          const body = document.createElement("p");
+          body.textContent = item.body;
+          card.append(body);
+        }
         const date = document.createElement("small");
         date.textContent = new Date(item.created_at).toLocaleString("fr-FR");
-        card.append(body, date);
+        card.append(date);
         list.append(card);
       });
     } catch (error) {
@@ -483,15 +494,84 @@
   const announcementBody = document.getElementById("official-announcement-body");
   const announcementCount = document.getElementById("official-announcement-count");
   const announcementFeedback = document.getElementById("official-announcement-feedback");
+  const announcementImage = document.getElementById("official-announcement-image");
+  const announcementPreview = document.getElementById("official-announcement-image-preview");
+  let announcementImageData = null;
   announcementBody?.addEventListener("input", () => {
     announcementCount.textContent = announcementBody.value.length + " / 600";
+  });
+  function clearAnnouncementImage() {
+    announcementImageData = null;
+    if (announcementImage) announcementImage.value = "";
+    if (announcementPreview) announcementPreview.replaceChildren();
+    if (announcementPreview) announcementPreview.hidden = true;
+  }
+  function compressAnnouncementImage(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\\/(?:jpeg|png|webp)$/i.test(file.type)) {
+        reject(new Error("Choisis une image JPG, PNG ou WebP."));
+        return;
+      }
+      const objectUrl = URL.createObjectURL(file);
+      const image = new Image();
+      image.onload = async () => {
+        URL.revokeObjectURL(objectUrl);
+        try {
+          const scale = Math.min(1, 1280 / Math.max(image.naturalWidth, image.naturalHeight));
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+          canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("Impossible de préparer cette image.");
+          context.drawImage(image, 0, 0, canvas.width, canvas.height);
+          let blob = null;
+          for (const quality of [0.84, 0.76, 0.66, 0.56, 0.46, 0.38]) {
+            blob = await new Promise(done => canvas.toBlob(done, "image/jpeg", quality));
+            if (blob && blob.size <= 1500000) break;
+          }
+          if (!blob || blob.size > 1500000) throw new Error("Cette image est trop volumineuse. Choisis une image plus légère.");
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Impossible de lire cette image."));
+          reader.readAsDataURL(blob);
+        } catch (error) { reject(error); }
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error("Cette image ne peut pas être ouverte. Essaie une image JPG ou PNG."));
+      };
+      image.src = objectUrl;
+    });
+  }
+  announcementImage?.addEventListener("change", async () => {
+    const file = announcementImage.files && announcementImage.files[0];
+    if (!file) return;
+    announcementFeedback.textContent = "Préparation de l’image…";
+    try {
+      announcementImageData = await compressAnnouncementImage(file);
+      announcementPreview.replaceChildren();
+      const previewImage = document.createElement("img");
+      previewImage.src = announcementImageData;
+      previewImage.alt = "Aperçu de l'image officielle";
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "admin-image-remove";
+      remove.textContent = "Retirer l’image";
+      remove.addEventListener("click", clearAnnouncementImage);
+      announcementPreview.append(previewImage, remove);
+      announcementPreview.hidden = false;
+      announcementFeedback.textContent = "Image prête à être publiée.";
+    } catch (error) {
+      clearAnnouncementImage();
+      announcementFeedback.textContent = error.message || "Impossible de préparer l’image.";
+    }
   });
   announcementForm?.addEventListener("submit", async event => {
     event.preventDefault();
     const submit = announcementForm.querySelector('button[type="submit"]');
     const body = announcementBody.value.trim();
-    if (body.length < 2 || body.length > 600) {
-      announcementFeedback.textContent = "L’annonce doit contenir entre 2 et 600 caractères.";
+    if ((body.length < 2 && !announcementImageData) || body.length > 600) {
+      announcementFeedback.textContent = "Ajoute un texte d’au moins 2 caractères ou une image. Le texte est limité à 600 caractères.";
       return;
     }
     submit.disabled = true;
@@ -501,19 +581,18 @@
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ body })
+        body: JSON.stringify({ body, image: announcementImageData })
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Impossible de publier l’annonce.");
       announcementBody.value = "";
       announcementCount.textContent = "0 / 600";
-      announcementFeedback.textContent = "Annonce publiée sur NIYYA Officiel.";
+      clearAnnouncementImage();
+      announcementFeedback.textContent = "Publication envoyée sur NIYYA Officiel.";
       await loadOfficialAnnouncements();
     } catch (error) {
       announcementFeedback.textContent = error.message || "Erreur de publication.";
-    } finally {
-      submit.disabled = false;
-    }
+    } finally { submit.disabled = false; }
   });
   document.getElementById("reload-official-announcements")?.addEventListener("click", loadOfficialAnnouncements);
   loadOfficialAnnouncements();

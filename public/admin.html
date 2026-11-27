@@ -7,7 +7,7 @@
   <title>NIYYA.ai — Dashboard Direction</title>
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/components.css">
-  <link rel="stylesheet" href="/styles/admin.css?v=admin-traffic-v2-20261127">
+  <link rel="stylesheet" href="/styles/admin.css?v=admin-official-image-v1-20261127">
 </head>
 <body>
   <main class="admin-shell">
@@ -97,7 +97,10 @@
         </div>
         <form id="official-announcement-form" class="admin-announcement-form">
           <label for="official-announcement-body">Nouvelle annonce publique</label>
-          <textarea id="official-announcement-body" name="body" rows="4" minlength="2" maxlength="600" required placeholder="Écris une annonce pour les membres de NIYYA…"></textarea>
+          <textarea id="official-announcement-body" name="body" rows="4" maxlength="600" placeholder="Écris une annonce pour les membres de NIYYA…"></textarea>
+          <label class="admin-image-picker" for="official-announcement-image">Ajouter une image (facultatif)</label>
+          <input id="official-announcement-image" class="admin-image-input" type="file" accept="image/jpeg,image/png,image/webp,image/*">
+          <div id="official-announcement-image-preview" class="admin-image-preview" hidden></div>
           <div class="admin-announcement-footer">
             <small id="official-announcement-count">0 / 600</small>
             <button type="submit" class="admin-export">Publier sur NIYYA Officiel</button>
@@ -125,6 +128,6 @@
       <p class="admin-footnote">Les demandes sont privées et visibles uniquement par le membre concerné et les administrateurs autorisés.</p>
     </section>
   </main>
-  <script src="/scripts/admin.js?v=admin-dashboard-v4-20261127"></script>
+  <script src="/scripts/admin.js?v=admin-official-image-v1-20261127"></script>
 </body>
 </html>

@@ -217,7 +217,7 @@ router.get("/official/announcements", requireAuth, async (req, res) => {
   }
   try {
     const result = await query(
-      "SELECT p.id, p.body, p.created_at FROM public.community_posts p " +
+      "SELECT p.id, p.body, (p.media_data IS NOT NULL) AS has_image, p.media_mime, p.created_at FROM public.community_posts p " +
       "JOIN public.users u ON u.id = p.author_user_id " +
       "WHERE u.is_official = TRUE AND p.status = 'published' " +
       "ORDER BY p.created_at DESC LIMIT 30"
@@ -243,15 +243,29 @@ router.post("/official/announcements", requireAuth, async (req, res) => {
     return res.status(403).json({ error: "Origine de requête invalide." });
   }
   const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
-  if (body.length < 2 || body.length > 600) {
-    return res.status(400).json({ error: "Une annonce doit contenir entre 2 et 600 caractères." });
+  let image = null;
+  if (req.body && req.body.image) {
+    const match = /^data:(image\\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(req.body.image);
+    if (!match) return res.status(400).json({ error: "Image invalide. Formats acceptés : JPG, PNG ou WebP." });
+    const imageBytes = Buffer.from(match[2], "base64");
+    if (!imageBytes.length || imageBytes.length > 1500000) return res.status(413).json({ error: "L'image doit faire 1,5 Mo maximum après compression." });
+    const signatures = {
+      "image/jpeg": imageBytes[0] === 0xff && imageBytes[1] === 0xd8,
+      "image/png": imageBytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])),
+      "image/webp": imageBytes.toString("ascii",0,4) === "RIFF" && imageBytes.toString("ascii",8,12) === "WEBP"
+    };
+    if (!signatures[match[1]]) return res.status(400).json({ error: "Le fichier ne correspond pas à son format déclaré." });
+    image = { data: imageBytes, mime: match[1] };
+  }
+  if ((body.length < 2 && !image) || body.length > 600) {
+    return res.status(400).json({ error: "Ajoute un texte (2 à 600 caractères) ou une image à l'annonce." });
   }
   try {
     const result = await query(
-      "INSERT INTO public.community_posts (author_user_id, body, visibility, status) " +
-      "SELECT id, $1, 'public', 'published' FROM public.users WHERE is_official = TRUE " +
-      "RETURNING id, body, visibility, status, created_at",
-      [body]
+      "INSERT INTO public.community_posts (author_user_id, body, visibility, media_data, media_mime, status) " +
+      "SELECT id, $1, 'public', $2, $3, 'published' FROM public.users WHERE is_official = TRUE " +
+      "RETURNING id, body, visibility, status, (media_data IS NOT NULL) AS has_image, media_mime, created_at",
+      [body, image ? image.data : null, image ? image.mime : null]
     );
     if (!result.rows.length) return res.status(503).json({ error: "Le compte officiel n'est pas disponible." });
     return res.status(201).json({ success: true, post: result.rows[0] });
