@@ -51,7 +51,7 @@ async function requireOnboarded(userId) {
 }
 async function getProfile(userId, viewerId) {
   const result = await query(
-    "SELECT u.id, u.pseudonym, u.bio, u.created_at, u.is_official, u.is_verified, u.is_founder, " +
+    "SELECT u.id, u.pseudonym, u.bio, u.created_at, u.is_official, u.is_verified, u.is_founder, (u.role = 'admin') AS is_admin, " +
     "(SELECT COUNT(*)::int FROM public.community_posts p WHERE p.author_user_id = u.id AND p.status = 'published' AND (p.visibility = 'public' OR u.id = $2)) AS post_count, " +
     "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
     "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.follower_user_id = u.id) AS following_count, " +
@@ -68,6 +68,7 @@ router.get("/official", optionalAuth, async (req, res) => {
     const result = await query(
       "SELECT u.id, u.pseudonym, u.bio, u.is_official, u.is_verified, u.is_founder, " +
       "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
+      "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.follower_user_id = u.id) AS following_count, " +
       "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $1 AND f.followed_user_id = u.id) AS is_following " +
       "FROM public.users u WHERE u.is_official = TRUE AND u.onboarded_at IS NOT NULL LIMIT 1",
       [req.user ? req.user.id : null]
@@ -88,7 +89,7 @@ router.get("/feed", optionalAuth, async (req, res) => {
   try {
     const viewer = req.user ? req.user.id : null;
     const result = await query(
-      "SELECT p.id, p.body, p.visibility, (p.media_data IS NOT NULL) AS has_image, p.media_mime, p.created_at, u.id AS author_id, u.pseudonym AS author_name, u.is_official, u.is_verified, u.is_founder, " +
+      "SELECT p.id, p.body, p.visibility, (p.media_data IS NOT NULL) AS has_image, p.media_mime, p.created_at, u.id AS author_id, u.pseudonym AS author_name, u.is_official, u.is_verified, u.is_founder, (u.role = 'admin') AS author_is_admin, " +
       "(SELECT COUNT(*)::int FROM public.community_post_likes l WHERE l.post_id = p.id) AS like_count, " +
       "(SELECT COUNT(*)::int FROM public.community_comments c WHERE c.post_id = p.id AND c.status = 'published') AS comment_count, " +
       "EXISTS (SELECT 1 FROM public.community_post_likes l WHERE l.post_id = p.id AND l.user_id = $3) AS liked_by_me, " +
