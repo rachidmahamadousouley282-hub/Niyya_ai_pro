@@ -245,7 +245,7 @@ router.post("/official/announcements", requireAuth, async (req, res) => {
   const body = typeof req.body?.body === "string" ? req.body.body.trim() : "";
   let image = null;
   if (req.body && req.body.image) {
-    const match = /^data:(image\\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(req.body.image);
+    const match = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(req.body.image);
     if (!match) return res.status(400).json({ error: "Image invalide. Formats acceptés : JPG, PNG ou WebP." });
     const imageBytes = Buffer.from(match[2], "base64");
     if (!imageBytes.length || imageBytes.length > 1500000) return res.status(413).json({ error: "L'image doit faire 1,5 Mo maximum après compression." });

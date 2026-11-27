@@ -508,7 +508,7 @@
   }
   function compressAnnouncementImage(file) {
     return new Promise((resolve, reject) => {
-      if (!file || !/^image\\/(?:jpeg|png|webp)$/i.test(file.type)) {
+      if (!file || !/^image\/(?:jpeg|png|webp)$/i.test(file.type)) {
         reject(new Error("Choisis une image JPG, PNG ou WebP."));
         return;
       }
