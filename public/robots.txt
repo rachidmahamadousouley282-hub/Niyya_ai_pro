@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /admin.html
+Disallow: /support.html
+
+Sitemap: https://niyya-ai-v2.onrender.com/sitemap.xml

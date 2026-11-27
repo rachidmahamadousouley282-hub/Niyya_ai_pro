@@ -1,4 +1,3 @@
-
 /* NIYYA AI V2 — RESPONSIVE DESIGN */
 
 /* TABLETS */
@@ -22,7 +21,7 @@
   .app-shell {
     padding-left: 16px;
     padding-right: 16px;
-    padding-bottom: 100px;
+    padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px));
   }
 
   .topbar {
@@ -79,7 +78,7 @@
 
   .bottom-nav {
     width: calc(100% - 20px);
-    bottom: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -123,7 +122,6 @@
   }
 }
 
-
 @media (max-width: 600px) {
   .topbar { gap: 8px; }
   .brand { gap: 8px; font-size: 18px; letter-spacing: .4px; }
@@ -137,6 +135,7 @@
   .profile-button svg { width: 21px; height: 21px; }
   .account-panel { width: calc(100% - 24px) !important; padding: 20px !important; }
 }
+
 @media (max-width: 380px) {
   .brand { font-size: 16px; gap: 6px; }
   .brand-icon { width: 31px; height: 31px; }

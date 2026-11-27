@@ -1,19 +1,30 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#080d16">
-  <meta name="description" content="Découvre des personnages, crée tes univers et commence de nouvelles histoires sur NIYYA.ai.">
+  <meta name="description" content="Découvre des personnages, crée tes propres univers et discute avec des personnages sur NIYYA.ai.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://niyya-ai-v2.onrender.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="NIYYA.ai">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="NIYYA.ai — Découvre, crée et imagine">
+  <meta property="og:description" content="Explore des personnages, invente tes univers et commence de nouvelles discussions sur NIYYA.ai.">
+  <meta property="og:url" content="https://niyya-ai-v2.onrender.com/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="NIYYA.ai — Découvre, crée et imagine">
+  <meta name="twitter:description" content="Explore des personnages, invente tes univers et commence de nouvelles discussions sur NIYYA.ai.">
+  <link rel="icon" type="image/svg+xml" href="/icons/niyya-icon.svg">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="NIYYA.ai">
-  <title>NIYYA.ai — Discover your world</title>
+  <title>NIYYA.ai — Découvre, crée et imagine</title>
   <link rel="stylesheet" href="/styles/main.css?v=nav-equal-six-v1-20261127">
   <link rel="stylesheet" href="/styles/components.css?v=character-avatar-picker-v1-20261126">
-  <link rel="stylesheet" href="/styles/responsive.css?v=nav5-20261124">
+  <link rel="stylesheet" href="/styles/responsive.css?v=responsive-safe-area-v1-20261127">
   <link rel="stylesheet" href="/styles/community.css?v=community-admin-rosette-v2-20261127">
   <link rel="stylesheet" href="/styles/home.css?v=black-minimal-v3-20261126">
 </head>
@@ -37,24 +48,15 @@
     <main>
       <section class="hero home-hero">
         <div class="home-welcome">
-          <span class="eyebrow">TON UNIVERS NIYYA</span>
-          <h1 id="home-greeting">Heureux de te retrouver.</h1>
-          <p>Les personnages ont leur monde. Tes discussions y ont leur place.</p>
+          <span class="eyebrow">BIENVENUE DANS TON UNIVERS</span>
+          <h1 id="home-greeting">Découvre. Imagine. Crée ton univers.</h1>
+          <p>Explore des personnages, échange avec eux et donne vie à tes propres histoires.</p>
         </div>
         <div class="search-box">
-          <span>⌕</span>
-          <input id="character-search" type="search"
+          <span aria-hidden="true">⌕</span>
+          <input id="character-search" type="search" aria-label="Rechercher un personnage"
             placeholder="Rechercher un personnage...">
         </div>
-      </section>
-
-      <section class="vip-home-promo" aria-labelledby="vip-home-title">
-        <div class="vip-home-copy">
-          <span class="eyebrow">DÉCOUVRE LES AVANTAGES</span>
-          <h2 id="vip-home-title">Offre VIP</h2>
-          <p>Profite d’un quota de messages plus élevé et des avantages premium disponibles.</p>
-        </div>
-        <button class="vip-home-button" id="vip-home-button" type="button">Voir l’offre VIP <span aria-hidden="true">→</span></button>
       </section>
 
       <section class="section companion-section" id="active-companions" hidden>
@@ -71,7 +73,7 @@
       <section class="section">
         <div class="section-heading">
           <div>
-            <span class="eyebrow">EXPLORE</span>
+            <span class="eyebrow">PARCOURIR</span>
             <h2>Catégories</h2>
           </div>
           <a href="#discover">Tout voir →</a>
@@ -84,7 +86,7 @@
       <section class="section" id="discover">
         <div class="section-heading">
           <div>
-            <span class="eyebrow">HANDPICKED FOR YOU</span>
+            <span class="eyebrow">À EXPLORER</span>
             <h2>À découvrir</h2>
           </div>
           <a href="#discover">Explorer →</a>
@@ -96,10 +98,19 @@
       </section>
 
       <section class="creator-banner">
-        <span class="eyebrow">CREATE YOUR UNIVERSE</span>
+        <span class="eyebrow">IMAGINE TON PERSONNAGE</span>
         <h2>Ton imagination<br>n'a pas de limites.</h2>
         <p>Donne vie à tes propres personnages et invente leurs histoires.</p>
         <button id="create-character">＋ Créer un personnage</button>
+      </section>
+
+      <section class="vip-home-promo" aria-labelledby="vip-home-title">
+        <div class="vip-home-copy">
+          <span class="eyebrow">POUR ALLER PLUS LOIN</span>
+          <h2 id="vip-home-title">Offre VIP</h2>
+          <p>Profite d’un quota de messages plus élevé et des avantages premium disponibles.</p>
+        </div>
+        <button class="vip-home-button" id="vip-home-button" type="button">Voir l’offre VIP <span aria-hidden="true">→</span></button>
       </section>
     </main>
 
@@ -135,6 +146,6 @@
   <script src="/scripts/navigation.js?v=community-symbol-v1-20261127"></script>
   <script src="/scripts/app.js?v=support-menu-visible-v1-20261127"></script>
   <script src="/scripts/community.js?v=community-admin-rosette-v2-20261127"></script>
-  <script src="/scripts/pwa.js?v=pwa-cache-v45-20261127"></script>
+  <script src="/scripts/pwa.js?v=pwa-cache-v46-20261127"></script>
 </body>
 </html>
