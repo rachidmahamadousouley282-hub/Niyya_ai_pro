@@ -10,9 +10,9 @@
     if (!nav) return;
 
     const expected = [
-      { href: "#", label: "Accueil" },
-      { href: "#discover", label: "Explorer" },
-      { href: "#community", label: "Communauté" },
+      { href: "#community", label: "Accueil" },
+      { href: "#discover", label: "Personnages" },
+      { href: "#trending", label: "Tendances" },
       { href: "#create", label: "Créer" },
       { href: "#messages", label: "Messages" },
       { href: "#profile", label: "Profil" }
@@ -30,7 +30,8 @@
       const icon = old?.querySelector(":scope > .nav-icon")?.cloneNode(true)
         || document.createElement("span");
       icon.className = "nav-icon";
-      if (entry.href === "#community") icon.textContent = "◎";
+      if (entry.href === "#community") icon.textContent = "⌂";
+      if (entry.href === "#trending") icon.textContent = "↗";
       icon.setAttribute("aria-hidden", "true");
 
       const label = document.createElement("span");
@@ -40,7 +41,7 @@
       item.append(icon, label);
       item.setAttribute("aria-label", entry.label);
       item.title = entry.label;
-      if (entry.href === "#") {
+      if (entry.href === "#community") {
         item.classList.add("selected");
         item.setAttribute("aria-current", "page");
       }

@@ -179,10 +179,10 @@
       communityPage = page;
       const header = el("header", "community-heading");
       const heading = el("div");
-      heading.append(el("span", "eyebrow", "NIYYA.ai · ESPACE COMMUNAUTAIRE"));
-      const title = el("h2", "", "La communauté");
+      heading.append(el("span", "eyebrow", "NIYYA.ai · TON ESPACE"));
+      const title = el("h2", "", "Ton fil d’actualité");
       title.id = "community-title";
-      heading.append(title, el("p", "chat-subtitle", "Découvre les créations, partage les tiennes et rencontre les membres NIYYA."));
+      heading.append(title, el("p", "chat-subtitle", "Découvre les publications des membres, partage tes idées et retrouve les créateurs que tu suis."));
       const close = el("button", "community-page-close", "×");
       close.type = "button";
       close.setAttribute("aria-label", "Retour à la communauté");
@@ -794,5 +794,7 @@
       setTab("all");
       startCommunitySync();
     }
+    // La communauté devient la page d'accueil principale de NIYYA.
+    Promise.resolve(window.NiyyaAccessReady).then(openCommunity);
   });
 })();

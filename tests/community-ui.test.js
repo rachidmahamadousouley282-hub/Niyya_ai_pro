@@ -94,3 +94,11 @@ test("The blue NIYYA recognition rosette appears for admin accounts across commu
   assert.match(routes, /is_admin: user\.is_admin/);
   assert.match(source, /appendNameWithBadge\(author,comment\.author_name,false,false,comment\.is_founder,comment\.is_admin\)/);
 });
+
+test("Community feed becomes the landing view after account initialization", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(source, /Promise\.resolve\(window\.NiyyaAccessReady\)\.then\(openCommunity\)/);
+  assert.match(app, /window\.NiyyaAccessReady = accessReady/);
+  assert.match(source, /Ton fil d’actualité/);
+});

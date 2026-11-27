@@ -1604,6 +1604,8 @@ async function openCreator(existingCharacter = null) {
         renderCategories();
         renderCharacters();
         document.getElementById("discover")?.scrollIntoView({ behavior: "smooth" });
+      } else if (target === "trending") {
+        document.getElementById("trending")?.scrollIntoView({ behavior: "smooth" });
       } else if (target === "create") {
         document.getElementById("create-character")?.click();
       } else if (target === "messages") {
@@ -1638,6 +1640,7 @@ async function openCreator(existingCharacter = null) {
     console.error("Initialisation du compte NIYYA impossible :", error.message);
     refreshQuota();
   });
+  window.NiyyaAccessReady = accessReady;
 
   async function loadCharacters() {
     const loadingLabel = element("p", "character-loading-status chat-status", t("charactersLoading"));
