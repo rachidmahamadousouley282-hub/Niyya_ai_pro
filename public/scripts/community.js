@@ -110,16 +110,18 @@
       badge.setAttribute("viewBox", "0 0 24 24");
       badge.setAttribute("class", "community-admin-badge");
       badge.setAttribute("role", "img");
-      badge.setAttribute("aria-label", "Administrateur NIYYA.ai");
-      const shield = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      shield.setAttribute("d", "M12 2 20 5v6c0 5-3.4 8.8-8 11-4.6-2.2-8-6-8-11V5Z");
-      shield.setAttribute("fill", "#2588F5");
-      const mark = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      mark.setAttribute("d", "M8 12h8M12 8v8");
-      mark.setAttribute("stroke", "#fff");
-      mark.setAttribute("stroke-width", "2");
-      mark.setAttribute("stroke-linecap", "round");
-      badge.append(shield, mark);
+      badge.setAttribute("aria-label", "Compte reconnu par NIYYA");
+      const shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      shape.setAttribute("d", "M12 1.8 14.7 4l3.5-.1 1.1 3.3 2.8 2.1-1.1 3.3 1.1 3.3-2.8 2.1-1.1 3.3-3.5-.1L12 23l-2.7-2.2-3.5.1-1.1-3.3-2.8-2.1L3 12.2 1.9 8.9l2.8-2.1 1.1-3.3 3.5.1Z");
+      shape.setAttribute("fill", "#2588F5");
+      const tick = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      tick.setAttribute("d", "m7.5 12.2 3 3 6.2-6.4");
+      tick.setAttribute("fill", "none");
+      tick.setAttribute("stroke", "#fff");
+      tick.setAttribute("stroke-width", "2");
+      tick.setAttribute("stroke-linecap", "round");
+      tick.setAttribute("stroke-linejoin", "round");
+      badge.append(shape, tick);
       return badge;
     };
     const appendNameWithBadge = (parent, name, isOfficial, isVerified, isFounder, isAdmin) => {
@@ -198,7 +200,7 @@
       api("/official").then(data => {
         const account = data.account;
         officialCopy.replaceChildren();
-        appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder);
+        appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder, account.is_admin);
         officialCopy.append(el("span", "", account.bio || "Compte officiel de NIYYA.ai"));
         officialCopy.append(el("small", "community-official-counts", (account.follower_count || 0) + " abonnés · " + (account.following_count || 0) + " abonnements"));
         officialBanner.classList.add("community-official-card-clickable");
@@ -458,7 +460,7 @@
           const data=await api("/posts/"+post.id+"/comments");container.replaceChildren();
           (data.comments||[]).forEach(comment=>{
             const row=el("div","community-comment-row");
-            const author=el("span","community-comment-author");appendNameWithBadge(author,comment.author_name,false,false,comment.is_founder);row.append(author,el("p","",comment.body));
+            const author=el("span","community-comment-author");appendNameWithBadge(author,comment.author_name,false,false,comment.is_founder,comment.is_admin);row.append(author,el("p","",comment.body));
             if (myId && comment.author_id !== myId) {
               const report=el("button","community-action community-comment-report","Signaler");
               report.type="button";
@@ -478,7 +480,7 @@
           const send=el("button","community-secondary","Envoyer");send.type="submit";form.append(input,send);
           form.addEventListener("submit",async event=>{
             event.preventDefault();send.disabled=true;
-            try{const result=await api("/posts/"+post.id+"/comments",{method:"POST",body:{body:input.value}});const row=el("div","community-comment-row");const author=el("span","community-comment-author");appendNameWithBadge(author,result.comment.author_name,false,false,result.comment.is_founder);row.append(author,el("p","",result.comment.body));container.insertBefore(row,form);input.value="";}
+            try{const result=await api("/posts/"+post.id+"/comments",{method:"POST",body:{body:input.value}});const row=el("div","community-comment-row");const author=el("span","community-comment-author");appendNameWithBadge(author,result.comment.author_name,false,false,result.comment.is_founder,result.comment.is_admin);row.append(author,el("p","",result.comment.body));container.insertBefore(row,form);input.value="";}
             catch(error){alert(error.message);}finally{send.disabled=false;}
           });
           container.append(form);container.dataset.loaded="true";
@@ -553,7 +555,7 @@
           data.members.forEach(member=>{
             const row=el("button","community-search-result");
             row.type="button";
-            row.append(el("span","community-avatar",initials(member.pseudonym)));const name=el("span","community-search-name");appendNameWithBadge(name,member.pseudonym,member.is_official,member.is_verified,member.is_founder);row.append(name,el("span","community-muted","Voir le profil →"));
+            row.append(el("span","community-avatar",initials(member.pseudonym)));const name=el("span","community-search-name");appendNameWithBadge(name,member.pseudonym,member.is_official,member.is_verified,member.is_founder,member.is_admin);row.append(name,el("span","community-muted","Voir le profil →"));
             row.addEventListener("click",()=>showProfile(member.id));
             list.append(row);
           });
@@ -637,7 +639,7 @@
               identity.type="button";
               identity.append(el("span","community-avatar",initials(member.pseudonym)));
               const details=el("span","community-member-details");
-              appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified, member.is_founder);
+              appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified, member.is_founder, member.is_admin);
               if(member.bio)details.append(el("small","",member.bio));
               details.append(el("small","community-member-count",(member.follower_count||0)+" abonnés"));
               identity.append(details);

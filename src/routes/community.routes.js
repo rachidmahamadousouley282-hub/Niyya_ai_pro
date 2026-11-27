@@ -45,7 +45,7 @@ function cleanText(value, max, field, min) {
   return cleaned;
 }
 async function requireOnboarded(userId) {
-  const result = await query("SELECT id, pseudonym, age_band, onboarded_at, is_founder FROM public.users WHERE id = $1 LIMIT 1", [userId]);
+  const result = await query("SELECT id, pseudonym, age_band, onboarded_at, is_founder, (role = 'admin') AS is_admin FROM public.users WHERE id = $1 LIMIT 1", [userId]);
   const user = result.rows[0];
   return user && user.onboarded_at && user.pseudonym ? user : null;
 }
@@ -66,7 +66,7 @@ async function getProfile(userId, viewerId) {
 router.get("/official", optionalAuth, async (req, res) => {
   try {
     const result = await query(
-      "SELECT u.id, u.pseudonym, u.bio, u.is_official, u.is_verified, u.is_founder, " +
+      "SELECT u.id, u.pseudonym, u.bio, u.is_official, u.is_verified, u.is_founder, (u.role = 'admin') AS is_admin, " +
       "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
       "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.follower_user_id = u.id) AS following_count, " +
       "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $1 AND f.followed_user_id = u.id) AS is_following " +
@@ -288,7 +288,7 @@ router.get("/posts/:postId/comments", optionalAuth, async (req, res) => {
   if (!validId(req.params.postId)) return res.status(400).json({ error: "Publication invalide." });
   try {
     const result = await query(
-      "SELECT c.id, c.body, c.created_at, u.id AS author_id, u.pseudonym AS author_name, u.is_founder " +
+      "SELECT c.id, c.body, c.created_at, u.id AS author_id, u.pseudonym AS author_name, u.is_founder, (u.role = 'admin') AS is_admin " +
       "FROM public.community_comments c JOIN public.users u ON u.id = c.author_user_id " +
       "JOIN public.community_posts p ON p.id = c.post_id AND p.status = 'published' " +
       "WHERE c.post_id = $1 AND c.status = 'published' AND (p.visibility = 'public' OR p.author_user_id = $2) AND ($2 IS NULL OR NOT EXISTS (SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id = $2 AND b.blocked_user_id = p.author_user_id) OR (b.blocker_user_id = p.author_user_id AND b.blocked_user_id = $2))) ORDER BY c.created_at ASC LIMIT 50",
@@ -317,7 +317,7 @@ router.post("/posts/:postId/comments", requireAuth, sameOrigin, writeLimiter, as
     if (!result.rows.length) return res.status(404).json({ error: "Publication introuvable." });
     const notified = await query("INSERT INTO public.community_notifications (recipient_user_id, actor_user_id, event_type, post_id) SELECT author_user_id, $1, 'comment', id FROM public.community_posts WHERE id = $2 AND author_user_id <> $1 RETURNING recipient_user_id", [req.user.id, req.params.postId]);
     if (notified.rows[0]) await publishCommunityEvent(notified.rows[0].recipient_user_id, "activity");
-    return res.status(201).json({ success: true, comment: { ...result.rows[0], author_id: user.id, author_name: user.pseudonym, is_founder: user.is_founder } });
+    return res.status(201).json({ success: true, comment: { ...result.rows[0], author_id: user.id, author_name: user.pseudonym, is_founder: user.is_founder, is_admin: user.is_admin } });
   } catch (error) {
     if (/champ|contenu|caractères/i.test(error.message || "")) return res.status(400).json({ error: error.message });
     console.error("Erreur de commentaire :", error.message);
@@ -423,7 +423,7 @@ router.get("/profiles/:userId/relations", optionalAuth, async(req,res)=>{
     const col=type==="followers"?"followed_user_id":"follower_user_id";
     const join=type==="followers"?"f.follower_user_id":"f.followed_user_id";
     const result=await query(
-      "SELECT u.id,u.pseudonym,u.bio,u.is_official,u.is_verified,u.is_founder FROM public.community_follows f JOIN public.users u ON u.id="+join+
+      "SELECT u.id,u.pseudonym,u.bio,u.is_official,u.is_verified,u.is_founder,(u.role = 'admin') AS is_admin FROM public.community_follows f JOIN public.users u ON u.id="+join+
       " WHERE f."+col+"=$1 AND u.onboarded_at IS NOT NULL AND ($2 IS NULL OR NOT EXISTS(SELECT 1 FROM public.community_blocks b WHERE (b.blocker_user_id=$2 AND b.blocked_user_id=u.id) OR (b.blocker_user_id=u.id AND b.blocked_user_id=$2))) ORDER BY f.created_at DESC LIMIT 100",
       [target,req.user?req.user.id:null]);
     return res.json({success:true,members:result.rows,type});
@@ -486,7 +486,7 @@ router.get("/members", optionalAuth, async (req, res) => {
   try {
     const viewer = req.user ? req.user.id : null;
     const result = await query(
-      "SELECT u.id, u.pseudonym, u.bio, u.created_at, u.is_official, u.is_verified, u.is_founder, " +
+      "SELECT u.id, u.pseudonym, u.bio, u.created_at, u.is_official, u.is_verified, u.is_founder, (u.role = 'admin') AS is_admin, " +
       "(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id = u.id) AS follower_count, " +
       "EXISTS (SELECT 1 FROM public.community_follows f WHERE f.follower_user_id = $3 AND f.followed_user_id = u.id) AS is_following " +
       "FROM public.users u WHERE u.onboarded_at IS NOT NULL AND u.pseudonym IS NOT NULL " +
@@ -507,7 +507,7 @@ router.get("/search", optionalAuth, async (req,res)=>{
   if(term.length<2) return res.json({success:true,profiles:[]});
   try{
     const result=await query(
-      "SELECT u.id,u.pseudonym,u.bio,u.is_official,u.is_verified,u.is_founder,(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id=u.id) AS follower_count, "+
+      "SELECT u.id,u.pseudonym,u.bio,u.is_official,u.is_verified,u.is_founder,(u.role = 'admin') AS is_admin,(SELECT COUNT(*)::int FROM public.community_follows f WHERE f.followed_user_id=u.id) AS follower_count, "+
       "EXISTS(SELECT 1 FROM public.community_follows f WHERE f.follower_user_id=$2 AND f.followed_user_id=u.id) AS is_following "+
       "FROM public.users u WHERE u.onboarded_at IS NOT NULL AND u.pseudonym ILIKE $1 "+
       "AND ($2 IS NULL OR u.id <> $2) "+

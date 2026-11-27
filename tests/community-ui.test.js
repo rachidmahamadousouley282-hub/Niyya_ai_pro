@@ -61,9 +61,10 @@ test("Official and verified badges stay beside names across feed, profiles and m
   assert.match(source, /const verifiedBadge = \(isOfficial, isVerified\)/);
   assert.ok(source.includes("appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified, post.is_founder, post.author_is_admin)"));
   assert.ok(source.includes("appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified, p.is_founder, p.is_admin)"));
-  assert.ok(source.includes("appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified, member.is_founder)"));
-  assert.ok(source.includes("appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder)"));
-  assert.match(source, /Administrateur NIYYA.ai/);
+  assert.ok(source.includes("appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified, member.is_founder, member.is_admin)"));
+  assert.ok(source.includes("appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder, account.is_admin)"));
+  assert.match(source, /Compte reconnu par NIYYA/);
+  assert.match(source, /M12 1\.8 14\.7 4/);
 
 
 
@@ -82,4 +83,14 @@ test("Verification badge stays on the same unwrapped line as account name", () =
   assert.match(styles, /\.community-name-line\{[^}]*flex-wrap:nowrap/);
   assert.match(styles, /\.community-name-line strong\{[^}]*white-space:nowrap/);
   assert.match(styles, /\.community-name-line \.community-verified-badge\{[^}]*flex:0 0 16px/);
+});
+
+test("The blue NIYYA recognition rosette appears for admin accounts across community identities", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  const routes = fs.readFileSync(path.join(__dirname, "../src/routes/community.routes.js"), "utf8");
+  assert.match(source, /const adminBadge = isAdmin =>/);
+  assert.match(source, /aria-label", "Compte reconnu par NIYYA"/);
+  assert.match(routes, /\(u\.role = 'admin'\) AS is_admin/);
+  assert.match(routes, /is_admin: user\.is_admin/);
+  assert.match(source, /appendNameWithBadge\(author,comment\.author_name,false,false,comment\.is_founder,comment\.is_admin\)/);
 });
