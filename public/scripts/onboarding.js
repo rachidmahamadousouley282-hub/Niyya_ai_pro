@@ -96,7 +96,7 @@
     return item;
   }
 
-  function open({ onComplete } = {}) {
+  function open({ onComplete, required = false } = {}) {
     document.querySelector(".niyya-modal")?.remove();
     const language = window.NiyyaI18n?.getLanguage?.() || "fr";
     const t = copy[language] || copy.fr;
@@ -111,6 +111,7 @@
     const close = node("button", "modal-close", "×");
     close.type = "button";
     close.setAttribute("aria-label", t.close);
+    close.hidden = required;
     header.append(close);
 
     const title = node("h2", "", t.title);
@@ -199,9 +200,11 @@
     modal.append(panel);
     document.body.append(modal);
 
-    const dismiss = () => modal.remove();
+    const dismiss = () => { if (!required) modal.remove(); };
     close.addEventListener("click", dismiss);
-    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+    modal.addEventListener("click", event => {
+      if (!required && event.target === modal) dismiss();
+    });
 
     form.addEventListener("submit", async event => {
       event.preventDefault();
@@ -216,7 +219,7 @@
           language: languageSelect.value,
           acceptedTerms: consent.checked
         });
-        dismiss();
+        modal.remove();
         if (typeof onComplete === "function") onComplete();
       } catch (error) {
         status.textContent = error.message || t.error;

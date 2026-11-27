@@ -1045,7 +1045,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function openAccountSettings() {
+  async function openAccountSettings(options = {}) {
+    const required = options.required === true;
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal account-modal");
     const panel = element("section", "modal-panel account-panel");
@@ -1054,22 +1055,25 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.setAttribute("aria-labelledby", "account-title");
     const header = element("div", "account-heading");
     const heading = element("div");
-    heading.append(element("span", "eyebrow", "PARAMÈTRES"));
-    const title = element("h2", "", "Compte et sécurité");
+    heading.append(element("span", "eyebrow", required ? "INSCRIPTION" : "PARAMÈTRES"));
+    const title = element("h2", "", required ? "Bienvenue sur NIYYA.ai" : "Compte et sécurité");
     title.id = "account-title";
     heading.append(title);
     const close = element("button", "modal-close", "×");
     close.type = "button";
     close.setAttribute("aria-label", "Fermer");
+    close.hidden = required;
     header.append(heading, close);
     const content = element("div", "account-content");
     content.append(element("p", "chat-status", "Chargement du compte…"));
     panel.append(header, content);
     modal.append(panel);
     document.body.append(modal);
-    const dismiss = () => modal.remove();
+    const dismiss = () => { if (!required) modal.remove(); };
     close.addEventListener("click", dismiss);
-    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+    modal.addEventListener("click", event => {
+      if (!required && event.target === modal) dismiss();
+    });
 
     try {
       await ensureGuest();
@@ -1197,7 +1201,7 @@ document.addEventListener("DOMContentLoaded", () => {
       confirm.placeholder = "Répète ton mot de passe";
       confirmLabel.append(confirm);
       const note = element("p", "account-note",
-        "Ton compte invité actuel sera converti : tes conversations et favoris seront conservés. Vérifie bien ton adresse e-mail et garde ton mot de passe : la confirmation d’e-mail et la récupération du mot de passe ne sont pas encore activées.");
+        "Ton compte invité actuel sera converti : tes conversations et favoris seront conservés. Aucune confirmation par code n’est nécessaire pour entrer dans NIYYA. Utilise une adresse e-mail à laquelle tu as accès.");
       const status = element("p", "chat-status", "");
       status.setAttribute("role", "status");
       const submit = element("button", "chat-send account-submit", "Créer mon compte");
@@ -1615,8 +1619,25 @@ async function openCreator(existingCharacter = null) {
     renderCharacters();
   });
 
-  // Charge le quota dès l'ouverture, sans afficher une ancienne valeur HTML.
-  ensureGuest().then(() => refreshQuota()).catch(() => refreshQuota());
+  // Les nouveaux visiteurs doivent créer un compte avant d'utiliser NIYYA.
+  // Les comptes existants gardent leur connexion et ne repassent pas par l'inscription.
+  async function initializeAccess() {
+    await ensureGuest();
+    const session = await window.NiyyaAPI.getSession();
+    if (session.user?.isGuest) {
+      await openAccountSettings({ required: true });
+      return;
+    }
+    const quota = await window.NiyyaAPI.getQuota();
+    if (!quota.onboarded && window.NiyyaOnboarding?.open) {
+      window.NiyyaOnboarding.open({ required: true, onComplete: () => refreshQuota() });
+    }
+    await refreshQuota();
+  }
+  const accessReady = initializeAccess().catch(error => {
+    console.error("Initialisation du compte NIYYA impossible :", error.message);
+    refreshQuota();
+  });
 
   async function loadCharacters() {
     const loadingLabel = element("p", "character-loading-status chat-status", t("charactersLoading"));
@@ -1638,6 +1659,7 @@ async function openCreator(existingCharacter = null) {
     }, 3500);
 
     try {
+      await accessReady;
       const data = await window.NiyyaAPI.getCharacters();
       characters = Array.isArray(data.characters) ? data.characters : [];
       loadTrending();
