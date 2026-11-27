@@ -253,6 +253,7 @@
 
   function renderDaily(daily, extraGroups = []) {
     const container = document.getElementById("daily-activity");
+    container.replaceChildren();
     const groups = [
       ["Consultations de personnages", daily.views || []],
       ["J'aime sur personnages", daily.likes || []],
