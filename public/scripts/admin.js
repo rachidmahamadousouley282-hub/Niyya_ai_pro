@@ -508,8 +508,8 @@
   }
   function compressAnnouncementImage(file) {
     return new Promise((resolve, reject) => {
-      if (!file || !/^image\/(?:jpeg|png|webp)$/i.test(file.type)) {
-        reject(new Error("Choisis une image JPG, PNG ou WebP."));
+      if (!file || !String(file.type || "").startsWith("image/")) {
+        reject(new Error("Choisis un fichier image lisible par ton navigateur."));
         return;
       }
       const objectUrl = URL.createObjectURL(file);

@@ -65,7 +65,7 @@ test("Official NIYYA account API and admin announcement route are protected", ()
   assert.match(source, /u\.is_official = TRUE/);
   assert.match(admin, /router\.post\("\/official\/announcements", requireAuth/);
   assert.match(admin, /req\.user\.role !== "admin"/);
-  assert.match(admin, /INSERT INTO public\.community_posts \(author_user_id, body, visibility, status\)/);
+  assert.match(admin, /INSERT INTO public\.community_posts \(author_user_id, body, visibility, media_data, media_mime, status\)/);
 });
 
 
