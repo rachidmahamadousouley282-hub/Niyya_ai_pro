@@ -59,10 +59,10 @@ test("Community event service uses PostgreSQL notifications and user-scoped stre
 test("Official and verified badges stay beside names across feed, profiles and member discovery", () => {
   const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
   assert.match(source, /const verifiedBadge = \(isOfficial, isVerified\)/);
-  assert.ok(source.includes("appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified, post.is_founder)"));
-  assert.ok(source.includes("appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified, p.is_founder)"));
+  assert.ok(source.includes("appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified, post.is_founder, post.author_is_admin)"));
+  assert.ok(source.includes("appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified, p.is_founder, p.is_admin)"));
   assert.ok(source.includes("appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified, member.is_founder)"));
-  assert.ok(source.includes("appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder)"));
+  assert.ok(source.includes("appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder)"));\n  assert.match(source, /Administrateur NIYYA.ai/);
 
 
 
