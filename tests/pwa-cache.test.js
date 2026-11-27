@@ -22,7 +22,7 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v47"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v48"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -72,4 +72,16 @@ test("The refreshed landing page keeps real discovery and character creation act
   assert.match(html, /id="home-create-character"/);
   const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
   assert.match(app, /getElementById\("home-create-character"\)\?\.addEventListener\("click", \(\) => openCreator\(\)\)/);
+});
+
+
+test("Community characters are not mislabeled as official NIYYA characters", () => {
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  const i18n = fs.readFileSync(path.join(root, "public/scripts/i18n.js"), "utf8");
+  assert.match(app, /character\.creator_pseudonym === "NIYYA\.ai"/);
+  assert.match(app, /isOfficialCharacter \? t\("officialTag"\) : t\("communityCharacterTag"\)/);
+  assert.match(app, /isOfficialCharacter \? "NIYYA ORIGINAL" : t\("communityArtLabel"\)/);
+  for (const label of ["communityCharacterTag", "communityArtLabel"]) {
+    assert.equal((i18n.match(new RegExp(label + ":", "g")) || []).length, 4);
+  }
 });

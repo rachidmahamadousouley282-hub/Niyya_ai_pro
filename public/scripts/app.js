@@ -123,7 +123,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const card = element("article", "character-card");
       card.dataset.category = character.category || "all";
       const art = element("div", "character-art art-" + ["one","two","three","four"][index % 4]);
-      const label = element("span", "art-label", "NIYYA ORIGINAL");
+      const isOfficialCharacter = character.creator_pseudonym === "NIYYA.ai";
+      const label = element("span", "art-label",
+        isOfficialCharacter ? "NIYYA ORIGINAL" : t("communityArtLabel"));
       art.append(label);
       if (character.avatar_url) {
         const portrait = element("img", "character-portrait");
@@ -144,7 +146,8 @@ document.addEventListener("DOMContentLoaded", () => {
       info.append(
         element("h3", "", character.name),
         element("p", "", character.tagline || "Un personnage à découvrir."),
-        element("span", "character-tag", t("officialTag"))
+        element("span", "character-tag",
+          isOfficialCharacter ? t("officialTag") : t("communityCharacterTag"))
       );
       const button = element("button", "chat-button", t("discoverButton"));
       button.type = "button";
