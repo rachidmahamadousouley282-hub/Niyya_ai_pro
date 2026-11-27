@@ -782,7 +782,21 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
   document.getElementById("profile-button")?.addEventListener("click", openAccount);
 
-  searchInput.addEventListener("input", renderCharacters);
+  const homeHero = document.querySelector(".home-hero");
+  const categorySection = document.querySelector("main > .section");
+  const discoverSection = document.getElementById("discover");
+  searchInput.addEventListener("input", () => {
+    const searching = Boolean(searchInput.value.trim());
+    homeHero?.classList.toggle("is-searching", searching);
+    if (searching) {
+      if (discoverSection && homeHero) homeHero.after(discoverSection);
+      if (categorySection) categorySection.hidden = true;
+    } else {
+      if (discoverSection && categorySection) categorySection.after(discoverSection);
+      if (categorySection) categorySection.hidden = false;
+    }
+    renderCharacters();
+  });
 
 
 

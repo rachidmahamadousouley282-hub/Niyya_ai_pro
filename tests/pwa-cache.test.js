@@ -110,3 +110,14 @@ test("Explorer offers a working reset when search or category filters return no 
     assert.equal((i18n.match(new RegExp(key + ":", "g")) || []).length, 4);
   }
 });
+
+
+test("Typing a discovery search moves matching characters directly below the hero on mobile", () => {
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  const html = fs.readFileSync(path.join(root, "public/index.html"), "utf8");
+  assert.match(app, /homeHero\.after\(discoverSection\)/);
+  assert.match(app, /categorySection\.hidden = true/);
+  assert.match(app, /categorySection\.after\(discoverSection\)/);
+  assert.match(app, /homeHero\?\.classList\.toggle\("is-searching", searching\)/);
+  assert.match(html, /app\.js\?v=search-results-mobile-v1-20261127/);
+});
