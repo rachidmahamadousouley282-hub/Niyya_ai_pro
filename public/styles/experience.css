@@ -1,0 +1,150 @@
+/* NIYYA V2 — refreshed landing experience.
+   Claude prototype inspiration, retaining NIYYA's midnight-blue identity and real app flows. */
+.home-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: clamp(25px, 4.5vw, 48px);
+  border-radius: 30px;
+}
+.home-hero::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: min(42vw, 420px);
+  aspect-ratio: 1;
+  right: -12%;
+  bottom: -72%;
+  border: 1px solid rgba(139,199,255,.13);
+  border-radius: 50%;
+  box-shadow: 0 0 0 34px rgba(139,199,255,.025), 0 0 0 72px rgba(139,199,255,.02);
+  pointer-events: none;
+}
+.home-welcome .eyebrow { letter-spacing: 2.5px; }
+.home-welcome h1 {
+  max-width: 700px;
+  font-size: clamp(34px, 5.2vw, 58px);
+  letter-spacing: -2px;
+  line-height: 1.07;
+  text-wrap: balance;
+}
+.home-welcome p {
+  max-width: 570px;
+  margin-top: 16px;
+  font-size: clamp(14px, 1.5vw, 16px);
+  line-height: 1.75;
+}
+.home-hero .search-box {
+  position: relative;
+  z-index: 1;
+  max-width: 610px;
+  height: 58px;
+  margin-top: 28px;
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.14);
+}
+.home-hero .search-box:focus-within {
+  border-color: rgba(139,199,255,.62);
+  box-shadow: 0 0 0 4px rgba(60,137,211,.12), 0 10px 28px rgba(0,0,0,.14);
+}
+.home-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 11px;
+  margin-top: 18px;
+}
+.home-action-primary,
+.home-action-secondary {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 0 18px;
+  border-radius: 13px;
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform .18s ease, background .18s ease, border-color .18s ease;
+}
+.home-action-primary {
+  border: 1px solid rgba(132,190,247,.55);
+  background: linear-gradient(115deg,#438fda,#205c9c);
+  color: #fff;
+  box-shadow: 0 9px 24px rgba(32,101,170,.24);
+}
+.home-action-secondary {
+  border: 1px solid rgba(145,184,230,.24);
+  background: rgba(12,25,41,.62);
+  color: #dceeff;
+}
+.home-action-primary:hover,
+.home-action-secondary:hover { transform: translateY(-2px); }
+.home-action-primary:focus-visible,
+.home-action-secondary:focus-visible {
+  outline: 3px solid rgba(139,199,255,.7);
+  outline-offset: 3px;
+}
+.home-promise {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 25px;
+  color: #a9bfd7;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: .2px;
+}
+.home-promise span { display: inline-flex; align-items: center; gap: 7px; }
+.home-promise b {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  border: 1px solid rgba(139,199,255,.23);
+  border-radius: 7px;
+  background: rgba(49,112,174,.16);
+  color: #9bd0ff;
+  font-size: 9px;
+}
+.section { scroll-margin-top: 24px; }
+.section-heading { gap: 14px; }
+.section-heading h2 { letter-spacing: -.8px; }
+.category { min-height: 42px; font-weight: 650; }
+.character-card {
+  overflow: hidden;
+  border-radius: 21px;
+  transition: transform .22s ease, border-color .22s ease, box-shadow .22s ease;
+}
+.character-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 42px rgba(0,0,0,.28);
+}
+.character-info h3 { letter-spacing: -.35px; }
+.character-info p { line-height: 1.55; }
+.chat-button { min-height: 38px; }
+.creator-banner { border-radius: 26px; }
+.vip-home-promo {
+  margin-top: 28px;
+  border-radius: 22px;
+}
+@media (max-width: 600px) {
+  .home-hero { padding: 25px 18px 23px; }
+  .home-welcome h1 { font-size: clamp(31px, 8.4vw, 39px); letter-spacing: -1.25px; }
+  .home-welcome p { margin-top: 12px; font-size: 13px; }
+  .home-hero .search-box { height: 53px; margin-top: 20px; }
+  .home-actions { display: grid; grid-template-columns: 1fr; gap: 9px; margin-top: 14px; }
+  .home-action-primary,.home-action-secondary { width: 100%; min-height: 45px; }
+  .home-promise { justify-content: space-between; gap: 8px; margin-top: 19px; font-size: 10px; }
+  .home-promise span { gap: 5px; }
+  .home-promise b { width: 19px; height: 19px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-action-primary,.home-action-secondary,.character-card { transition: none !important; }
+  .home-action-primary:hover,.home-action-secondary:hover,.character-card:hover { transform: none; }
+}

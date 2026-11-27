@@ -1499,6 +1499,7 @@ async function openCreator(existingCharacter = null) {
   }
 
   document.getElementById("create-character").addEventListener("click", () => openCreator());
+  document.getElementById("home-create-character")?.addEventListener("click", () => openCreator());
 
   document.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", async event => {

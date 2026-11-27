@@ -15,13 +15,14 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
     .map(match => match[1]);
   assert.ok(assets.length > 0);
   assert.ok(assets.includes("/scripts/analytics.js?v=site-traffic-v1-20261127"));
+  assert.ok(assets.includes("/styles/experience.css?v=experience-home-v1-20261127"));
   for (const asset of assets) {
     assert.ok(serviceWorker.includes(JSON.stringify(asset)), "Missing from shell cache: " + asset);
   }
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v46"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v47"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -63,4 +64,12 @@ test("The community uses the same ◎ mark and the support centre is reachable f
   assert.match(app, /window.location.href = "\/support.html"/);
   const navigation = fs.readFileSync(path.join(root, "public/scripts/navigation.js"), "utf8");
   assert.match(navigation, /entry.href === "#community"\) icon.textContent = "◎"/);
+});
+
+
+test("The refreshed landing page keeps real discovery and character creation actions", () => {
+  assert.match(html, /class="home-action-primary" href="#discover"/);
+  assert.match(html, /id="home-create-character"/);
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  assert.match(app, /getElementById\("home-create-character"\)\?\.addEventListener\("click", \(\) => openCreator\(\)\)/);
 });
