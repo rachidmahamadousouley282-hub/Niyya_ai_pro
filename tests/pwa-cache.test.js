@@ -20,7 +20,7 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v40"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v43"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
