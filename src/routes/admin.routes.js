@@ -138,7 +138,6 @@ router.get("/platform-analytics", requireAuth, async (req, res) => {
         (SELECT COUNT(*)::bigint FROM public.community_posts WHERE status = 'published' AND created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS posts_period,
         (SELECT COUNT(*)::bigint FROM public.community_comments WHERE status = 'published') AS comments_total,
         (SELECT COUNT(*)::bigint FROM public.community_comments WHERE status = 'published' AND created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS comments_period,
-        (SELECT COUNT(*)::bigint FROM public.community_comments WHERE status = 'published' AND created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS comments_period,
         (SELECT COUNT(*)::bigint FROM public.community_post_likes) AS likes_total,
         (SELECT COUNT(*)::bigint FROM public.community_post_likes WHERE created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS likes_period,
         (SELECT COUNT(*)::bigint FROM public.community_follows WHERE created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS follows_period,
