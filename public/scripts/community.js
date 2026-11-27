@@ -104,13 +104,33 @@
       badge.append(shield, crown);
       return badge;
     };
-    const appendNameWithBadge = (parent, name, isOfficial, isVerified, isFounder) => {
+    const adminBadge = isAdmin => {
+      if (!isAdmin) return null;
+      const badge = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      badge.setAttribute("viewBox", "0 0 24 24");
+      badge.setAttribute("class", "community-admin-badge");
+      badge.setAttribute("role", "img");
+      badge.setAttribute("aria-label", "Administrateur NIYYA.ai");
+      const shield = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      shield.setAttribute("d", "M12 2 20 5v6c0 5-3.4 8.8-8 11-4.6-2.2-8-6-8-11V5Z");
+      shield.setAttribute("fill", "#2588F5");
+      const mark = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      mark.setAttribute("d", "M8 12h8M12 8v8");
+      mark.setAttribute("stroke", "#fff");
+      mark.setAttribute("stroke-width", "2");
+      mark.setAttribute("stroke-linecap", "round");
+      badge.append(shield, mark);
+      return badge;
+    };
+    const appendNameWithBadge = (parent, name, isOfficial, isVerified, isFounder, isAdmin) => {
       const line = el("span", "community-name-line");
       line.append(el("strong", "", name || "Membre NIYYA"));
       const creator = founderBadge(isFounder);
       if (creator) line.append(creator);
       const badge = verifiedBadge(isOfficial, isVerified);
       if (badge) line.append(badge);
+      const adminMark = adminBadge(isAdmin);
+      if (adminMark) line.append(adminMark);
       parent.append(line);
       return line;
     };
@@ -180,6 +200,17 @@
         officialCopy.replaceChildren();
         appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder);
         officialCopy.append(el("span", "", account.bio || "Compte officiel de NIYYA.ai"));
+        officialCopy.append(el("small", "community-official-counts", (account.follower_count || 0) + " abonnés · " + (account.following_count || 0) + " abonnements"));
+        officialBanner.classList.add("community-official-card-clickable");
+        officialBanner.setAttribute("role", "button");
+        officialBanner.setAttribute("tabindex", "0");
+        officialBanner.addEventListener("click", event => { if (!event.target.closest("button")) showProfile(account.id); });
+        officialBanner.addEventListener("keydown", event => {
+          if ((event.key === "Enter" || event.key === " ") && !event.target.closest("button")) {
+            event.preventDefault();
+            showProfile(account.id);
+          }
+        });
         officialAction.disabled = account.id === myId;
         officialAction.textContent = account.is_following ? "Abonné" : "S'abonner";
         officialAction.classList.toggle("following", !!account.is_following);
@@ -352,7 +383,7 @@
         identity.type="button";
         const avatar=el("span","community-avatar",initials(post.author_name));
         const nameWrap=el("span","community-author-copy");
-        appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified, post.is_founder);
+        appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified, post.is_founder, post.author_is_admin);
         nameWrap.append(el("small","",dateLabel(post.created_at)));
         identity.append(avatar,nameWrap);
         identity.addEventListener("click",()=>showProfile(post.author_id));
@@ -467,7 +498,7 @@
           const avatar=el("div","community-profile-avatar",initials(p.pseudonym));
           const info=el("div","community-profile-info");
           const profileName = el("div", "community-profile-name-line");
-          appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified, p.is_founder);
+          appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified, p.is_founder, p.is_admin);
           info.append(profileName,el("p","community-muted",p.bio||"Ce membre n'a pas encore ajouté de présentation."));
           top.append(avatar,info);wrap.append(top);
           const stats=el("div","community-profile-stats");
