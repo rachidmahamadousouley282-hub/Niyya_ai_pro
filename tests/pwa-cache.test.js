@@ -119,7 +119,7 @@ test("Typing a discovery search moves matching characters directly below the her
   assert.match(app, /categorySection\.hidden = true/);
   assert.match(app, /categorySection\.after\(discoverSection\)/);
   assert.match(app, /homeHero\?\.classList\.toggle\("is-searching", searching\)/);
-  assert.match(html, /app\.js\?v=search-results-mobile-v1-20261127/);
+  assert.match(html, /app\.js\?v=chat-composer-v1-20261127/);
 });
 
 
