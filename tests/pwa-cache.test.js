@@ -15,14 +15,14 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
     .map(match => match[1]);
   assert.ok(assets.length > 0);
   assert.ok(assets.includes("/scripts/analytics.js?v=site-traffic-v1-20261127"));
-  assert.ok(assets.includes("/styles/experience.css?v=search-results-mobile-v1-20261127"));
+  assert.ok(assets.includes("/styles/experience.css?v=home-loading-layout-v1-20261127"));
   for (const asset of assets) {
     assert.ok(serviceWorker.includes(JSON.stringify(asset)), "Missing from shell cache: " + asset);
   }
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v52"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v53"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -138,4 +138,32 @@ test("Each chat sends messages to its own captured conversation ID", () => {
   assert.match(app, /getMessages\(conversationId\)/);
   assert.match(app, /sendMessage\(conversationId,/);
   assert.doesNotMatch(app, /sendMessage\(activeConversation,/);
+});
+
+
+test("Home puts character discovery immediately after the hero and renders visible loading skeletons", () => {
+  const discover = html.indexOf('id="discover"');
+  const categories = html.indexOf('class="category-list"');
+  const hero = html.indexOf('class="hero home-hero"');
+  assert.ok(hero >= 0 && discover > hero && discover < categories);
+  assert.match(html, /class="character-skeleton"/);
+  assert.match(html, /character-loading-status/);
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  assert.match(app, /async function loadCharacters\(\)/);
+  assert.match(app, /charactersSlow/);
+  assert.match(app, /retryCharacters/);
+  assert.match(app, /addEventListener\("click", loadCharacters\)/);
+});
+
+test("Character loading and retry messages are translated in all supported languages", () => {
+  const i18n = fs.readFileSync(path.join(root, "public/scripts/i18n.js"), "utf8");
+  for (const key of ["charactersLoading", "charactersSlow", "charactersError", "retryCharacters"]) {
+    assert.equal((i18n.match(new RegExp(key + ":", "g")) || []).length, 4);
+  }
+});
+
+test("Search hides only the category filters and leaves discovery directly below the hero", () => {
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  assert.match(app, /document\.querySelector\("\.category-list"\)\?\.closest\("\.section"\)/);
+  assert.doesNotMatch(app, /homeHero\.after\(discoverSection\)/);
 });

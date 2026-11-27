@@ -797,18 +797,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("profile-button")?.addEventListener("click", openAccount);
 
   const homeHero = document.querySelector(".home-hero");
-  const categorySection = document.querySelector("main > .section");
-  const discoverSection = document.getElementById("discover");
+  const categorySection = document.querySelector(".category-list")?.closest(".section");
   searchInput.addEventListener("input", () => {
     const searching = Boolean(searchInput.value.trim());
     homeHero?.classList.toggle("is-searching", searching);
-    if (searching) {
-      if (discoverSection && homeHero) homeHero.after(discoverSection);
-      if (categorySection) categorySection.hidden = true;
-    } else {
-      if (discoverSection && categorySection) categorySection.after(discoverSection);
-      if (categorySection) categorySection.hidden = false;
-    }
+    if (categorySection) categorySection.hidden = searching;
     renderCharacters();
   });
 
@@ -1575,8 +1568,27 @@ async function openCreator(existingCharacter = null) {
   // Charge le quota dès l'ouverture, sans afficher une ancienne valeur HTML.
   ensureGuest().then(() => refreshQuota()).catch(() => refreshQuota());
 
-  window.NiyyaAPI.getCharacters()
-    .then(async data => {
+  async function loadCharacters() {
+    const loadingLabel = element("p", "character-loading-status chat-status", t("charactersLoading"));
+    loadingLabel.setAttribute("role", "status");
+    grid.setAttribute("aria-busy", "true");
+    grid.replaceChildren();
+    for (let index = 0; index < 4; index += 1) {
+      const skeleton = element("div", "character-skeleton");
+      skeleton.setAttribute("aria-hidden", "true");
+      skeleton.append(element("span"), element("i"), element("i"), element("b"));
+      grid.append(skeleton);
+    }
+    grid.append(loadingLabel);
+
+    const slowMessageTimer = window.setTimeout(() => {
+      if (grid.getAttribute("aria-busy") === "true" && loadingLabel.isConnected) {
+        loadingLabel.textContent = t("charactersSlow");
+      }
+    }, 3500);
+
+    try {
+      const data = await window.NiyyaAPI.getCharacters();
       characters = Array.isArray(data.characters) ? data.characters : [];
       try {
         await window.NiyyaAPI.getSession();
@@ -1592,16 +1604,23 @@ async function openCreator(existingCharacter = null) {
       const pseudonym = session?.user?.pseudonym;
       const greeting = document.getElementById("home-greeting");
       if (greeting && pseudonym) greeting.textContent = "Heureux de te retrouver, " + pseudonym + ".";
-    })
-    .catch(error => {
+    } catch {
       grid.setAttribute("aria-busy", "false");
-      grid.replaceChildren(element("p", "empty-state",
-        error.message || "Impossible de charger les personnages."));
-    })
-    .finally(() => {
+      const errorState = element("div", "discovery-empty character-load-error");
+      errorState.append(element("p", "", t("charactersError")));
+      const retry = element("button", "discovery-reset", t("retryCharacters"));
+      retry.type = "button";
+      retry.addEventListener("click", loadCharacters);
+      errorState.append(retry);
+      grid.replaceChildren(errorState);
+    } finally {
+      window.clearTimeout(slowMessageTimer);
       // Le compteur doit refléter le quota serveur dès l'ouverture, pas rester à la valeur HTML initiale.
       refreshQuota();
-    });
+    }
+  }
+
+  loadCharacters();
 
   console.log("NIYYA.ai V2 — Interface initialisée.");
 });

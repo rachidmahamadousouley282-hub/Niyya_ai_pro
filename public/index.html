@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/styles/responsive.css?v=responsive-safe-area-v1-20261127">
   <link rel="stylesheet" href="/styles/community.css?v=community-admin-rosette-v2-20261127">
   <link rel="stylesheet" href="/styles/home.css?v=black-minimal-v3-20261126">
-  <link rel="stylesheet" href="/styles/experience.css?v=search-results-mobile-v1-20261127">
+  <link rel="stylesheet" href="/styles/experience.css?v=home-loading-layout-v1-20261127">
 </head>
 <body>
   <div class="app-shell">
@@ -80,19 +80,6 @@
         <div class="companion-rail" id="companion-rail" aria-label="Personnages avec lesquels tu as déjà discuté"></div>
       </section>
 
-      <section class="section">
-        <div class="section-heading">
-          <div>
-            <span class="eyebrow">PARCOURIR</span>
-            <h2>Catégories</h2>
-          </div>
-          <a href="#discover">Tout voir →</a>
-        </div>
-        <div class="category-list">
-          <button class="category active" data-category="all">✦ Tous les personnages</button>
-        </div>
-      </section>
-
       <section class="section" id="discover">
         <div class="section-heading">
           <div>
@@ -103,7 +90,24 @@
         </div>
 
         <div class="character-grid" id="character-grid" aria-live="polite" aria-busy="true">
-          <p class="chat-status" role="status">Chargement des personnages…</p>
+          <div class="character-skeleton" aria-hidden="true"><span></span><i></i><i></i><b></b></div>
+          <div class="character-skeleton" aria-hidden="true"><span></span><i></i><i></i><b></b></div>
+          <div class="character-skeleton" aria-hidden="true"><span></span><i></i><i></i><b></b></div>
+          <div class="character-skeleton" aria-hidden="true"><span></span><i></i><i></i><b></b></div>
+          <p class="character-loading-status chat-status" role="status">Chargement des personnages…</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">PARCOURIR</span>
+            <h2>Catégories</h2>
+          </div>
+          <a href="#discover">Tout voir →</a>
+        </div>
+        <div class="category-list">
+          <button class="category active" data-category="all">✦ Tous les personnages</button>
         </div>
       </section>
 
@@ -149,13 +153,13 @@
     </nav>
 
   </div>
-  <script src="/scripts/i18n.js?v=explorer-empty-state-v1-20261127"></script>
+  <script src="/scripts/i18n.js?v=home-loading-layout-v1-20261127"></script>
   <script src="/scripts/api.js?v=creator-edit-v1-20261126"></script>
   <script src="/scripts/analytics.js?v=site-traffic-v1-20261127"></script>
   <script src="/scripts/onboarding.js"></script>
   <script src="/scripts/navigation.js?v=community-symbol-v1-20261127"></script>
-  <script src="/scripts/app.js?v=chat-composer-v1-20261127"></script>
+  <script src="/scripts/app.js?v=home-loading-layout-v1-20261127"></script>
   <script src="/scripts/community.js?v=community-admin-rosette-v2-20261127"></script>
-  <script src="/scripts/pwa.js?v=pwa-cache-v52-20261127"></script>
+  <script src="/scripts/pwa.js?v=pwa-cache-v53-20261127"></script>
 </body>
 </html>

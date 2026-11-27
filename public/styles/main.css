@@ -900,3 +900,23 @@ body { background-image: none !important; }
     min-height: 31px;
   }
 }
+
+
+/* Mobile polish: keep the header compact and the fixed navigation readable. */
+@media (max-width: 600px) {
+  .app-shell { padding-bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
+  main { padding-bottom: 24px; }
+  .header-actions { gap: 5px; }
+  .header-actions .quota-balance { display: none; }
+  .header-actions .messages-button { width: 36px; min-width: 36px; padding: 0; }
+  .header-actions .messages-button .header-action-label { display: none; }
+  .header-actions .vip-header-button { padding: 0 8px; font-size: 11px; white-space: nowrap; }
+  .bottom-nav {
+    background: rgba(8,8,8,.99) !important;
+    box-shadow: 0 -8px 28px rgba(0,0,0,.35), 0 12px 40px rgba(0,0,0,.5);
+  }
+}
+@media (max-width: 380px) {
+  .brand { font-size: 15px; }
+  .header-actions .vip-header-button { padding: 0 6px; font-size: 10px; }
+}
