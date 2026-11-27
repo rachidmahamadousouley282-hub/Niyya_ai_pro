@@ -148,3 +148,35 @@
   .home-action-primary,.home-action-secondary,.character-card { transition: none !important; }
   .home-action-primary:hover,.home-action-secondary:hover,.character-card:hover { transform: none; }
 }
+
+
+/* Explorer — helpful empty state and accessible filter reset. */
+.discovery-empty {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 34px 18px;
+  border: 1px dashed rgba(139,199,255,.22);
+  border-radius: 18px;
+  background: rgba(12,22,34,.45);
+  color: #b8c7d7;
+  text-align: center;
+}
+.discovery-empty p { margin: 0; line-height: 1.6; }
+.discovery-reset {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(139,199,255,.38);
+  border-radius: 11px;
+  background: #17283a;
+  color: #e8f4ff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.discovery-reset:hover { background: #203c56; }
+.discovery-reset:focus-visible {
+  outline: 3px solid rgba(139,199,255,.7);
+  outline-offset: 3px;
+}

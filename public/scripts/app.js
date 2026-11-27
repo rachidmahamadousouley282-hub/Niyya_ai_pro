@@ -115,7 +115,19 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (!filtered.length) {
-      grid.append(element("p", "empty-state", t("noCharacters")));
+      const empty = element("div", "empty-state discovery-empty");
+      empty.append(element("p", "", t("noCharacters")));
+      const reset = element("button", "discovery-reset", t("resetDiscovery"));
+      reset.type = "button";
+      reset.addEventListener("click", () => {
+        searchInput.value = "";
+        activeCategory = "all";
+        renderCategories();
+        renderCharacters();
+        searchInput.focus();
+      });
+      empty.append(reset);
+      grid.append(empty);
       return;
     }
 

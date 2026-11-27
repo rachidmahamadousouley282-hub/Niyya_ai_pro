@@ -22,7 +22,7 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v49"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v50"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -94,6 +94,19 @@ test("All discovery categories have explicit translated labels", () => {
     assert.ok(app.includes('category === "' + category + '"'));
   }
   for (const key of ["categoryAnime", "categoryFantasy", "categoryScienceFiction"]) {
+    assert.equal((i18n.match(new RegExp(key + ":", "g")) || []).length, 4);
+  }
+});
+
+
+test("Explorer offers a working reset when search or category filters return no characters", () => {
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  const i18n = fs.readFileSync(path.join(root, "public/scripts/i18n.js"), "utf8");
+  assert.match(app, /discovery-empty/);
+  assert.match(app, /resetDiscovery/);
+  assert.match(app, /activeCategory = "all"/);
+  assert.match(app, /searchInput\.value = ""/);
+  for (const key of ["resetDiscovery"]) {
     assert.equal((i18n.match(new RegExp(key + ":", "g")) || []).length, 4);
   }
 });
