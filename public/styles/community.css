@@ -347,3 +347,5 @@
 /* Distinct gold creator mark, separate from identity verification. */
 .community-founder-badge{display:block;flex:0 0 16px;width:16px;height:16px;margin:0}
 .community-comment-author{display:inline-flex;align-items:center;min-width:0}
+
+.community-admin-badge{display:block;flex:0 0 16px;width:16px;height:16px;margin:0}.community-official-card-clickable{cursor:pointer}.community-official-card-clickable:focus-visible{outline:2px solid #65adf5;outline-offset:3px}.community-official-counts{color:#a9c7e6!important;font-size:10px!important;margin-top:2px}
