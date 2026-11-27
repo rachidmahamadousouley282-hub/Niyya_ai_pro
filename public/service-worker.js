@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "niyya-shell-v51";
+const CACHE_NAME = "niyya-shell-v52";
 const SHELL_URLS = [
   "/",
   "/index.html",
@@ -15,12 +15,12 @@ const SHELL_URLS = [
   "/scripts/analytics.js?v=site-traffic-v1-20261127",
   "/scripts/onboarding.js",
   "/scripts/navigation.js?v=community-symbol-v1-20261127",
-  "/scripts/app.js?v=search-results-mobile-v1-20261127",
+  "/scripts/app.js?v=chat-composer-v1-20261127",
   "/styles/community.css?v=community-admin-rosette-v2-20261127",
   "/styles/home.css?v=black-minimal-v3-20261126",
   "/styles/experience.css?v=search-results-mobile-v1-20261127",
   "/scripts/community.js?v=community-admin-rosette-v2-20261127",
-  "/scripts/pwa.js?v=pwa-cache-v51-20261127"
+  "/scripts/pwa.js?v=pwa-cache-v52-20261127"
 ];
 
 self.addEventListener("install", event => {

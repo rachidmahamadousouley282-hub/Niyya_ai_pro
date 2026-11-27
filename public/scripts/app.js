@@ -662,7 +662,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (trigger) trigger.disabled = true;
     const ui = openChatShell(character);
-    ui.profile.addEventListener("click", () => openProfile(character, ui.profile, activeCharacterId === character.id ? activeConversation : null));
+    let conversationId = null;
+    ui.profile.addEventListener("click", () => openProfile(character, ui.profile, conversationId));
     const status = element("p", "chat-status", t("connecting"));
     ui.messages.append(status);
 
@@ -681,14 +682,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       if (existingConversationId) {
-        activeConversation = existingConversationId;
+        conversationId = existingConversationId;
       } else {
         const created = await window.NiyyaAPI.createConversation(character.id);
-        activeConversation = created.conversation.id;
+        conversationId = created.conversation.id;
       }
+      activeConversation = conversationId;
       activeCharacterId = character.id;
       ui.profile.disabled = false;
-      const history = await window.NiyyaAPI.getMessages(activeConversation);
+      const history = await window.NiyyaAPI.getMessages(conversationId);
       status.remove();
       (history.messages || []).forEach(message =>
         addMessage(ui.messages, message.role, message.content, character.name));
@@ -738,11 +740,23 @@ document.addEventListener("DOMContentLoaded", () => {
         ui.messages.append(suggestions);
       }
 
+      const resizeChatInput = () => {
+        ui.input.style.height = "auto";
+        ui.input.style.height = Math.min(ui.input.scrollHeight, 120) + "px";
+      };
+      ui.input.addEventListener("input", resizeChatInput);
+      ui.input.addEventListener("keydown", event => {
+        if (event.key !== "Enter" || event.shiftKey || event.isComposing || event.keyCode === 229) return;
+        event.preventDefault();
+        if (typeof ui.form.requestSubmit === "function") ui.form.requestSubmit();
+        else ui.send.click();
+      });
       ui.form.addEventListener("submit", async event => {
         event.preventDefault();
         const text = ui.input.value.trim();
-        if (!text || ui.send.disabled) return;
+        if (!text || ui.send.disabled || !conversationId) return;
         ui.input.value = "";
+        resizeChatInput();
         ui.messages.querySelector(".chat-starters")?.remove();
         addMessage(ui.messages, "user", text, character.name);
         ui.send.disabled = true;
@@ -750,7 +764,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const waiting = showThinking ? element("p", "chat-status", t("preparing")) : null;
         if (waiting) ui.messages.append(waiting);
         try {
-          const result = await window.NiyyaAPI.sendMessage(activeConversation, text, window.NiyyaI18n?.getLanguage() || "fr");
+          const result = await window.NiyyaAPI.sendMessage(conversationId, text, window.NiyyaI18n?.getLanguage() || "fr");
           waiting?.remove();
           await addMessageTyping(ui.messages, result.reply, character.name);
           await refreshQuota();
@@ -766,7 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         } finally {
           ui.send.disabled = ui.input.disabled;
-          ui.input.focus();
+          if (ui.modal.isConnected && !ui.input.disabled) ui.input.focus();
         }
       });
       ui.input.focus();

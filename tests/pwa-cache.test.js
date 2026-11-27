@@ -22,7 +22,7 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v51"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v52"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -120,4 +120,22 @@ test("Typing a discovery search moves matching characters directly below the her
   assert.match(app, /categorySection\.after\(discoverSection\)/);
   assert.match(app, /homeHero\?\.classList\.toggle\("is-searching", searching\)/);
   assert.match(html, /app\.js\?v=search-results-mobile-v1-20261127/);
+});
+
+
+test("Chat composer supports Enter to send, Shift+Enter for a newline, and automatic height", () => {
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  assert.match(app, /event\.key !== "Enter" \|\| event\.shiftKey \|\| event\.isComposing/);
+  assert.match(app, /ui\.form\.requestSubmit\(\)/);
+  assert.match(app, /Math\.min\(ui\.input\.scrollHeight, 120\)/);
+  assert.match(app, /ui\.input\.addEventListener\("input", resizeChatInput\)/);
+});
+
+test("Each chat sends messages to its own captured conversation ID", () => {
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  assert.match(app, /let conversationId = null/);
+  assert.match(app, /conversationId = created\.conversation\.id/);
+  assert.match(app, /getMessages\(conversationId\)/);
+  assert.match(app, /sendMessage\(conversationId,/);
+  assert.doesNotMatch(app, /sendMessage\(activeConversation,/);
 });
