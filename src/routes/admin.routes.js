@@ -102,6 +102,24 @@ router.get("/character-analytics", requireAuth, async (req, res) => {
   }
 });
 
+router.get("/official/announcements", requireAuth, async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Accès réservé à l'équipe NIYYA." });
+  }
+  try {
+    const result = await query(
+      "SELECT p.id, p.body, p.created_at FROM public.community_posts p " +
+      "JOIN public.users u ON u.id = p.author_user_id " +
+      "WHERE u.is_official = TRUE AND p.status = 'published' " +
+      "ORDER BY p.created_at DESC LIMIT 30"
+    );
+    return res.status(200).json({ success: true, announcements: result.rows });
+  } catch (error) {
+    console.error("Erreur de lecture des annonces officielles :", error.message);
+    return res.status(500).json({ error: "Impossible de charger les annonces officielles." });
+  }
+});
+
 router.post("/official/announcements", requireAuth, async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ error: "Accès réservé à l'équipe NIYYA." });

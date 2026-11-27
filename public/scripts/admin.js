@@ -287,5 +287,87 @@
     link.click();
     URL.revokeObjectURL(url);
   });
+  async function loadOfficialAnnouncements() {
+    const list = document.getElementById("official-announcement-list");
+    if (!list) return;
+    list.replaceChildren();
+    const loading = document.createElement("p");
+    loading.className = "admin-report-empty";
+    loading.textContent = "Chargement des annonces…";
+    list.append(loading);
+    try {
+      const response = await fetch("/api/admin/official/announcements", {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        cache: "no-store"
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Impossible de charger les annonces.");
+      list.replaceChildren();
+      if (!data.announcements.length) {
+        const empty = document.createElement("p");
+        empty.className = "admin-report-empty";
+        empty.textContent = "Aucune annonce publiée pour le moment.";
+        list.append(empty);
+        return;
+      }
+      data.announcements.forEach(item => {
+        const card = document.createElement("article");
+        card.className = "admin-announcement-item";
+        const body = document.createElement("p");
+        body.textContent = item.body;
+        const date = document.createElement("small");
+        date.textContent = new Date(item.created_at).toLocaleString("fr-FR");
+        card.append(body, date);
+        list.append(card);
+      });
+    } catch (error) {
+      list.replaceChildren();
+      const message = document.createElement("p");
+      message.className = "admin-report-empty";
+      message.textContent = error.message || "Erreur de chargement.";
+      list.append(message);
+    }
+  }
+
+  const announcementForm = document.getElementById("official-announcement-form");
+  const announcementBody = document.getElementById("official-announcement-body");
+  const announcementCount = document.getElementById("official-announcement-count");
+  const announcementFeedback = document.getElementById("official-announcement-feedback");
+  announcementBody?.addEventListener("input", () => {
+    announcementCount.textContent = announcementBody.value.length + " / 600";
+  });
+  announcementForm?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const submit = announcementForm.querySelector('button[type="submit"]');
+    const body = announcementBody.value.trim();
+    if (body.length < 2 || body.length > 600) {
+      announcementFeedback.textContent = "L’annonce doit contenir entre 2 et 600 caractères.";
+      return;
+    }
+    submit.disabled = true;
+    announcementFeedback.textContent = "Publication en cours…";
+    try {
+      const response = await fetch("/api/admin/official/announcements", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ body })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Impossible de publier l’annonce.");
+      announcementBody.value = "";
+      announcementCount.textContent = "0 / 600";
+      announcementFeedback.textContent = "Annonce publiée sur NIYYA Officiel.";
+      await loadOfficialAnnouncements();
+    } catch (error) {
+      announcementFeedback.textContent = error.message || "Erreur de publication.";
+    } finally {
+      submit.disabled = false;
+    }
+  });
+  document.getElementById("reload-official-announcements")?.addEventListener("click", loadOfficialAnnouncements);
+  loadOfficialAnnouncements();
+
   load();
 })();

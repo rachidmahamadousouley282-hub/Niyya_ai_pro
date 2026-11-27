@@ -22,3 +22,11 @@ test("Admin dashboard provides community report review actions", () => {
   assert.match(script, /\/api\/community\/moderation\/reports/);
   assert.match(script, /decision\s*\}\)/);
 });
+
+test("Official account announcements can be composed and recent posts reviewed", () => {
+  assert.match(html, /id="official-announcement-form"/);
+  assert.match(html, /id="official-announcement-body"[^>]*maxlength="600"/);
+  assert.match(script, /\/api\/admin\/official\/announcements/);
+  assert.match(route, /router\.get\("\/official\/announcements"/);
+  assert.match(route, /router\.post\("\/official\/announcements"/);
+});

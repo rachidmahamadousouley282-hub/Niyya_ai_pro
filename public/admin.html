@@ -7,7 +7,7 @@
   <title>NIYYA.ai — Dashboard Direction</title>
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/components.css">
-  <link rel="stylesheet" href="/styles/admin.css?v=admin-support-v1-20261127">
+  <link rel="stylesheet" href="/styles/admin.css?v=admin-official-v2-20261127">
 </head>
 <body>
   <main class="admin-shell">
@@ -51,6 +51,25 @@
         <h2>État du moteur IA</h2>
         <div id="ai-provider-status" class="admin-system-status" role="status">
           Vérification de la configuration IA…
+        </div>
+      </section>
+      <section class="admin-panel" id="official-announcements">
+        <div class="admin-panel-heading">
+          <div><span class="eyebrow">COMMUNICATION</span><h2>Compte NIYYA Officiel</h2></div>
+          <button id="reload-official-announcements" type="button" class="admin-export">Actualiser</button>
+        </div>
+        <form id="official-announcement-form" class="admin-announcement-form">
+          <label for="official-announcement-body">Nouvelle annonce publique</label>
+          <textarea id="official-announcement-body" name="body" rows="4" minlength="2" maxlength="600" required placeholder="Écris une annonce pour les membres de NIYYA…"></textarea>
+          <div class="admin-announcement-footer">
+            <small id="official-announcement-count">0 / 600</small>
+            <button type="submit" class="admin-export">Publier sur NIYYA Officiel</button>
+          </div>
+          <p id="official-announcement-feedback" class="admin-report-feedback" role="status" aria-live="polite"></p>
+        </form>
+        <div class="admin-announcement-history">
+          <h3>Dernières annonces publiées</h3>
+          <div id="official-announcement-list" class="admin-announcement-list"><p class="admin-report-empty">Chargement des annonces…</p></div>
         </div>
       </section>
       <section class="admin-panel" id="community-moderation">
