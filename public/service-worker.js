@@ -15,9 +15,9 @@ const SHELL_URLS = [
   "/scripts/onboarding.js",
   "/scripts/navigation.js?v=community-symbol-v1-20261127",
   "/scripts/app.js?v=support-menu-visible-v1-20261127",
-  "/styles/community.css?v=community-badge-inline-v3-20261127",
+  "/styles/community.css?v=founder-badge-v1-20261127",
   "/styles/home.css?v=black-minimal-v3-20261126",
-  "/scripts/community.js?v=community-badge-inline-v3-20261127",
+  "/scripts/community.js?v=founder-badge-v1-20261127",
   "/scripts/pwa.js?v=pwa-cache-v40-20261127"
 ];
 

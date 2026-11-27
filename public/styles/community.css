@@ -343,3 +343,7 @@
 .community-author-copy{min-width:0}
 .community-official-copy{min-width:0}
 .community-member-details{min-width:0}
+
+/* Distinct gold creator mark, separate from identity verification. */
+.community-founder-badge{display:block;flex:0 0 16px;width:16px;height:16px;margin:0}
+.community-comment-author{display:inline-flex;align-items:center;min-width:0}

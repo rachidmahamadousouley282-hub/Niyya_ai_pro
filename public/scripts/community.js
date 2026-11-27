@@ -88,9 +88,27 @@
       badge.append(shape, tick);
       return badge;
     };
-    const appendNameWithBadge = (parent, name, isOfficial, isVerified) => {
+    const founderBadge = isFounder => {
+      if (!isFounder) return null;
+      const badge = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      badge.setAttribute("viewBox", "0 0 24 24");
+      badge.setAttribute("class", "community-founder-badge");
+      badge.setAttribute("role", "img");
+      badge.setAttribute("aria-label", "Créateur de NIYYA.ai");
+      const shield = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      shield.setAttribute("d", "M12 1.8 21 5v6.1c0 5.3-3.6 9.1-9 11.1-5.4-2-9-5.8-9-11.1V5Z");
+      shield.setAttribute("fill", "#D9A441");
+      const crown = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      crown.setAttribute("d", "m6.8 9 3.1 2.7L12 7.2l2.1 4.5L17.2 9l-1 7H7.8Z");
+      crown.setAttribute("fill", "#172033");
+      badge.append(shield, crown);
+      return badge;
+    };
+    const appendNameWithBadge = (parent, name, isOfficial, isVerified, isFounder) => {
       const line = el("span", "community-name-line");
       line.append(el("strong", "", name || "Membre NIYYA"));
+      const creator = founderBadge(isFounder);
+      if (creator) line.append(creator);
       const badge = verifiedBadge(isOfficial, isVerified);
       if (badge) line.append(badge);
       parent.append(line);
@@ -160,7 +178,7 @@
       api("/official").then(data => {
         const account = data.account;
         officialCopy.replaceChildren();
-        appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified);
+        appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder);
         officialCopy.append(el("span", "", account.bio || "Compte officiel de NIYYA.ai"));
         officialAction.disabled = account.id === myId;
         officialAction.textContent = account.is_following ? "Abonné" : "S'abonner";
@@ -334,7 +352,7 @@
         identity.type="button";
         const avatar=el("span","community-avatar",initials(post.author_name));
         const nameWrap=el("span","community-author-copy");
-        appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified);
+        appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified, post.is_founder);
         nameWrap.append(el("small","",dateLabel(post.created_at)));
         identity.append(avatar,nameWrap);
         identity.addEventListener("click",()=>showProfile(post.author_id));
@@ -409,7 +427,7 @@
           const data=await api("/posts/"+post.id+"/comments");container.replaceChildren();
           (data.comments||[]).forEach(comment=>{
             const row=el("div","community-comment-row");
-            row.append(el("strong","",comment.author_name),el("p","",comment.body));
+            const author=el("span","community-comment-author");appendNameWithBadge(author,comment.author_name,false,false,comment.is_founder);row.append(author,el("p","",comment.body));
             if (myId && comment.author_id !== myId) {
               const report=el("button","community-action community-comment-report","Signaler");
               report.type="button";
@@ -429,7 +447,7 @@
           const send=el("button","community-secondary","Envoyer");send.type="submit";form.append(input,send);
           form.addEventListener("submit",async event=>{
             event.preventDefault();send.disabled=true;
-            try{const result=await api("/posts/"+post.id+"/comments",{method:"POST",body:{body:input.value}});const row=el("div","community-comment-row");row.append(el("strong","",result.comment.author_name),el("p","",result.comment.body));container.insertBefore(row,form);input.value="";}
+            try{const result=await api("/posts/"+post.id+"/comments",{method:"POST",body:{body:input.value}});const row=el("div","community-comment-row");const author=el("span","community-comment-author");appendNameWithBadge(author,result.comment.author_name,false,false,result.comment.is_founder);row.append(author,el("p","",result.comment.body));container.insertBefore(row,form);input.value="";}
             catch(error){alert(error.message);}finally{send.disabled=false;}
           });
           container.append(form);container.dataset.loaded="true";
@@ -449,7 +467,7 @@
           const avatar=el("div","community-profile-avatar",initials(p.pseudonym));
           const info=el("div","community-profile-info");
           const profileName = el("div", "community-profile-name-line");
-          appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified);
+          appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified, p.is_founder);
           info.append(profileName,el("p","community-muted",p.bio||"Ce membre n'a pas encore ajouté de présentation."));
           top.append(avatar,info);wrap.append(top);
           const stats=el("div","community-profile-stats");
@@ -588,7 +606,7 @@
               identity.type="button";
               identity.append(el("span","community-avatar",initials(member.pseudonym)));
               const details=el("span","community-member-details");
-              appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified);
+              appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified, member.is_founder);
               if(member.bio)details.append(el("small","",member.bio));
               details.append(el("small","community-member-count",(member.follower_count||0)+" abonnés"));
               identity.append(details);
