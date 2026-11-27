@@ -190,6 +190,22 @@
       }
       if (!response.ok) throw new Error(data.error || "Impossible de charger les statistiques.");
       currentData = data;
+      const globalResponse = await fetch("/api/admin/platform-analytics?days=" + days, {
+        credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store"
+      });
+      const globalData = await globalResponse.json().catch(() => ({}));
+      if (!globalResponse.ok) throw new Error(globalData.error || "Impossible de charger les statistiques globales.");
+      const totals = globalData.totals || {};
+      const setMetric = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = number(value); };
+      setMetric("global-members", totals.members_total);
+      setMetric("global-active-members", totals.active_members);
+      setMetric("global-conversations", totals.conversations_total);
+      setMetric("global-messages", totals.messages_total);
+      setMetric("global-posts", totals.posts_total);
+      setMetric("global-comments", totals.comments_total);
+      setMetric("global-likes", totals.likes_total);
+      setMetric("global-follows", totals.follows_total);
+      setMetric("global-views", totals.character_views_total);
       document.getElementById("metric-views").textContent = number(data.summary.views);
       document.getElementById("metric-likes").textContent = number(data.summary.likes);
       document.getElementById("metric-chats").textContent = number(data.summary.conversations_started);
