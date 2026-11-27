@@ -30,3 +30,18 @@ test("Official account announcements can be composed and recent posts reviewed",
   assert.match(route, /router\.get\("\/official\/announcements"/);
   assert.match(route, /router\.post\("\/official\/announcements"/);
 });
+
+
+test("Platform analytics separates period activity from lifetime totals", () => {
+  assert.match(route, /AS new_members_period/);
+  assert.match(route, /AS active_members/);
+  assert.match(route, /m\.role = 'user'/);
+  assert.match(route, /AS messages_period/);
+  assert.match(route, /AS posts_period/);
+  assert.match(route, /registrations: dailyMembers\.rows/);
+  assert.match(route, /siteVisits: false/);
+  assert.match(html, /id="global-new-members"/);
+  assert.match(html, /id="global-period-messages"/);
+  assert.match(html, /visites globales du site et le temps passé ne sont pas encore collectés/i);
+  assert.match(script, /globalData\.daily/);
+});

@@ -199,9 +199,13 @@
       const setMetric = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = number(value); };
       setMetric("global-members", totals.members_total);
       setMetric("global-active-members", totals.active_members);
+      setMetric("global-new-members", totals.new_members_period);
       setMetric("global-conversations", totals.conversations_total);
       setMetric("global-messages", totals.messages_total);
-      setMetric("global-posts", totals.posts_total);
+      setMetric("global-period-messages", totals.messages_period);
+      setMetric("global-period-posts", totals.posts_period);
+      const conversationsNote = document.getElementById("global-conversations-note");
+      if (conversationsNote) conversationsNote.textContent = number(totals.conversations_period) + " sur la période · total historique";
       setMetric("global-comments", totals.comments_total);
       setMetric("global-likes", totals.likes_total);
       setMetric("global-follows", totals.follows_total);
@@ -212,6 +216,11 @@
       document.getElementById("metric-characters").textContent = number(data.summary.public_characters);
       renderRanking(data.topCharacters || []);
       renderDaily(data.daily || {});
+      renderDaily(globalData.daily || {}, [
+        ["Nouveaux membres", globalData.daily?.registrations || []],
+        ["Messages", globalData.daily?.messages || []],
+        ["Publications", globalData.daily?.posts || []]
+      ]);
       await Promise.all([loadCommunityReports(), loadSystemStatus(), loadSupportTickets()]);
       status.hidden = true;
       dashboard.hidden = false;
@@ -243,13 +252,13 @@
     });
   }
 
-  function renderDaily(daily) {
+  function renderDaily(daily, extraGroups = []) {
     const container = document.getElementById("daily-activity");
-    container.replaceChildren();
     const groups = [
-      ["Consultations", daily.views || []],
-      ["J'aime", daily.likes || []],
-      ["Conversations", daily.conversations || []]
+      ["Consultations de personnages", daily.views || []],
+      ["J'aime sur personnages", daily.likes || []],
+      ["Conversations lancées", daily.conversations || []],
+      ...extraGroups
     ];
     groups.forEach(([label, rows]) => {
       const section = document.createElement("div");

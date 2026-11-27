@@ -108,18 +108,51 @@ router.get("/platform-analytics", requireAuth, async (req, res) => {
   const days = [7, 30, 90].includes(requestedDays) ? requestedDays : 30;
   try {
     const result = await query(`
+      WITH active_users AS (
+        SELECT conv.user_id FROM public.conversations conv
+        WHERE conv.created_at >= NOW() - ($1::integer * INTERVAL '1 day')
+        UNION
+        SELECT conv.user_id FROM public.messages m
+        JOIN public.conversations conv ON conv.id = m.conversation_id
+        WHERE m.created_at >= NOW() - ($1::integer * INTERVAL '1 day') AND m.role = 'user'
+        UNION
+        SELECT p.author_user_id FROM public.community_posts p
+        WHERE p.created_at >= NOW() - ($1::integer * INTERVAL '1 day') AND p.status = 'published'
+        UNION
+        SELECT c.author_user_id FROM public.community_comments c
+        WHERE c.created_at >= NOW() - ($1::integer * INTERVAL '1 day') AND c.status = 'published'
+        UNION
+        SELECT l.user_id FROM public.community_post_likes l
+        WHERE l.created_at >= NOW() - ($1::integer * INTERVAL '1 day')
+      )
       SELECT
         (SELECT COUNT(*)::bigint FROM public.users WHERE is_guest = FALSE) AS members_total,
-        (SELECT COUNT(DISTINCT user_id)::bigint FROM public.conversations WHERE created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS active_members,
+        (SELECT COUNT(*)::bigint FROM public.users WHERE is_guest = FALSE AND created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS new_members_period,
+        (SELECT COUNT(DISTINCT a.user_id)::bigint FROM active_users a JOIN public.users u ON u.id = a.user_id WHERE u.is_guest = FALSE) AS active_members,
         (SELECT COUNT(*)::bigint FROM public.conversations) AS conversations_total,
+        (SELECT COUNT(*)::bigint FROM public.conversations WHERE created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS conversations_period,
         (SELECT COUNT(*)::bigint FROM public.messages) AS messages_total,
+        (SELECT COUNT(*)::bigint FROM public.messages m JOIN public.conversations conv ON conv.id = m.conversation_id JOIN public.users u ON u.id = conv.user_id WHERE u.is_guest = FALSE AND m.created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS messages_period,
         (SELECT COUNT(*)::bigint FROM public.community_posts WHERE status = 'published') AS posts_total,
+        (SELECT COUNT(*)::bigint FROM public.community_posts WHERE status = 'published' AND created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS posts_period,
         (SELECT COUNT(*)::bigint FROM public.community_comments WHERE status = 'published') AS comments_total,
+        (SELECT COUNT(*)::bigint FROM public.community_comments WHERE status = 'published' AND created_at >= NOW() - ($1::integer * INTERVAL '1 day')) AS comments_period,
         (SELECT COUNT(*)::bigint FROM public.community_post_likes) AS likes_total,
         (SELECT COUNT(*)::bigint FROM public.community_follows) AS follows_total,
         (SELECT COUNT(*)::bigint FROM public.character_view_events) AS character_views_total
     `, [days]);
-    return res.status(200).json({ success: true, periodDays: days, totals: result.rows[0] || {} });
+    const [dailyMembers, dailyMessages, dailyPosts] = await Promise.all([
+      query("SELECT created_at::date AS day, COUNT(*)::bigint AS count FROM public.users WHERE is_guest = FALSE AND created_at >= CURRENT_DATE - ($1::integer - 1) GROUP BY created_at::date ORDER BY created_at::date ASC", [days]),
+      query("SELECT m.created_at::date AS day, COUNT(*)::bigint AS count FROM public.messages m JOIN public.conversations conv ON conv.id = m.conversation_id JOIN public.users u ON u.id = conv.user_id WHERE u.is_guest = FALSE AND m.created_at >= CURRENT_DATE - ($1::integer - 1) GROUP BY m.created_at::date ORDER BY m.created_at::date ASC", [days]),
+      query("SELECT created_at::date AS day, COUNT(*)::bigint AS count FROM public.community_posts WHERE status = 'published' AND created_at >= CURRENT_DATE - ($1::integer - 1) GROUP BY created_at::date ORDER BY created_at::date ASC", [days])
+    ]);
+    return res.status(200).json({
+      success: true,
+      periodDays: days,
+      totals: result.rows[0] || {},
+      daily: { registrations: dailyMembers.rows, messages: dailyMessages.rows, posts: dailyPosts.rows },
+      measurement: { siteVisits: false, timeSpent: false }
+    });
   } catch (error) {
     console.error("Erreur des statistiques globales :", error.message);
     return res.status(500).json({ error: "Impossible de charger les statistiques globales." });
