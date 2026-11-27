@@ -94,6 +94,56 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  let trendingData = { trending: [], official: [] };
+  let trendingScope = "all";
+  function renderTrending() {
+    const rail = document.getElementById("trending-rail");
+    if (!rail) return;
+    const items = trendingScope === "official" ? trendingData.official : trendingData.trending;
+    rail.replaceChildren();
+    if (!items.length) {
+      rail.append(element("p", "trending-empty", "Pas encore assez d'activité récente pour établir ce classement."));
+      return;
+    }
+    items.forEach(character => {
+      const card = element("article", "trending-card");
+      card.setAttribute("role", "button"); card.tabIndex = 0;
+      const rank = element("span", "trending-rank", "#" + character.rank);
+      const art = element("div", "trending-art");
+      if (character.avatar_url) {
+        const image = element("img", "", ""); image.src = character.avatar_url;
+        image.alt = ""; image.loading = "lazy"; art.append(image);
+      } else art.append(element("span", "", (character.name || "N").slice(0,1).toUpperCase()));
+      const info = element("div", "trending-info");
+      info.append(element("h3", "", character.name));
+      info.append(element("p", "", character.tagline || "Personnage à découvrir"));
+      info.append(element("span", "trending-metrics", Number(character.messages_7d).toLocaleString() + " messages · 7 j"));
+      if (character.growth_pct !== null && character.growth_pct > 0)
+        info.append(element("span", "trending-growth", "↗ +" + character.growth_pct + "%"));
+      card.append(rank, art, info);
+      const open = () => openProfile(character, card);
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); } });
+      rail.append(card);
+    });
+  }
+  async function loadTrending() {
+    const rail = document.getElementById("trending-rail");
+    if (!rail) return;
+    try {
+      const data = await window.NiyyaAPI.getTrendingCharacters();
+      trendingData = { trending: Array.isArray(data.trending) ? data.trending : [], official: Array.isArray(data.official) ? data.official : [] };
+      renderTrending();
+    } catch {
+      rail.replaceChildren(element("p", "trending-empty", "Les tendances sont momentanément indisponibles."));
+    }
+  }
+  document.querySelectorAll("[data-trending-scope]").forEach(button => button.addEventListener("click", () => {
+    trendingScope = button.dataset.trendingScope === "official" ? "official" : "all";
+    document.querySelectorAll("[data-trending-scope]").forEach(tab => tab.classList.toggle("active", tab === button));
+    renderTrending();
+  }));
+
   function renderCharacters() {
     const term = searchInput.value.trim().toLocaleLowerCase();
     grid.replaceChildren();
@@ -1590,6 +1640,7 @@ async function openCreator(existingCharacter = null) {
     try {
       const data = await window.NiyyaAPI.getCharacters();
       characters = Array.isArray(data.characters) ? data.characters : [];
+      loadTrending();
       try {
         await window.NiyyaAPI.getSession();
         const favorites = await window.NiyyaAPI.getFavorites();

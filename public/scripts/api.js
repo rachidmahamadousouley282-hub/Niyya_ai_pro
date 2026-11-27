@@ -89,6 +89,8 @@
       return request("/auth/onboarding", { method: "POST", body: data });
     },
 
+    getTrendingCharacters() { return request("/characters/trending"); },
+
     getCharacters(params = {}) {
       const query = new URLSearchParams(params);
       const suffix = query.toString()

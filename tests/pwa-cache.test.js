@@ -15,14 +15,14 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
     .map(match => match[1]);
   assert.ok(assets.length > 0);
   assert.ok(assets.includes("/scripts/analytics.js?v=site-traffic-v1-20261127"));
-  assert.ok(assets.includes("/styles/experience.css?v=home-loading-layout-v1-20261127"));
+  assert.ok(assets.includes("/styles/experience.css?v=trending-world-v1-20261127"));
   for (const asset of assets) {
     assert.ok(serviceWorker.includes(JSON.stringify(asset)), "Missing from shell cache: " + asset);
   }
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v53"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v54"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -165,4 +165,20 @@ test("Search hides only the category filters and leaves discovery directly below
   const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
   assert.match(app, /document\.querySelector\("\.category-list"\)\?\.closest\("\.section"\)/);
   assert.doesNotMatch(app, /homeHero\.after\(discoverSection\)/);
+});
+
+test("World trend rankings use recent database activity and separate official characters", () => {
+ const route = fs.readFileSync(path.join(root, "src/routes/characters.routes.js"), "utf8");
+ const api = fs.readFileSync(path.join(root, "public/scripts/api.js"), "utf8");
+ const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+ assert.match(route, /router\.get\("\/trending"/);
+ assert.match(route, /INTERVAL '7 days'/);
+ assert.match(route, /messages_7d/);
+ assert.match(route, /PARTITION BY is_system/);
+ assert.match(route, /trending: result\.rows\.filter/);
+ assert.match(route, /official: result\.rows\.filter/);
+ assert.match(api, /getTrendingCharacters/);
+ assert.match(app, /loadTrending/);
+ assert.match(html, /id="trending"/);
+ assert.match(html, /data-trending-scope="official"/);
 });

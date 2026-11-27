@@ -406,6 +406,69 @@ router.post("/:characterId/view", requireAuth, requireSameOrigin, async (req, re
   }
 });
 
+// GET /api/characters/trending — activité réelle des 7 derniers jours.
+router.get("/trending", async (req, res) => {
+  try {
+    const result = await query(
+      `WITH eligible AS (
+         SELECT c.id, c.slug, c.name, c.tagline,
+                CASE WHEN c.is_system OR c.avatar_status = 'approved' THEN c.avatar_url ELSE NULL END AS avatar_url,
+                c.short_bio, c.category, c.tags, c.is_system,
+                CASE WHEN c.is_system THEN 'NIYYA.ai'::varchar ELSE u.pseudonym END AS creator_pseudonym
+         FROM public.characters c
+         LEFT JOIN public.users u ON u.id = c.owner_user_id
+         WHERE c.status = 'active'
+           AND (c.is_system = TRUE OR (c.visibility = 'public' AND c.publication_status = 'approved'))
+       ),
+       activity AS (
+         SELECT e.id,
+                COUNT(m.id) FILTER (WHERE m.created_at >= NOW() - INTERVAL '7 days')::integer AS messages_7d,
+                COUNT(DISTINCT cv.id) FILTER (WHERE m.created_at >= NOW() - INTERVAL '7 days')::integer AS conversations_7d,
+                COUNT(DISTINCT cv.user_id) FILTER (WHERE m.created_at >= NOW() - INTERVAL '7 days')::integer AS users_7d,
+                COUNT(m.id) FILTER (WHERE m.created_at >= NOW() - INTERVAL '14 days'
+                  AND m.created_at < NOW() - INTERVAL '7 days')::integer AS messages_previous_7d
+         FROM eligible e
+         LEFT JOIN public.conversations cv ON cv.character_id = e.id
+         LEFT JOIN public.messages m ON m.conversation_id = cv.id AND m.role = 'user'
+           AND m.created_at >= NOW() - INTERVAL '14 days'
+         GROUP BY e.id
+       ),
+       scored AS (
+         SELECT e.*, a.messages_7d, a.conversations_7d, a.users_7d,
+                a.messages_previous_7d,
+                (a.messages_7d + a.conversations_7d * 3) AS trend_score,
+                CASE WHEN a.messages_previous_7d = 0 THEN NULL
+                  ELSE ROUND(((a.messages_7d - a.messages_previous_7d)::numeric /
+                    a.messages_previous_7d::numeric) * 100, 1) END AS growth_pct
+         FROM eligible e JOIN activity a ON a.id = e.id
+       )
+       SELECT * FROM (
+         SELECT scored.*,
+           ROW_NUMBER() OVER (PARTITION BY is_system
+             ORDER BY trend_score DESC, messages_7d DESC, name ASC) AS rank
+         FROM scored WHERE messages_7d > 0
+       ) ranked WHERE rank <= 8
+       ORDER BY is_system DESC, rank ASC`
+    );
+    const map = row => ({
+      ...publicCharacter(row),
+      messages_7d: Number(row.messages_7d || 0),
+      conversations_7d: Number(row.conversations_7d || 0),
+      users_7d: Number(row.users_7d || 0),
+      growth_pct: row.growth_pct === null ? null : Number(row.growth_pct),
+      rank: Number(row.rank)
+    });
+    return res.status(200).json({
+      success: true, period_days: 7, updated_at: new Date().toISOString(),
+      trending: result.rows.filter(row => !row.is_system).map(map),
+      official: result.rows.filter(row => row.is_system).map(map)
+    });
+  } catch (error) {
+    console.error("Erreur de classement des tendances :", error.message);
+    return res.status(500).json({ error: "Impossible de charger les tendances pour le moment." });
+  }
+});
+
 // GET /api/characters/:characterId — fiche publique ou personnage appartenant à l'utilisateur.
 router.get("/:characterId", optionalAuth, async (req, res) => {
   try {
