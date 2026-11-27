@@ -237,6 +237,9 @@ document.addEventListener("DOMContentLoaded", () => {
         category === "friendship" ? "categoryFriendship" :
         category === "mystery" ? "categoryMystery" :
         category === "adventure" ? "categoryAdventure" :
+        category === "anime" ? "categoryAnime" :
+        category === "fantasy" ? "categoryFantasy" :
+        category === "science-fiction" ? "categoryScienceFiction" :
         "categoryOriginal";
       const button = element("button", "category" + (activeCategory === category ? " active" : ""),
         (category === "all" ? "✦ " : "") + t(key));

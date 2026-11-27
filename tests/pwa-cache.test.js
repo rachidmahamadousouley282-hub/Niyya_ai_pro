@@ -22,7 +22,7 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v48"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v49"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -83,5 +83,17 @@ test("Community characters are not mislabeled as official NIYYA characters", () 
   assert.match(app, /isOfficialCharacter \? "NIYYA ORIGINAL" : t\("communityArtLabel"\)/);
   for (const label of ["communityCharacterTag", "communityArtLabel"]) {
     assert.equal((i18n.match(new RegExp(label + ":", "g")) || []).length, 4);
+  }
+});
+
+
+test("All discovery categories have explicit translated labels", () => {
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  const i18n = fs.readFileSync(path.join(root, "public/scripts/i18n.js"), "utf8");
+  for (const category of ["anime", "fantasy", "science-fiction"]) {
+    assert.ok(app.includes('category === "' + category + '"'));
+  }
+  for (const key of ["categoryAnime", "categoryFantasy", "categoryScienceFiction"]) {
+    assert.equal((i18n.match(new RegExp(key + ":", "g")) || []).length, 4);
   }
 });
