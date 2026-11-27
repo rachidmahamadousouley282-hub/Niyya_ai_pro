@@ -56,7 +56,7 @@ test("The create navigation item matches the other five destinations", () => {
 });
 
 test("The community uses the same ◎ mark and the support centre is reachable from the profile menu", () => {
-  assert.match(html, /href="#community"><span class="nav-icon" aria-hidden="true">◎<\\/span>/);
+  assert.ok(html.includes('href="#community"><span class="nav-icon" aria-hidden="true">◎</span>'));
   const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
   assert.match(app, /addMenu\("Centre d’assistance", "Contacter l’équipe NIYYA et suivre tes demandes"/);
   assert.match(app, /window.location.href = "\/support.html"/);
