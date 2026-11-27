@@ -15,14 +15,14 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
     .map(match => match[1]);
   assert.ok(assets.length > 0);
   assert.ok(assets.includes("/scripts/analytics.js?v=site-traffic-v1-20261127"));
-  assert.ok(assets.includes("/styles/experience.css?v=experience-home-v1-20261127"));
+  assert.ok(assets.includes("/styles/experience.css?v=search-results-mobile-v1-20261127"));
   for (const asset of assets) {
     assert.ok(serviceWorker.includes(JSON.stringify(asset)), "Missing from shell cache: " + asset);
   }
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v50"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v51"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
