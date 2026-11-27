@@ -940,6 +940,7 @@ document.addEventListener("DOMContentLoaded", () => {
       addMenu("Offre VIP", "Découvrir les avantages premium", "✦", openVipOffers);
       addMenu("Messages", "Retrouver toutes tes discussions", "▤", openConversationHistory);
       addMenu("Mes personnages", "Gérer les personnages que tu as créés", "✦", openMyCharacters);
+      addMenu("Centre d’assistance", "Échanger en privé avec l’équipe NIYYA", "?", () => { window.location.href = "/support.html"; });
       addMenu("Communauté", "Publications et membres NIYYA", "◎", () => {
         document.querySelector('.bottom-nav [href="#community"]')?.click();
       });

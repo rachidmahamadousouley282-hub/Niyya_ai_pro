@@ -14,6 +14,8 @@ const favoritesRoutes = require("./routes/favorites.routes");
 const adminRoutes = require("./routes/admin.routes");
 const communityRoutes = require("./routes/community.routes");
 const settingsRoutes = require("./routes/settings.routes");
+const supportRoutes = require("./routes/support.routes");
+const supportAdminRoutes = require("./routes/support-admin.routes");
 
 const app = express();
 
@@ -85,6 +87,8 @@ app.use("/api/favorites", favoritesRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/community", communityRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/support", supportRoutes);
+app.use("/api/admin/support", supportAdminRoutes);
 
 app.use("/api", (req, res) => {
   return res.status(404).json({
