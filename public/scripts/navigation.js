@@ -30,6 +30,7 @@
       const icon = old?.querySelector(":scope > .nav-icon")?.cloneNode(true)
         || document.createElement("span");
       icon.className = "nav-icon";
+      if (entry.href === "#community") icon.textContent = "◎";
       icon.setAttribute("aria-hidden", "true");
 
       const label = document.createElement("span");

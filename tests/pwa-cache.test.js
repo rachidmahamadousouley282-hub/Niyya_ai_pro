@@ -20,7 +20,7 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v38"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v39"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -53,4 +53,13 @@ test("The create navigation item matches the other five destinations", () => {
   assert.match(styles, /\.bottom-nav \.nav-item\.nav-create > \.nav-icon\s*\{[^}]*flex:\s*0 0 35px/);
   assert.match(styles, /@media \(max-width: 600px\)[\s\S]*?\.bottom-nav \.nav-item\.nav-create > \.nav-icon\s*\{[^}]*flex-basis:\s*34px/);
   assert.match(styles, /grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/);
+});
+
+test("The community uses the same ◎ mark and the support centre is reachable from the profile menu", () => {
+  assert.match(html, /href="#community"><span class="nav-icon" aria-hidden="true">◎<\\/span>/);
+  const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
+  assert.match(app, /addMenu\("Centre d’assistance", "Contacter l’équipe NIYYA et suivre tes demandes"/);
+  assert.match(app, /window.location.href = "\/support.html"/);
+  const navigation = fs.readFileSync(path.join(root, "public/scripts/navigation.js"), "utf8");
+  assert.match(navigation, /entry.href === "#community"\) icon.textContent = "◎"/);
 });

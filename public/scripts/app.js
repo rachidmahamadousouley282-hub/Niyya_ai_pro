@@ -940,11 +940,11 @@ document.addEventListener("DOMContentLoaded", () => {
       addMenu("Offre VIP", "Découvrir les avantages premium", "✦", openVipOffers);
       addMenu("Messages", "Retrouver toutes tes discussions", "▤", openConversationHistory);
       addMenu("Mes personnages", "Gérer les personnages que tu as créés", "✦", openMyCharacters);
-      addMenu("Centre d’assistance", "Échanger en privé avec l’équipe NIYYA", "?", () => { window.location.href = "/support.html"; });
       addMenu("Communauté", "Publications et membres NIYYA", "◎", () => {
         document.querySelector('.bottom-nav [href="#community"]')?.click();
       });
       addMenu("Compte et sécurité", "Connexion, mot de passe et déconnexion", "⌑", openAccountSettings);
+      addMenu("Centre d’assistance", "Contacter l’équipe NIYYA et suivre tes demandes", "?", () => { window.location.href = "/support.html"; });
       if (user.isGuest) {
         const register = element("button", "chat-send niyya-profile-register", "Créer un compte ou se connecter");
         register.type = "button";
