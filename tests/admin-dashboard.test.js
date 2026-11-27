@@ -60,3 +60,15 @@ test("Admin dashboard reports daily site visits, unique visitors, and growth", (
   assert.match(script, /renderTraffic\(trafficData\)/);
   assert.match(script, /Pages vues du site/);
 });
+
+
+test("Traffic measurement is disclosed in the privacy notice and public pages", () => {
+  const privacy = fs.readFileSync(path.join(root, "public/privacy.html"), "utf8");
+  for (const page of ["support.html", "privacy.html", "terms.html"]) {
+    const content = fs.readFileSync(path.join(root, "public", page), "utf8");
+    assert.match(content, /analytics\.js\?v=site-traffic-v1-20261127/);
+  }
+  assert.match(privacy, /identifiant aléatoire pseudonymisé/i);
+  assert.match(privacy, /ni l’adresse IP ni l’agent utilisateur/i);
+  assert.match(html, /Navigateurs uniques estimés/);
+});
