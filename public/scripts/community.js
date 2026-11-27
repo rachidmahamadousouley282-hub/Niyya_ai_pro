@@ -522,7 +522,7 @@
           data.members.forEach(member=>{
             const row=el("button","community-search-result");
             row.type="button";
-            row.append(el("span","community-avatar",initials(member.pseudonym)),el("span","community-search-name",member.pseudonym),el("span","community-muted","Voir le profil →"));
+            row.append(el("span","community-avatar",initials(member.pseudonym)));const name=el("span","community-search-name");appendNameWithBadge(name,member.pseudonym,member.is_official,member.is_verified,member.is_founder);row.append(name,el("span","community-muted","Voir le profil →"));
             row.addEventListener("click",()=>showProfile(member.id));
             list.append(row);
           });
