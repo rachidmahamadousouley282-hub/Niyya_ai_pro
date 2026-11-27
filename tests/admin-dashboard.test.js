@@ -35,6 +35,12 @@ test("Official account announcements can be composed and recent posts reviewed",
 test("Platform analytics separates period activity from lifetime totals", () => {
   assert.match(route, /AS new_members_period/);
   assert.match(route, /AS active_members/);
+  assert.match(route, /AS returning_members_period/);
+  assert.match(route, /dailyActiveMembers/);
+  assert.match(route, /dailyComments/);
+  assert.match(route, /AS comments_period/);
+  assert.match(route, /AS likes_period/);
+  assert.match(route, /AS follows_period/);
   assert.match(route, /m\.role = 'user'/);
   assert.match(route, /AS messages_period/);
   assert.match(route, /AS posts_period/);
@@ -42,8 +48,15 @@ test("Platform analytics separates period activity from lifetime totals", () => 
   assert.match(route, /siteVisits: false/);
   assert.match(html, /id="global-new-members"/);
   assert.match(html, /id="global-period-messages"/);
+  assert.match(html, /id="global-returning-members"/);
+  assert.match(html, /id="global-period-comments"/);
+  assert.match(html, /id="global-period-likes"/);
+  assert.match(html, /id="global-period-follows"/);
   assert.match(html, /visites globales du site et le temps passé ne sont pas encore collectés/i);
   assert.match(script, /platform\.daily\?\.registrations/);
+  assert.match(script, /platform\.daily\?\.activeMembers/);
+  assert.match(script, /platform\.daily\?\.comments/);
+  assert.match(script, /platform\.daily\?\.follows/);
 });
 
 
@@ -82,5 +95,5 @@ test("Admin dashboard appears before secondary panels finish loading and offers 
   assert.match(script, /Promise\.allSettled\(\[platformRequest, trafficRequest\]\)/);
   assert.match(script, /Le serveur met trop de temps à répondre/);
   assert.match(script, /button\.textContent = "Réessayer"/);
-  assert.match(html, /admin\.js\?v=admin-dashboard-v3-20261127/);
+  assert.match(html, /admin\.js\?v=admin-dashboard-v4-20261127/);
 });

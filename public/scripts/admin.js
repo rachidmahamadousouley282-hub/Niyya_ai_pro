@@ -212,6 +212,10 @@
     };
     setMetric("global-members", totals.members_total);
     setMetric("global-active-members", totals.active_members);
+    setMetric("global-returning-members", totals.returning_members_period);
+    setMetric("global-period-comments", totals.comments_period);
+    setMetric("global-period-likes", totals.likes_period);
+    setMetric("global-period-follows", totals.follows_period);
     setMetric("global-new-members", totals.new_members_period);
     setMetric("global-conversations", totals.conversations_total);
     setMetric("global-messages", totals.messages_total);
@@ -300,6 +304,11 @@
         extra.push(["Nouveaux membres", platform.daily?.registrations || []]);
         extra.push(["Messages", platform.daily?.messages || []]);
         extra.push(["Publications", platform.daily?.posts || []]);
+        extra.push(["Membres actifs par jour", platform.daily?.activeMembers || []]);
+        extra.push(["Conversations globales", platform.daily?.conversations || []]);
+        extra.push(["Commentaires", platform.daily?.comments || []]);
+        extra.push(["J’aime sur les publications", platform.daily?.likes || []]);
+        extra.push(["Nouveaux abonnements", platform.daily?.follows || []]);
       }
       renderDaily(characterData?.daily || {}, extra);
     });
