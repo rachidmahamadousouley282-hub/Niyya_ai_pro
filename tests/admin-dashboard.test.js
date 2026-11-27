@@ -45,3 +45,18 @@ test("Platform analytics separates period activity from lifetime totals", () => 
   assert.match(html, /visites globales du site et le temps passé ne sont pas encore collectés/i);
   assert.match(script, /globalData\.daily/);
 });
+
+
+test("Admin dashboard reports daily site visits, unique visitors, and growth", () => {
+  const analyticsRoute = fs.readFileSync(path.join(root, "src/routes/analytics.routes.js"), "utf8");
+  assert.match(route, /router\.get\("\/site-traffic"/);
+  assert.match(route, /pageViewsPercent/);
+  assert.match(route, /uniqueVisitorsPercent/);
+  assert.match(analyticsRoute, /router\.post\("\/pageview"/);
+  assert.match(analyticsRoute, /createHash\("sha256"\)/);
+  assert.doesNotMatch(analyticsRoute, /req\.ip|user-agent/i);
+  assert.match(html, /id="traffic-page-views"/);
+  assert.match(html, /id="traffic-unique-visitors"/);
+  assert.match(script, /renderTraffic\(trafficData\)/);
+  assert.match(script, /Pages vues du site/);
+});

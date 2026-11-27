@@ -159,6 +159,33 @@ router.get("/platform-analytics", requireAuth, async (req, res) => {
   }
 });
 
+router.get("/site-traffic", requireAuth, async (req, res) => {
+  if (req.user.role !== "admin") return res.status(403).json({ error: "Accès réservé à la direction NIYYA.ai." });
+  const requestedDays = Number(req.query.days || 30);
+  const days = [7, 30, 90].includes(requestedDays) ? requestedDays : 30;
+  try {
+    const [current, previous, daily, pages] = await Promise.all([
+      query("SELECT COUNT(*)::bigint AS page_views, COUNT(DISTINCT visitor_key_hash)::bigint AS unique_visitors FROM public.site_analytics_events WHERE occurred_at >= NOW() - ($1::integer * INTERVAL '1 day')", [days]),
+      query("SELECT COUNT(*)::bigint AS page_views, COUNT(DISTINCT visitor_key_hash)::bigint AS unique_visitors FROM public.site_analytics_events WHERE occurred_at >= NOW() - (($1::integer * 2) * INTERVAL '1 day') AND occurred_at < NOW() - ($1::integer * INTERVAL '1 day')", [days]),
+      query("SELECT occurred_at::date AS day, COUNT(*)::bigint AS page_views, COUNT(DISTINCT visitor_key_hash)::bigint AS unique_visitors FROM public.site_analytics_events WHERE occurred_at >= CURRENT_DATE - ($1::integer - 1) GROUP BY occurred_at::date ORDER BY occurred_at::date ASC", [days]),
+      query("SELECT page_path, COUNT(*)::bigint AS page_views, COUNT(DISTINCT visitor_key_hash)::bigint AS unique_visitors FROM public.site_analytics_events WHERE occurred_at >= NOW() - ($1::integer * INTERVAL '1 day') GROUP BY page_path ORDER BY page_views DESC, page_path ASC LIMIT 15", [days])
+    ]);
+    const now = current.rows[0] || {}, before = previous.rows[0] || {};
+    const percent = (a, b) => Number(b || 0) === 0
+      ? (Number(a || 0) > 0 ? null : 0)
+      : Math.round(((Number(a || 0) - Number(b || 0)) / Number(b)) * 1000) / 10;
+    return res.status(200).json({
+      success: true, periodDays: days, current: now, previous: before,
+      growth: { pageViewsPercent: percent(now.page_views, before.page_views), uniqueVisitorsPercent: percent(now.unique_visitors, before.unique_visitors) },
+      daily: daily.rows, pages: pages.rows,
+      tracking: { startedAt: "after-deployment", storesIp: false, storesUserAgent: false }
+    });
+  } catch (error) {
+    console.error("Erreur des statistiques de fréquentation :", error.message);
+    return res.status(500).json({ error: "Impossible de charger les statistiques de fréquentation." });
+  }
+});
+
 router.get("/official/announcements", requireAuth, async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ error: "Accès réservé à l'équipe NIYYA." });

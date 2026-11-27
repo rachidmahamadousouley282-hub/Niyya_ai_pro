@@ -195,6 +195,12 @@
       });
       const globalData = await globalResponse.json().catch(() => ({}));
       if (!globalResponse.ok) throw new Error(globalData.error || "Impossible de charger les statistiques globales.");
+      const trafficResponse = await fetch("/api/admin/site-traffic?days=" + days, {
+        credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store"
+      });
+      const trafficData = await trafficResponse.json().catch(() => ({}));
+      if (!trafficResponse.ok) throw new Error(trafficData.error || "Impossible de charger les visites du site.");
+      renderTraffic(trafficData);
       const totals = globalData.totals || {};
       const setMetric = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = number(value); };
       setMetric("global-members", totals.members_total);
@@ -216,6 +222,8 @@
       document.getElementById("metric-characters").textContent = number(data.summary.public_characters);
       renderRanking(data.topCharacters || []);
       renderDaily(data.daily || {}, [
+        ["Pages vues du site", (trafficData.daily || []).map(row => ({ day: row.day, count: row.page_views }))],
+        ["Visiteurs uniques par jour", (trafficData.daily || []).map(row => ({ day: row.day, count: row.unique_visitors }))],
         ["Nouveaux membres", globalData.daily?.registrations || []],
         ["Messages", globalData.daily?.messages || []],
         ["Publications", globalData.daily?.posts || []]
@@ -226,6 +234,44 @@
     } catch (error) {
       status.textContent = error.message || "Une erreur est survenue.";
     }
+  }
+
+  function renderTraffic(data) {
+    const current = data.current || {};
+    const previous = data.previous || {};
+    const growth = data.growth || {};
+    const views = document.getElementById("traffic-page-views");
+    const visitors = document.getElementById("traffic-unique-visitors");
+    if (views) views.textContent = number(current.page_views);
+    if (visitors) visitors.textContent = number(current.unique_visitors);
+    const formatGrowth = value => value === null || value === undefined
+      ? "Pas de référence sur la période précédente"
+      : (value > 0 ? "+" : "") + String(value).replace(".", ",") + " % vs période précédente";
+    const viewGrowth = document.getElementById("traffic-page-views-growth");
+    const visitorGrowth = document.getElementById("traffic-unique-growth");
+    if (viewGrowth) viewGrowth.textContent = formatGrowth(growth.pageViewsPercent);
+    if (visitorGrowth) visitorGrowth.textContent = formatGrowth(growth.uniqueVisitorsPercent);
+    const note = document.getElementById("traffic-period-note");
+    if (note) note.textContent = "Période actuelle : " + number(current.page_views) + " pages vues et " +
+      number(current.unique_visitors) + " visiteurs uniques · période précédente : " +
+      number(previous.page_views) + " pages vues et " + number(previous.unique_visitors) + " visiteurs uniques.";
+    const body = document.getElementById("traffic-top-pages");
+    if (!body) return;
+    body.replaceChildren();
+    const pages = data.pages || [];
+    if (!pages.length) {
+      const row = document.createElement("tr"), cell = document.createElement("td");
+      cell.colSpan = 3;
+      cell.textContent = "Aucune visite enregistrée depuis l’activation de la mesure.";
+      row.append(cell); body.append(row); return;
+    }
+    pages.forEach(page => {
+      const row = document.createElement("tr");
+      [page.page_path, number(page.page_views), number(page.unique_visitors)].forEach(value => {
+        const cell = document.createElement("td"); cell.textContent = value; row.append(cell);
+      });
+      body.append(row);
+    });
   }
 
   function renderRanking(items) {
@@ -268,7 +314,7 @@
       section.append(heading);
       const list = document.createElement("div");
       list.className = "daily-bars";
-      rows.slice(-14).forEach(row => {
+      rows.slice(-currentDays).forEach(row => {
         const item = document.createElement("div");
         item.className = "daily-bar-row";
         const date = document.createElement("span");

@@ -7,7 +7,7 @@
   <title>NIYYA.ai — Dashboard Direction</title>
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/components.css">
-  <link rel="stylesheet" href="/styles/admin.css?v=admin-dashboard-v2-20261127">
+  <link rel="stylesheet" href="/styles/admin.css?v=admin-traffic-v1-20261127">
 </head>
 <body>
   <main class="admin-shell">
@@ -59,6 +59,19 @@
             <tbody id="character-ranking"><tr><td colspan="4">Chargement…</td></tr></tbody>
           </table>
         </div>
+      </section>
+      <section class="admin-panel" id="site-traffic">
+        <div class="admin-panel-heading"><div><span class="eyebrow">ACQUISITION · FRÉQUENTATION</span><h2>Visites de NIYYA.ai</h2></div></div>
+        <div class="admin-metrics admin-global-metrics">
+          <article class="admin-metric"><span>Pages vues</span><strong id="traffic-page-views">—</strong><small id="traffic-page-views-growth">Comparaison avec la période précédente</small></article>
+          <article class="admin-metric"><span>Visiteurs uniques</span><strong id="traffic-unique-visitors">—</strong><small id="traffic-unique-growth">Visiteurs distincts sur la période</small></article>
+        </div>
+        <p class="admin-footnote" id="traffic-period-note">Comparaison avec la période précédente de même durée.</p>
+        <div class="admin-table-wrap"><table class="admin-table">
+          <thead><tr><th>Page consultée</th><th>Pages vues</th><th>Visiteurs uniques</th></tr></thead>
+          <tbody id="traffic-top-pages"><tr><td colspan="3">Chargement…</td></tr></tbody>
+        </table></div>
+        <p class="admin-footnote">La mesure commence après son activation : les visites antérieures ne peuvent pas être reconstituées. Un identifiant aléatoire pseudonymisé est utilisé ; aucune adresse IP ni aucun agent utilisateur n'est enregistré.</p>
       </section>
       <section class="admin-panel">
         <span class="eyebrow">ÉVOLUTION</span><h2>Activité quotidienne</h2>

@@ -16,6 +16,7 @@ const communityRoutes = require("./routes/community.routes");
 const settingsRoutes = require("./routes/settings.routes");
 const supportRoutes = require("./routes/support.routes");
 const supportAdminRoutes = require("./routes/support-admin.routes");
+const analyticsRoutes = require("./routes/analytics.routes");
 
 const app = express();
 
@@ -89,6 +90,7 @@ app.use("/api/community", communityRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/support", supportRoutes);
 app.use("/api/admin/support", supportAdminRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.use("/api", (req, res) => {
   return res.status(404).json({
