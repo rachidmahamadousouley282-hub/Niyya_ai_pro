@@ -215,8 +215,7 @@
       document.getElementById("metric-chats").textContent = number(data.summary.conversations_started);
       document.getElementById("metric-characters").textContent = number(data.summary.public_characters);
       renderRanking(data.topCharacters || []);
-      renderDaily(data.daily || {});
-      renderDaily(globalData.daily || {}, [
+      renderDaily(data.daily || {}, [
         ["Nouveaux membres", globalData.daily?.registrations || []],
         ["Messages", globalData.daily?.messages || []],
         ["Publications", globalData.daily?.posts || []]
