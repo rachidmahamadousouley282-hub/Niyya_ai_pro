@@ -30,6 +30,115 @@
     }catch(e){box.replaceChildren();const p=document.createElement("p");p.className="admin-report-empty";p.textContent=e.message;box.append(p);}
   }
 
+  const reportReasons = {
+    spam: "Spam",
+    harassment: "Harcèlement",
+    unsafe: "Contenu dangereux",
+    personal_info: "Informations personnelles",
+    other: "Autre motif"
+  };
+
+  async function loadCommunityReports() {
+    const container = document.getElementById("community-reports");
+    container.replaceChildren();
+    const loading = document.createElement("p");
+    loading.className = "admin-report-empty";
+    loading.textContent = "Chargement des signalements…";
+    container.append(loading);
+    try {
+      const response = await fetch("/api/community/moderation/reports", {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        cache: "no-store"
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Impossible de charger les signalements.");
+      renderCommunityReports(data.reports || []);
+    } catch (error) {
+      container.replaceChildren();
+      const message = document.createElement("p");
+      message.className = "admin-report-empty";
+      message.textContent = error.message || "Erreur de chargement des signalements.";
+      container.append(message);
+    }
+  }
+
+  function renderCommunityReports(reports) {
+    const container = document.getElementById("community-reports");
+    container.replaceChildren();
+    if (!reports.length) {
+      const empty = document.createElement("p");
+      empty.className = "admin-report-empty";
+      empty.textContent = "Aucun signalement en attente. La communauté est à jour.";
+      container.append(empty);
+      return;
+    }
+    reports.forEach(report => {
+      const card = document.createElement("article");
+      card.className = "admin-report-card";
+      const heading = document.createElement("div");
+      heading.className = "admin-report-heading";
+      const title = document.createElement("strong");
+      title.textContent = report.target_type === "comment" ? "Commentaire signalé" : "Publication signalée";
+      const reason = document.createElement("span");
+      reason.className = "admin-report-reason";
+      reason.textContent = reportReasons[report.reason] || "Autre motif";
+      heading.append(title, reason);
+      const excerpt = document.createElement("p");
+      excerpt.className = "admin-report-body";
+      excerpt.textContent = report.target_body || "Contenu signalé sans texte (image ou contenu indisponible).";
+      const meta = document.createElement("p");
+      meta.className = "admin-report-meta";
+      const date = report.created_at ? new Date(report.created_at).toLocaleString("fr-FR") : "Date inconnue";
+      meta.textContent = "Signalé par " + (report.reporter_name || "un membre") + " · " + date;
+      const actions = document.createElement("div");
+      actions.className = "admin-report-actions";
+      const keep = document.createElement("button");
+      keep.type = "button";
+      keep.className = "admin-report-keep";
+      keep.textContent = "Conserver";
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "admin-report-remove";
+      remove.textContent = "Retirer le contenu";
+      const feedback = document.createElement("span");
+      feedback.className = "admin-report-feedback";
+      async function decide(decision, button) {
+        if (keep.disabled || remove.disabled) return;
+        keep.disabled = true;
+        remove.disabled = true;
+        feedback.textContent = "Enregistrement…";
+        try {
+          const response = await fetch("/api/community/moderation/reports/" + encodeURIComponent(report.id), {
+            method: "PATCH",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ decision })
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.error || "Impossible d'enregistrer cette décision.");
+          card.remove();
+          if (!container.querySelector(".admin-report-card")) {
+            const empty = document.createElement("p");
+            empty.className = "admin-report-empty";
+            empty.textContent = "Aucun signalement en attente. La communauté est à jour.";
+            container.append(empty);
+          }
+        } catch (error) {
+          feedback.textContent = error.message || "Erreur.";
+          keep.disabled = false;
+          remove.disabled = false;
+        }
+      }
+      keep.addEventListener("click", () => decide("keep", keep));
+      remove.addEventListener("click", () => decide("remove", remove));
+      actions.append(keep, remove, feedback);
+      card.append(heading, excerpt, meta, actions);
+      container.append(card);
+    });
+  }
+
+
   async function requestJson(url, timeoutMs = 12000) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), timeoutMs);

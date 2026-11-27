@@ -43,7 +43,7 @@ test("Platform analytics separates period activity from lifetime totals", () => 
   assert.match(html, /id="global-new-members"/);
   assert.match(html, /id="global-period-messages"/);
   assert.match(html, /visites globales du site et le temps passé ne sont pas encore collectés/i);
-  assert.match(script, /globalData\.daily/);
+  assert.match(script, /platform\.daily\?\.registrations/);
 });
 
 
@@ -57,7 +57,7 @@ test("Admin dashboard reports daily site visits, unique visitors, and growth", (
   assert.doesNotMatch(analyticsRoute, /req\.ip|user-agent/i);
   assert.match(html, /id="traffic-page-views"/);
   assert.match(html, /id="traffic-unique-visitors"/);
-  assert.match(script, /renderTraffic\(trafficData\)/);
+  assert.match(script, /renderTraffic\(data\)/);
   assert.match(script, /Pages vues du site/);
 });
 
