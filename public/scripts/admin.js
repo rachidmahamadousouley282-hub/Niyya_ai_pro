@@ -30,22 +30,53 @@
     }catch(e){box.replaceChildren();const p=document.createElement("p");p.className="admin-report-empty";p.textContent=e.message;box.append(p);}
   }
 
-  async function load(days = currentDays) {
-    currentDays = days;
+  async function requestJson(url, timeoutMs = 12000) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        credentials: "same-origin",
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+        signal: controller.signal
+      });
+      const data = await response.json().catch(() => ({}));
+      return { response, data };
+    } catch (error) {
+      if (error.name === "AbortError") throw new Error("Le serveur met trop de temps à répondre. Tu peux réessayer.");
+      throw new Error("Connexion impossible. Vérifie Internet puis réessaie.");
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  function showDashboardMessage(message, retry = false, isError = false) {
     status.hidden = false;
-    status.textContent = "Chargement des statistiques…";
-    dashboard.hidden = true;
-    async function loadSystemStatus() {
+    status.replaceChildren(document.createTextNode(message));
+    status.dataset.state = isError ? "error" : "loading";
+    if (retry) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "admin-retry";
+      button.textContent = "Réessayer";
+      button.addEventListener("click", () => load(currentDays));
+      status.append(document.createTextNode(" "), button);
+    }
+  }
+
+  function showPanelError(id, message) {
+    const node = document.getElementById(id);
+    if (!node) return;
+    node.textContent = message;
+    node.dataset.state = "error";
+  }
+
+  async function loadSystemStatus() {
     const container = document.getElementById("ai-provider-status");
     if (!container) return;
     container.textContent = "Vérification de la configuration IA…";
     try {
-      const response = await fetch("/api/admin/system-status", {
-        credentials: "same-origin",
-        headers: { Accept: "application/json" },
-        cache: "no-store"
-      });
-      const data = await response.json().catch(() => ({}));
+      const { response, data } = await requestJson("/api/admin/system-status");
       if (!response.ok) throw new Error(data.error || "Configuration IA indisponible.");
       const ai = data.ai || {};
       if (ai.provider === "mock") {
@@ -64,176 +95,105 @@
     }
   }
 
-  const reportReasons = {
-    spam: "Spam",
-    harassment: "Harcèlement",
-    unsafe: "Contenu dangereux",
-    personal_info: "Informations personnelles",
-    other: "Autre motif"
-  };
-
-  async function loadCommunityReports() {
-    const container = document.getElementById("community-reports");
-    container.replaceChildren();
-    const loading = document.createElement("p");
-    loading.className = "admin-report-empty";
-    loading.textContent = "Chargement des signalements…";
-    container.append(loading);
-    try {
-      const response = await fetch("/api/community/moderation/reports", {
-        credentials: "same-origin",
-        headers: { Accept: "application/json" },
-        cache: "no-store"
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Impossible de charger les signalements.");
-      renderCommunityReports(data.reports || []);
-    } catch (error) {
-      container.replaceChildren();
-      const message = document.createElement("p");
-      message.className = "admin-report-empty";
-      message.textContent = error.message || "Erreur de chargement des signalements.";
-      container.append(message);
-    }
+  function renderPlatformAnalytics(data) {
+    const totals = data.totals || {};
+    const setMetric = (id, value) => {
+      const node = document.getElementById(id);
+      if (node) node.textContent = number(value);
+    };
+    setMetric("global-members", totals.members_total);
+    setMetric("global-active-members", totals.active_members);
+    setMetric("global-new-members", totals.new_members_period);
+    setMetric("global-conversations", totals.conversations_total);
+    setMetric("global-messages", totals.messages_total);
+    setMetric("global-period-messages", totals.messages_period);
+    setMetric("global-period-posts", totals.posts_period);
+    setMetric("global-posts", totals.posts_total);
+    setMetric("global-comments", totals.comments_total);
+    setMetric("global-likes", totals.likes_total);
+    setMetric("global-follows", totals.follows_total);
+    setMetric("global-views", totals.character_views_total);
+    const note = document.getElementById("global-conversations-note");
+    if (note) note.textContent = number(totals.conversations_period) + " sur la période · total historique";
+    const message = document.getElementById("global-analytics-status");
+    if (message) message.textContent = "Statistiques actualisées.";
   }
 
-  function renderCommunityReports(reports) {
-    const container = document.getElementById("community-reports");
-    container.replaceChildren();
-    if (!reports.length) {
-      const empty = document.createElement("p");
-      empty.className = "admin-report-empty";
-      empty.textContent = "Aucun signalement en attente. La communauté est à jour.";
-      container.append(empty);
-      return;
-    }
-    reports.forEach(report => {
-      const card = document.createElement("article");
-      card.className = "admin-report-card";
-      const heading = document.createElement("div");
-      heading.className = "admin-report-heading";
-      const title = document.createElement("strong");
-      title.textContent = report.target_type === "comment" ? "Commentaire signalé" : "Publication signalée";
-      const reason = document.createElement("span");
-      reason.className = "admin-report-reason";
-      reason.textContent = reportReasons[report.reason] || "Autre motif";
-      heading.append(title, reason);
-      const excerpt = document.createElement("p");
-      excerpt.className = "admin-report-body";
-      excerpt.textContent = report.target_body || "Contenu signalé sans texte (image ou contenu indisponible).";
-      const meta = document.createElement("p");
-      meta.className = "admin-report-meta";
-      const date = report.created_at ? new Date(report.created_at).toLocaleString("fr-FR") : "Date inconnue";
-      meta.textContent = "Signalé par " + (report.reporter_name || "un membre") + " · " + date;
-      const actions = document.createElement("div");
-      actions.className = "admin-report-actions";
-      const keep = document.createElement("button");
-      keep.type = "button";
-      keep.className = "admin-report-keep";
-      keep.textContent = "Conserver";
-      const remove = document.createElement("button");
-      remove.type = "button";
-      remove.className = "admin-report-remove";
-      remove.textContent = "Retirer le contenu";
-      const feedback = document.createElement("span");
-      feedback.className = "admin-report-feedback";
-      async function decide(decision, button) {
-        if (keep.disabled || remove.disabled) return;
-        keep.disabled = true;
-        remove.disabled = true;
-        feedback.textContent = "Enregistrement…";
-        try {
-          const response = await fetch("/api/community/moderation/reports/" + encodeURIComponent(report.id), {
-            method: "PATCH",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json", Accept: "application/json" },
-            body: JSON.stringify({ decision })
-          });
-          const data = await response.json().catch(() => ({}));
-          if (!response.ok) throw new Error(data.error || "Impossible d'enregistrer cette décision.");
-          card.remove();
-          if (!container.querySelector(".admin-report-card")) {
-            const empty = document.createElement("p");
-            empty.className = "admin-report-empty";
-            empty.textContent = "Aucun signalement en attente. La communauté est à jour.";
-            container.append(empty);
-          }
-        } catch (error) {
-          feedback.textContent = error.message || "Erreur.";
-          keep.disabled = false;
-          remove.disabled = false;
-        }
-      }
-      keep.addEventListener("click", () => decide("keep", keep));
-      remove.addEventListener("click", () => decide("remove", remove));
-      actions.append(keep, remove, feedback);
-      card.append(heading, excerpt, meta, actions);
-      container.append(card);
-    });
-  }
-
-  document.querySelectorAll("[data-days]").forEach(button =>
+  async function load(days = currentDays) {
+    currentDays = days;
+    dashboard.hidden = false;
+    showDashboardMessage("Ouverture du tableau de bord…");
+    document.querySelectorAll("[data-days]").forEach(button =>
       button.classList.toggle("active", Number(button.dataset.days) === days));
+
+    const characterRequest = requestJson("/api/admin/character-analytics?days=" + days);
+    const platformRequest = requestJson("/api/admin/platform-analytics?days=" + days);
+    const trafficRequest = requestJson("/api/admin/site-traffic?days=" + days);
+
+    let characterData = null;
     try {
-      const response = await fetch("/api/admin/character-analytics?days=" + days, {
-        credentials: "same-origin",
-        headers: { Accept: "application/json" }
-      });
-      const data = await response.json().catch(() => ({}));
+      const { response, data } = await characterRequest;
       if (response.status === 401) {
-        status.textContent = "Connecte-toi d’abord à ton compte NIYYA.ai, puis ouvre à nouveau ce tableau.";
+        dashboard.hidden = true;
+        showDashboardMessage("Connecte-toi à ton compte NIYYA.ai, puis ouvre à nouveau ce tableau.", true, true);
         return;
       }
       if (response.status === 403) {
-        status.textContent = "Accès réservé aux comptes autorisés de la direction NIYYA.ai.";
+        dashboard.hidden = true;
+        showDashboardMessage("Accès réservé aux comptes autorisés de la direction NIYYA.ai.", false, true);
         return;
       }
-      if (!response.ok) throw new Error(data.error || "Impossible de charger les statistiques.");
+      if (!response.ok) throw new Error(data.error || "Impossible de vérifier les accès au dashboard.");
+
       currentData = data;
-      const globalResponse = await fetch("/api/admin/platform-analytics?days=" + days, {
-        credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store"
-      });
-      const globalData = await globalResponse.json().catch(() => ({}));
-      if (!globalResponse.ok) throw new Error(globalData.error || "Impossible de charger les statistiques globales.");
-      const trafficResponse = await fetch("/api/admin/site-traffic?days=" + days, {
-        credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store"
-      });
-      const trafficData = await trafficResponse.json().catch(() => ({}));
-      if (!trafficResponse.ok) throw new Error(trafficData.error || "Impossible de charger les visites du site.");
-      renderTraffic(trafficData);
-      const totals = globalData.totals || {};
-      const setMetric = (id, value) => { const node = document.getElementById(id); if (node) node.textContent = number(value); };
-      setMetric("global-members", totals.members_total);
-      setMetric("global-active-members", totals.active_members);
-      setMetric("global-new-members", totals.new_members_period);
-      setMetric("global-conversations", totals.conversations_total);
-      setMetric("global-messages", totals.messages_total);
-      setMetric("global-period-messages", totals.messages_period);
-      setMetric("global-period-posts", totals.posts_period);
-      const conversationsNote = document.getElementById("global-conversations-note");
-      if (conversationsNote) conversationsNote.textContent = number(totals.conversations_period) + " sur la période · total historique";
-      setMetric("global-comments", totals.comments_total);
-      setMetric("global-likes", totals.likes_total);
-      setMetric("global-follows", totals.follows_total);
-      setMetric("global-views", totals.character_views_total);
-      document.getElementById("metric-views").textContent = number(data.summary.views);
-      document.getElementById("metric-likes").textContent = number(data.summary.likes);
-      document.getElementById("metric-chats").textContent = number(data.summary.conversations_started);
-      document.getElementById("metric-characters").textContent = number(data.summary.public_characters);
+      characterData = data;
+      const summary = data.summary || {};
+      document.getElementById("metric-views").textContent = number(summary.views);
+      document.getElementById("metric-likes").textContent = number(summary.likes);
+      document.getElementById("metric-chats").textContent = number(summary.conversations_started);
+      document.getElementById("metric-characters").textContent = number(summary.public_characters);
       renderRanking(data.topCharacters || []);
-      renderDaily(data.daily || {}, [
-        ["Pages vues du site", (trafficData.daily || []).map(row => ({ day: row.day, count: row.page_views }))],
-        ["Visiteurs uniques par jour", (trafficData.daily || []).map(row => ({ day: row.day, count: row.unique_visitors }))],
-        ["Nouveaux membres", globalData.daily?.registrations || []],
-        ["Messages", globalData.daily?.messages || []],
-        ["Publications", globalData.daily?.posts || []]
-      ]);
-      await Promise.all([loadCommunityReports(), loadSystemStatus(), loadSupportTickets()]);
       status.hidden = true;
-      dashboard.hidden = false;
     } catch (error) {
-      status.textContent = error.message || "Une erreur est survenue.";
+      showDashboardMessage(error.message || "Impossible de charger le dashboard.", true, true);
+      return;
     }
+
+    platformRequest.then(({ response, data }) => {
+      if (!response.ok) throw new Error(data.error || "Statistiques globales indisponibles.");
+      renderPlatformAnalytics(data);
+      return data;
+    }).catch(error => showPanelError("global-analytics-status", error.message || "Erreur de chargement des statistiques globales."));
+
+    trafficRequest.then(({ response, data }) => {
+      if (!response.ok) throw new Error(data.error || "Visites du site indisponibles.");
+      renderTraffic(data);
+      const trafficStatus = document.getElementById("traffic-analytics-status");
+      if (trafficStatus) trafficStatus.textContent = "Fréquentation actualisée.";
+      return data;
+    }).catch(error => showPanelError("traffic-analytics-status", error.message || "Erreur de chargement des visites."));
+
+    loadCommunityReports();
+    loadSystemStatus();
+    loadSupportTickets();
+
+    Promise.allSettled([platformRequest, trafficRequest]).then(results => {
+      const platform = results[0].status === "fulfilled" && results[0].value.response.ok
+        ? results[0].value.data : null;
+      const traffic = results[1].status === "fulfilled" && results[1].value.response.ok
+        ? results[1].value.data : null;
+      const extra = [];
+      if (traffic) {
+        extra.push(["Pages vues du site", (traffic.daily || []).map(row => ({ day: row.day, count: row.page_views }))]);
+        extra.push(["Navigateurs uniques par jour", (traffic.daily || []).map(row => ({ day: row.day, count: row.unique_visitors }))]);
+      }
+      if (platform) {
+        extra.push(["Nouveaux membres", platform.daily?.registrations || []]);
+        extra.push(["Messages", platform.daily?.messages || []]);
+        extra.push(["Publications", platform.daily?.posts || []]);
+      }
+      renderDaily(characterData?.daily || {}, extra);
+    });
   }
 
   function renderTraffic(data) {
