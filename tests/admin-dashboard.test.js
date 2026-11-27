@@ -72,3 +72,15 @@ test("Traffic measurement is disclosed in the privacy notice and public pages", 
   assert.match(privacy, /ni l’adresse IP ni l’agent utilisateur/i);
   assert.match(html, /Navigateurs uniques estimés/);
 });
+
+
+test("Admin dashboard appears before secondary panels finish loading and offers retry on access failure", () => {
+  assert.match(script, /dashboard\.hidden = false/);
+  assert.match(script, /const characterRequest = requestJson/);
+  assert.match(script, /const platformRequest = requestJson/);
+  assert.match(script, /const trafficRequest = requestJson/);
+  assert.match(script, /Promise\.allSettled\(\[platformRequest, trafficRequest\]\)/);
+  assert.match(script, /Le serveur met trop de temps à répondre/);
+  assert.match(script, /button\.textContent = "Réessayer"/);
+  assert.match(html, /admin\.js\?v=admin-dashboard-v3-20261127/);
+});
