@@ -6,6 +6,30 @@
   let currentData = null;
   let currentDays = 30;
 
+
+  async function loadSupportTickets() {
+    const box=document.getElementById("admin-support-list"); if(!box)return;
+    box.replaceChildren(); const loading=document.createElement("p");loading.className="admin-report-empty";loading.textContent="Chargement…";box.append(loading);
+    try {
+      const r=await fetch("/api/admin/support/tickets",{credentials:"same-origin",headers:{Accept:"application/json"},cache:"no-store"});
+      const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Impossible de charger les demandes.");
+      box.replaceChildren();if(!d.tickets.length){const empty=document.createElement("p");empty.className="admin-report-empty";empty.textContent="Aucune demande pour le moment.";box.append(empty);return;}
+      d.tickets.forEach(t=>{const b=document.createElement("button");b.type="button";b.className="admin-support-ticket";const title=document.createElement("strong");title.textContent=t.subject;const meta=document.createElement("small");meta.textContent=(t.member_name||"Membre")+" · "+({open:"En attente",in_progress:"En cours",resolved:"Résolue",closed:"Clôturée"}[t.status]||t.status);const excerpt=document.createElement("span");excerpt.textContent=String(t.last_message||"").slice(0,100);b.append(title,meta,excerpt);b.addEventListener("click",()=>openSupportTicket(t.id));box.append(b);});
+    }catch(e){box.replaceChildren();const p=document.createElement("p");p.className="admin-report-empty";p.textContent=e.message;box.append(p);}
+  }
+  async function openSupportTicket(id) {
+    const box=document.getElementById("admin-support-detail");box.replaceChildren();const wait=document.createElement("p");wait.className="admin-report-empty";wait.textContent="Chargement de l’échange privé…";box.append(wait);
+    try{
+      const r=await fetch("/api/admin/support/tickets/"+encodeURIComponent(id),{credentials:"same-origin",headers:{Accept:"application/json"},cache:"no-store"});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||"Impossible d’ouvrir la demande.");
+      box.replaceChildren();const title=document.createElement("h3");title.textContent=d.ticket.subject;const meta=document.createElement("p");meta.className="admin-report-meta";meta.textContent=(d.ticket.member_name||"Membre")+" · "+new Date(d.ticket.created_at).toLocaleString("fr-FR");const messages=document.createElement("div");messages.className="admin-support-messages";
+      d.messages.forEach(m=>{const card=document.createElement("article");card.className="admin-support-message "+m.sender_role;const who=document.createElement("strong");who.textContent=m.sender_role==="admin"?"Équipe NIYYA":(m.sender_name||"Membre");const body=document.createElement("p");body.textContent=m.body;const date=document.createElement("small");date.textContent=new Date(m.created_at).toLocaleString("fr-FR");card.append(who,body,date);messages.append(card);});
+      const controls=document.createElement("div");controls.className="admin-support-controls";const select=document.createElement("select");select.setAttribute("aria-label","Statut de la demande");[["open","En attente"],["in_progress","En cours"],["resolved","Résolue"],["closed","Clôturée"]].forEach(([v,label])=>{const o=document.createElement("option");o.value=v;o.textContent=label;o.selected=v===d.ticket.status;select.append(o);});
+      const save=document.createElement("button");save.type="button";save.className="admin-export";save.textContent="Enregistrer le statut";save.addEventListener("click",async()=>{save.disabled=true;try{const q=await fetch("/api/admin/support/tickets/"+encodeURIComponent(id),{method:"PATCH",credentials:"same-origin",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({status:select.value})});const x=await q.json().catch(()=>({}));if(!q.ok)throw new Error(x.error||"Échec de mise à jour.");await loadSupportTickets();await openSupportTicket(id);}catch(e){feedback.textContent=e.message;}finally{save.disabled=false;}});controls.append(select,save);
+      const form=document.createElement("form");form.className="admin-support-reply";const area=document.createElement("textarea");area.rows=4;area.maxLength=5000;area.minLength=2;area.required=true;area.placeholder="Répondre au membre…";area.disabled=d.ticket.status==="closed";const send=document.createElement("button");send.type="submit";send.className="admin-export";send.textContent="Envoyer la réponse";send.disabled=d.ticket.status==="closed";const feedback=document.createElement("p");feedback.className="admin-report-feedback";feedback.setAttribute("role","status");form.append(area,send,feedback);form.addEventListener("submit",async e=>{e.preventDefault();send.disabled=true;try{const q=await fetch("/api/admin/support/tickets/"+encodeURIComponent(id)+"/messages",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json",Accept:"application/json"},body:JSON.stringify({body:area.value})});const x=await q.json().catch(()=>({}));if(!q.ok)throw new Error(x.error||"Échec de l’envoi.");await loadSupportTickets();await openSupportTicket(id);}catch(e){feedback.textContent=e.message;}finally{send.disabled=false;}});
+      box.append(title,meta,messages,controls,form);
+    }catch(e){box.replaceChildren();const p=document.createElement("p");p.className="admin-report-empty";p.textContent=e.message;box.append(p);}
+  }
+
   async function load(days = currentDays) {
     currentDays = days;
     status.hidden = false;
@@ -172,7 +196,7 @@
       document.getElementById("metric-characters").textContent = number(data.summary.public_characters);
       renderRanking(data.topCharacters || []);
       renderDaily(data.daily || {});
-      await Promise.all([loadCommunityReports(), loadSystemStatus()]);
+      await Promise.all([loadCommunityReports(), loadSystemStatus(), loadSupportTickets()]);
       status.hidden = true;
       dashboard.hidden = false;
     } catch (error) {
@@ -248,6 +272,7 @@
   document.querySelectorAll("[data-days]").forEach(button =>
     button.addEventListener("click", () => load(Number(button.dataset.days))));
   document.getElementById("reload-community-reports")?.addEventListener("click", loadCommunityReports);
+  document.getElementById("reload-support-tickets")?.addEventListener("click", loadSupportTickets);
   document.getElementById("export-csv").addEventListener("click", () => {
     if (!currentData) return;
     const rows = [["Personnage", "Consultations", "J'aime", "Conversations"]];

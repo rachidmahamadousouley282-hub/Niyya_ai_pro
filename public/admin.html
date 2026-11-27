@@ -7,7 +7,7 @@
   <title>NIYYA.ai — Dashboard Direction</title>
   <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/styles/components.css">
-  <link rel="stylesheet" href="/styles/admin.css?v=admin-diagnostics-v1-20261126">
+  <link rel="stylesheet" href="/styles/admin.css?v=admin-support-v1-20261127">
 </head>
 <body>
   <main class="admin-shell">
@@ -62,9 +62,13 @@
           <p class="admin-report-empty">Chargement des signalements…</p>
         </div>
       </section>
-      <p class="admin-footnote">Données agrégées uniquement. Ce tableau ne donne pas accès aux messages privés ni au contenu des conversations.</p>
+      <section class="admin-panel" id="admin-support">
+        <div class="admin-panel-heading"><div><span class="eyebrow">RELATION MEMBRES</span><h2>Centre d’assistance privé</h2></div><button id="reload-support-tickets" type="button" class="admin-export">Actualiser</button></div>
+        <div class="admin-support-layout"><div id="admin-support-list" class="admin-support-list"><p class="admin-report-empty">Chargement des demandes…</p></div><div id="admin-support-detail" class="admin-support-detail"><p class="admin-report-empty">Sélectionne une demande pour consulter l’échange privé.</p></div></div>
+      </section>
+      <p class="admin-footnote">Les demandes sont privées et visibles uniquement par le membre concerné et les administrateurs autorisés.</p>
     </section>
   </main>
-  <script src="/scripts/admin.js?v=admin-diagnostics-v1-20261126"></script>
+  <script src="/scripts/admin.js?v=admin-support-v1-20261127"></script>
 </body>
 </html>
