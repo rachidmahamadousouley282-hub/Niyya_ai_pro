@@ -381,85 +381,70 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  let activeHistoryCleanup = null;
   async function openConversationHistory() {
+    activeHistoryCleanup?.();
     setActiveNav("#messages");
     document.querySelector(".niyya-modal")?.remove();
-    const modal = element("div", "niyya-modal messages-fullscreen-modal");
-    const panel = element("section", "modal-panel history-panel messages-fullscreen-panel");
+    document.querySelector(".niyya-account-page")?.remove();
+    const page = element("div", "niyya-messages-page");
+    const panel = element("section", "modal-panel history-panel niyya-messages-panel");
     panel.setAttribute("aria-label", "Mes conversations");
     const header = element("div", "history-heading");
-    header.append(element("span", "eyebrow", "NIYYA.ai"),
-      element("h2", "", t("history")));
-    const close = element("button", "modal-close", "←");
-    close.type = "button";
-    close.setAttribute("aria-label", t("close"));
-    header.append(close);
+    header.append(element("span", "eyebrow", "NIYYA.ai"), element("h2", "", t("history")));
     const list = element("div", "history-list");
     list.append(element("p", "chat-status", t("historyLoading")));
-    panel.append(header, list);
-    modal.append(panel);
-    document.body.append(modal);
-    const dismiss = () => {
-      modal.remove();
-      setActiveNav("#");
-    };
-    close.addEventListener("click", dismiss);
-    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
-
-    try {
-      await ensureGuest();
-      const data = await window.NiyyaAPI.getConversations();
-      list.replaceChildren();
-      const conversations = Array.isArray(data.conversations) ? data.conversations : [];
-      if (!conversations.length) {
-        list.append(element("p", "empty-state", t("historyEmpty")));
-      }
-
-      // Reserved, non-intrusive sponsor placement. It stays hidden until a
-      // verified ad provider supplies an approved creative and consent state.
-      const adSlot = element("aside", "history-ad-slot");
-      adSlot.dataset.adSlot = "history";
-      adSlot.hidden = true;
-      adSlot.setAttribute("aria-hidden", "true");
-      adSlot.setAttribute("aria-label", "Espace sponsorisé");
-      list.append(adSlot);
-
-      conversations.forEach(conversation => {
-        const row = element("button", "history-row");
-        row.type = "button";
-        const avatar = element("span", "history-avatar",
-          (conversation.character_name || "N").slice(0, 1).toUpperCase());
-        const details = element("span", "history-details");
-        details.append(
-          element("strong", "", conversation.character_name || "Personnage"),
-          element("small", "", conversation.title || "Conversation")
-        );
-        const date = conversation.updated_at
-          ? new Date(conversation.updated_at).toLocaleDateString(
-              window.NiyyaI18n?.getLanguage() || "fr",
-              { day: "numeric", month: "short" }
-            )
-          : "";
-        row.append(avatar, details, element("span", "history-date", date));
-        row.addEventListener("click", async () => {
-          row.disabled = true;
-          try {
-            const result = await window.NiyyaAPI.getCharacter(conversation.character_id);
-            if (!result.character) throw new Error("Personnage introuvable.");
-            dismiss();
-            // Open the permanent character thread; legacy dated threads are
-            // consolidated by the conversation endpoint when it is resumed.
-            openChat(result.character, null);
-          } catch (error) {
-            row.disabled = false;
-            showToast(error.message || "Impossible d'ouvrir cette conversation.");
-          }
+    panel.append(header, list); page.append(panel); document.body.append(page);
+    let refreshInProgress = false, refreshTimer = null;
+    const refreshHistory = async () => {
+      if (!page.isConnected || document.hidden || refreshInProgress) return;
+      refreshInProgress = true;
+      try {
+        const data = await window.NiyyaAPI.getConversations();
+        if (!page.isConnected) return;
+        const conversations = Array.isArray(data.conversations) ? data.conversations : [];
+        const rows = [];
+        if (!conversations.length) rows.push(element("p", "empty-state", t("historyEmpty")));
+        const adSlot = element("aside", "history-ad-slot");
+        adSlot.dataset.adSlot = "history"; adSlot.hidden = true;
+        adSlot.setAttribute("aria-hidden", "true"); adSlot.setAttribute("aria-label", "Espace sponsorisé");
+        rows.push(adSlot);
+        conversations.forEach(conversation => {
+          const row = element("button", "history-row"); row.type = "button";
+          const avatar = element("span", "history-avatar", (conversation.character_name || "N").slice(0,1).toUpperCase());
+          const details = element("span", "history-details");
+          details.append(element("strong", "", conversation.character_name || "Personnage"), element("small", "", conversation.title || "Conversation"));
+          const date = conversation.updated_at ? new Date(conversation.updated_at).toLocaleDateString(window.NiyyaI18n?.getLanguage() || "fr", {day:"numeric",month:"short"}) : "";
+          row.append(avatar, details, element("span", "history-date", date));
+          row.addEventListener("click", async () => {
+            row.disabled = true;
+            try {
+              const result = await window.NiyyaAPI.getCharacter(conversation.character_id);
+              if (!result.character) throw new Error("Personnage introuvable.");
+              activeHistoryCleanup?.(); openChat(result.character, null);
+            } catch (error) { row.disabled = false; showToast(error.message || "Impossible d'ouvrir cette conversation."); }
+          });
+          rows.push(row);
         });
-        list.append(row);
-      });
-    } catch (error) {
-      list.replaceChildren(element("p", "empty-state", error.message || t("historyError")));
-    }
+        list.replaceChildren(...rows);
+      } catch (error) {
+        if (!list.querySelector(".history-row")) list.replaceChildren(element("p", "empty-state", error.message || t("historyError")));
+      } finally { refreshInProgress = false; }
+    };
+    const refreshOnReturn = () => { if (!document.hidden) refreshHistory(); };
+    const cleanup = () => {
+      if (refreshTimer) clearInterval(refreshTimer);
+      window.removeEventListener("focus", refreshOnReturn);
+      document.removeEventListener("visibilitychange", refreshOnReturn);
+      page.remove();
+      if (activeHistoryCleanup === cleanup) activeHistoryCleanup = null;
+    };
+    activeHistoryCleanup = cleanup;
+    document.querySelector(".bottom-nav")?.addEventListener("click", cleanup, {once:true});
+    window.addEventListener("focus", refreshOnReturn);
+    document.addEventListener("visibilitychange", refreshOnReturn);
+    try { await ensureGuest(); await refreshHistory(); refreshTimer = setInterval(refreshHistory, 30000); }
+    catch (error) { list.replaceChildren(element("p", "empty-state", error.message || t("historyError"))); }
   }
 
   async function refreshQuota() {
@@ -839,9 +824,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  document.getElementById("vip-offer-button")?.addEventListener("click", openVipOffers);
-  document.getElementById("vip-home-button")?.addEventListener("click", openVipOffers);
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
+
+  document.querySelector(".bottom-nav")?.addEventListener("click", event => {
+    const link = event.target.closest(".nav-item"); if (!link) return;
+    const href = link.getAttribute("href");
+    if (href === "#messages") { event.preventDefault(); openConversationHistory(); }
+    else if (href === "#profile") { event.preventDefault(); activeHistoryCleanup?.(); openAccount(); }
+    else if (href === "#create") { event.preventDefault(); activeHistoryCleanup?.(); document.querySelector(".niyya-account-page")?.remove(); openCreator(); }
+    else { activeHistoryCleanup?.(); document.querySelector(".niyya-account-page")?.remove(); }
+  });
   document.getElementById("profile-button")?.addEventListener("click", openAccount);
 
   async function refreshNotificationBadge() {
@@ -882,10 +874,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const header = element("div", "niyya-profile-header");
     const heading = element("div");
     heading.append(element("span", "eyebrow", "ABONNEMENT"));
-    const title = element("h2", "", "Offre VIP");
-    title.id = "niyya-vip-title";
-    heading.append(title);
-    header.append(heading);
+    const close = element("button", "modal-close", "×");
+    close.type = "button"; close.setAttribute("aria-label", "Fermer");
+    const title = element("h2", "", "Offre VIP"); title.id = "niyya-vip-title";
+    heading.append(title); header.append(heading, close);
 
     const body = element("div", "niyya-profile-content");
     const plan = element("section", "niyya-vip-plan niyya-vip-featured");
@@ -909,9 +901,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.append(modal);
 
     const dismiss = () => modal.remove();
-    const nav = document.querySelector(".bottom-nav");
-    const closeOnNavigation = () => dismiss();
-    nav?.addEventListener("click", closeOnNavigation, { once: true });
     close.addEventListener("click", dismiss);
     modal.addEventListener("click", event => {
       if (event.target === modal) dismiss();
@@ -920,6 +909,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function openAccount() {
     document.querySelector(".niyya-modal")?.remove();
+    activeHistoryCleanup?.();
     document.querySelector(".niyya-account-page")?.remove();
     const modal = element("div", "niyya-account-page");
     const panel = element("section", "modal-panel niyya-profile-panel");

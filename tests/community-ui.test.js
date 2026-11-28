@@ -62,7 +62,6 @@ test("Official and verified badges stay beside names across feed, profiles and m
   assert.ok(source.includes("appendNameWithBadge(nameWrap, post.author_name, post.is_official, post.is_verified, post.is_founder, post.author_is_admin)"));
   assert.ok(source.includes("appendNameWithBadge(profileName, p.pseudonym, p.is_official, p.is_verified, p.is_founder, p.is_admin)"));
   assert.ok(source.includes("appendNameWithBadge(details, member.pseudonym, member.is_official, member.is_verified, member.is_founder, member.is_admin)"));
-  assert.ok(source.includes("appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder, account.is_admin)"));
   assert.match(source, /Compte reconnu par NIYYA/);
   assert.match(source, /M12 1\.8 14\.7 4/);
 
@@ -129,4 +128,33 @@ test("Public member profile has no return-to-feed button and remains full-screen
   const css = fs.readFileSync(path.join(__dirname, "../public/styles/community.css"), "utf8");
   assert.doesNotMatch(community, /← Retour au fil/);
   assert.match(css, /\.community-profile-view\s*\{[\s\S]*position:\s*fixed/);
+});
+
+
+test("Official account is no longer a separate banner; its publications use the normal feed", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  assert.doesNotMatch(source, /community-official-card/);
+  assert.match(source, /Official account posts appear naturally in the chronological feed/);
+});
+
+test("Messages open as a full-screen page with no close control and keep the bottom navigation", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  const css = fs.readFileSync(path.join(__dirname, "../public/styles/main.css"), "utf8");
+  const start = app.indexOf("async function openConversationHistory()");
+  const end = app.indexOf("async function refreshQuota()", start);
+  assert.match(app.slice(start, end), /niyya-messages-page/);
+  assert.doesNotMatch(app.slice(start, end), /modal-close/);
+  assert.match(css, /\.niyya-messages-page\s*\{[^}]*position:fixed/);
+  assert.match(app, /href === "#messages"[\s\S]*openConversationHistory\(\)/);
+});
+
+test("Conversation history refreshes in place and cleans up its refresh timer", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  const start = app.indexOf("async function openConversationHistory()");
+  const end = app.indexOf("async function refreshQuota()", start);
+  const history = app.slice(start, end);
+  assert.match(history, /setInterval\(refreshHistory, 30000\)/);
+  assert.match(history, /clearInterval\(refreshTimer\)/);
+  assert.match(history, /visibilitychange/);
+  assert.doesNotMatch(history, /location\.reload\(/);
 });

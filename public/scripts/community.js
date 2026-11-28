@@ -208,48 +208,7 @@
       close.setAttribute("aria-label", "Retour à la communauté");
       close.hidden = true;
       header.append(heading, close);
-      const officialBanner = el("section", "community-official-card");
-      officialBanner.append(el("div", "community-official-mark", "N"));
-      const officialCopy = el("div", "community-official-copy");
-      officialCopy.append(el("strong", "", "NIYYA Officiel"), el("span", "", "Compte officiel de la plateforme"));
-      const officialAction = el("button", "community-follow-small", "Chargement…");
-      officialAction.type = "button";
-      officialAction.disabled = true;
-      officialBanner.append(officialCopy, officialAction);
-      page.append(officialBanner);
-      api("/official").then(data => {
-        const account = data.account;
-        officialCopy.replaceChildren();
-        appendNameWithBadge(officialCopy, account.pseudonym, account.is_official, account.is_verified, account.is_founder, account.is_admin);
-        officialCopy.append(el("span", "", account.bio || "Compte officiel de NIYYA.ai"));
-        officialCopy.append(el("small", "community-official-counts", (account.follower_count || 0) + " abonnés · " + (account.following_count || 0) + " abonnements"));
-        officialBanner.classList.add("community-official-card-clickable");
-        officialBanner.setAttribute("role", "button");
-        officialBanner.setAttribute("tabindex", "0");
-        officialBanner.addEventListener("click", event => { if (!event.target.closest("button")) showProfile(account.id); });
-        officialBanner.addEventListener("keydown", event => {
-          if ((event.key === "Enter" || event.key === " ") && !event.target.closest("button")) {
-            event.preventDefault();
-            showProfile(account.id);
-          }
-        });
-        officialAction.disabled = account.id === myId;
-        officialAction.textContent = account.is_following ? "Abonné" : "S'abonner";
-        officialAction.classList.toggle("following", !!account.is_following);
-        officialAction.addEventListener("click", async () => {
-          officialAction.disabled = true;
-          try {
-            const result = await api("/profiles/" + encodeURIComponent(account.id) + "/follow", { method: "POST", body: {} });
-            account.is_following = result.following;
-            officialAction.textContent = result.following ? "Abonné" : "S'abonner";
-            officialAction.classList.toggle("following", result.following);
-          } catch (error) { window.alert(error.message); }
-          finally { officialAction.disabled = false; }
-        });
-      }).catch(() => {
-        officialCopy.append(el("span", "community-muted", "Le compte officiel sera bientôt disponible."));
-        officialAction.hidden = true;
-      });
+      // Official account posts appear naturally in the chronological feed; no separate promo card.
       const tabs = el("div", "community-tabs");
       const content = el("div", "community-content");
       page.append(header, tabs, content);
@@ -782,9 +741,10 @@
         communityEventSource = null;
         if ("EventSource" in window) {
           communityEventSource = new EventSource("/api/community/events");
-          communityEventSource.addEventListener("ready", queueCommunitySync);
-          communityEventSource.addEventListener("feed_changed", queueCommunitySync);
-          communityEventSource.addEventListener("activity", queueCommunitySync);
+          const onCommunityEvent = () => { queueCommunitySync(); window.dispatchEvent(new Event("niyya:notifications-updated")); };
+          communityEventSource.addEventListener("ready", onCommunityEvent);
+          communityEventSource.addEventListener("feed_changed", onCommunityEvent);
+          communityEventSource.addEventListener("activity", onCommunityEvent);
         }
         // Reconcile missed events only while the stream is unavailable.
         communitySyncTimer = setInterval(() => {

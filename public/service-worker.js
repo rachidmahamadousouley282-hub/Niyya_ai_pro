@@ -1,26 +1,26 @@
 "use strict";
 
-const CACHE_NAME = "niyya-shell-v60";
+const CACHE_NAME = "niyya-shell-v61";
 const SHELL_URLS = [
   "/",
   "/index.html",
   "/offline.html",
   "/manifest.webmanifest",
   "/icons/niyya-icon.svg",
-  "/styles/main.css?v=profile-fullscreen-dot-v2-20261128",
+  "/styles/main.css?v=niyya-live-pages-v1-20261128",
   "/styles/components.css?v=character-avatar-picker-v1-20261126",
   "/styles/responsive.css?v=responsive-safe-area-v1-20261127",
-  "/scripts/i18n.js?v=profile-fullscreen-dot-v2-20261128",
+  "/scripts/i18n.js?v=niyya-live-pages-v1-20261128",
   "/scripts/api.js?v=trending-world-v1-20261127",
   "/scripts/analytics.js?v=site-traffic-v1-20261127",
   "/scripts/onboarding.js?v=signup-gate-v1-20261128",
-  "/scripts/navigation.js?v=profile-fullscreen-dot-v2-20261128",
-  "/scripts/app.js?v=profile-fullscreen-dot-v2-20261128",
-  "/styles/community.css?v=profile-fullscreen-dot-v2-20261128",
+  "/scripts/navigation.js?v=niyya-live-pages-v1-20261128",
+  "/scripts/app.js?v=niyya-live-pages-v1-20261128",
+  "/styles/community.css?v=niyya-live-pages-v1-20261128",
   "/styles/home.css?v=black-minimal-v3-20261126",
-  "/styles/experience.css?v=profile-fullscreen-dot-v2-20261128",
-  "/scripts/community.js?v=profile-fullscreen-dot-v2-20261128",
-  "/scripts/pwa.js?v=pwa-cache-v60-20261128"
+  "/styles/experience.css?v=niyya-live-pages-v1-20261128",
+  "/scripts/community.js?v=niyya-live-pages-v1-20261128",
+  "/scripts/pwa.js?v=pwa-cache-v61-20261128"
 ];
 
 self.addEventListener("install", event => {

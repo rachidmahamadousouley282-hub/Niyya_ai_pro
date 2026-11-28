@@ -977,3 +977,12 @@ body { background-image: none !important; }
 @media (max-width: 600px) {
   .niyya-account-page { padding-left: 17px; padding-right: 17px; }
 }
+
+
+/* Messages use the same full-screen navigation pattern as the personal profile. */
+.niyya-messages-page{position:fixed;inset:0;z-index:10;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:max(26px,env(safe-area-inset-top)) 18px calc(112px + env(safe-area-inset-bottom));background:#05080e}
+.niyya-messages-page .niyya-messages-panel{width:min(100%,760px);max-height:none;overflow:visible;margin:0 auto;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.niyya-messages-page .history-heading{position:static;display:block;padding:10px 0 20px;border-bottom:1px solid var(--border)}
+.niyya-messages-page .history-heading h2{margin:8px 0 0}
+.niyya-messages-page .history-list{overflow:visible;padding:18px 0 30px}
+@media(max-width:600px){.niyya-messages-page{padding-left:17px;padding-right:17px}}
