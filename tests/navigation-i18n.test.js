@@ -33,3 +33,16 @@ test("character catalogue and trends are separate destinations", () => {
   assert.match(html, /id="character-search"/);
   assert.doesNotMatch(html, /<h2>🔥 Tendances mondiales<\/h2>/);
 });
+
+
+test("Top VIP shortcut remains available while the home VIP promotion stays removed", () => {
+  assert.match(html, /id="vip-offer-button"/);
+  assert.doesNotMatch(html, /vip-home-promo|vip-home-button/);
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(app, /getElementById\("vip-offer-button"\).*openVipOffers/);
+});
+
+test("Navigation has one destination handler, avoiding duplicate opens", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.equal((app.match(/document\.querySelectorAll\("\.nav-item"\)/g) || []).length, 1);
+});

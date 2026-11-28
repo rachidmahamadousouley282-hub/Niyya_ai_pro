@@ -421,7 +421,7 @@ document.addEventListener("DOMContentLoaded", () => {
             try {
               const result = await window.NiyyaAPI.getCharacter(conversation.character_id);
               if (!result.character) throw new Error("Personnage introuvable.");
-              activeHistoryCleanup?.(); openChat(result.character, null);
+              activeHistoryCleanup?.(); openChat(result.character, null, conversation.id);
             } catch (error) { row.disabled = false; showToast(error.message || "Impossible d'ouvrir cette conversation."); }
           });
           rows.push(row);
@@ -488,7 +488,7 @@ document.addEventListener("DOMContentLoaded", () => {
     guestReady = true;
   }
 
-  function openChatShell(character) {
+  function openChatShell(character, returnToMessages = false) {
     setActiveNav("#messages");
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal chat-fullscreen-modal");
@@ -551,7 +551,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const closeModal = () => {
       modal.remove();
-      setActiveNav("#");
+      if (returnToMessages) {
+        openConversationHistory();
+      } else {
+        setActiveNav("#");
+      }
     };
     close.addEventListener("click", closeModal);
 
@@ -694,7 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
       throw new Error("Identifiant de personnage invalide. Recharge « Mes créations » puis réessaie.");
     }
     if (trigger) trigger.disabled = true;
-    const ui = openChatShell(character);
+    const ui = openChatShell(character, Boolean(existingConversationId));
     let conversationId = null;
     ui.profile.addEventListener("click", () => openProfile(character, ui.profile, conversationId));
     const status = element("p", "chat-status", t("connecting"));
@@ -823,18 +827,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (trigger) trigger.disabled = false;
     }
   }
-
-  document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
-
-  document.querySelector(".bottom-nav")?.addEventListener("click", event => {
-    const link = event.target.closest(".nav-item"); if (!link) return;
-    const href = link.getAttribute("href");
-    if (href === "#messages") { event.preventDefault(); openConversationHistory(); }
-    else if (href === "#profile") { event.preventDefault(); activeHistoryCleanup?.(); openAccount(); }
-    else if (href === "#create") { event.preventDefault(); activeHistoryCleanup?.(); document.querySelector(".niyya-account-page")?.remove(); openCreator(); }
-    else { activeHistoryCleanup?.(); document.querySelector(".niyya-account-page")?.remove(); }
-  });
-  document.getElementById("profile-button")?.addEventListener("click", openAccount);
 
   async function refreshNotificationBadge() {
     const badge = document.querySelector('.bottom-nav [data-nav-dot="community"]');
@@ -1596,23 +1588,39 @@ async function openCreator(existingCharacter = null) {
   document.getElementById("home-create-character")?.addEventListener("click", () => openCreator());
 
   document.querySelectorAll(".nav-item").forEach(item => {
-    item.addEventListener("click", async event => {
+    item.addEventListener("click", event => {
       event.preventDefault();
+      activeHistoryCleanup?.();
       document.querySelector(".niyya-account-page")?.remove();
-      setActiveNav(item.getAttribute("href") || "#");
-      const target = (item.getAttribute("href") || "").replace("#", "");
-      if (target === "discover" || target === "") {
+      const href = item.getAttribute("href") || "#community";
+      const target = href.slice(1);
+      setActiveNav(href);
+      if (target !== "messages" && target !== "profile" && target !== "create") {
+        document.querySelector(".niyya-modal")?.remove();
+      }
+      if (target === "community" || target === "") {
+        activeView = "community";
+        window.location.hash = "community";
+        window.dispatchEvent(new Event("niyya:show-community"));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } else if (target === "discover") {
         activeView = "discover";
+        window.location.hash = "discover";
         renderCategories();
         renderCharacters();
         document.getElementById("discover")?.scrollIntoView({ behavior: "smooth" });
       } else if (target === "trending") {
+        activeView = "trending";
+        window.location.hash = "trending";
         document.getElementById("trending")?.scrollIntoView({ behavior: "smooth" });
       } else if (target === "create") {
-        document.getElementById("create-character")?.click();
+        window.location.hash = "create";
+        openCreator();
       } else if (target === "messages") {
+        window.location.hash = "messages";
         openConversationHistory();
       } else if (target === "profile") {
+        window.location.hash = "profile";
         openAccount();
       }
     });
