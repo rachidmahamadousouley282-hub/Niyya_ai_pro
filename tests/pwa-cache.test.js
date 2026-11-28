@@ -35,7 +35,7 @@ test("VIP offer entry points and settings action are wired", () => {
   assert.match(html, /id="vip-offer-button"/);
   assert.doesNotMatch(html, /vip-home-button|vip-home-promo/);
   const app = fs.readFileSync(path.join(root, "public/scripts/app.js"), "utf8");
-  assert.match(app, /getElementById\("vip-offer-button"\)\?\.addEventListener\("click", openVipOffers\)/);
+  assert.ok(app.includes('getElementById("vip-offer-button")?.addEventListener("click", openVipOffers)'));
   assert.match(app, /addMenu\("Offre VIP", "Découvrir les avantages premium", "✦", openVipOffers\)/);
   assert.match(app, /close\.addEventListener\("click", dismiss\)/);
   assert.doesNotMatch(app, /getElementById\("settings-button"\).*openAccountSettings/);

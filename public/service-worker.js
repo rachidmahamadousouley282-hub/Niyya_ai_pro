@@ -20,6 +20,7 @@ const SHELL_URLS = [
   "/styles/home.css?v=black-minimal-v3-20261126",
   "/styles/experience.css?v=niyya-live-pages-v2-20261128",
   "/scripts/community.js?v=niyya-live-pages-v2-20261128",
+  "/scripts/pwa.js?v=pwa-cache-v62-20261128",
   "/scripts/pwa.js?v=pwa-cache-v61-20261128"
 ];
 

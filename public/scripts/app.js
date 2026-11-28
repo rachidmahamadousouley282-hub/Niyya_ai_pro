@@ -856,6 +856,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
+  document.getElementById("vip-offer-button")?.addEventListener("click", openVipOffers);
+
   function openVipOffers() {
     const modal = element("div", "niyya-modal niyya-vip-modal");
     const panel = element("section", "modal-panel niyya-vip-panel");
