@@ -1312,7 +1312,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-async function openCreator(existingCharacter = null) {
+function openCreateMenu() {
+    document.querySelector(".niyya-create-menu-backdrop")?.remove();
+    const backdrop = element("div", "niyya-create-menu-backdrop");
+    backdrop.setAttribute("role", "presentation");
+    const sheet = element("section", "niyya-create-menu");
+    sheet.setAttribute("role", "dialog");
+    sheet.setAttribute("aria-modal", "true");
+    sheet.setAttribute("aria-labelledby", "niyya-create-menu-title");
+    const handle = element("span", "niyya-create-menu-handle");
+    const heading = element("div", "niyya-create-menu-heading");
+    heading.append(element("h2", "", "Créer sur NIYYA"), element("p", "", "Que souhaites-tu partager ou imaginer ?"));
+    heading.querySelector("h2").id = "niyya-create-menu-title";
+    const makeChoice = (icon, title, detail, action) => {
+      const button = element("button", "niyya-create-choice");
+      button.type = "button";
+      const symbol = element("span", "niyya-create-choice-icon", icon);
+      const copy = element("span", "niyya-create-choice-copy");
+      copy.append(element("strong", "", title), element("small", "", detail));
+      button.append(symbol, copy, element("span", "niyya-create-choice-arrow", "›"));
+      button.addEventListener("click", () => { backdrop.remove(); action(); });
+      return button;
+    };
+    const close = () => backdrop.remove();
+    sheet.append(
+      handle, heading,
+      makeChoice("✦", "Créer un personnage", "Imaginer et configurer un nouveau personnage", () => openCreator()),
+      makeChoice("▤", "Nouvelle publication", "Partager un texte ou une image avec la communauté", () => {
+        setActiveNav("#community");
+        window.location.hash = "community";
+        window.dispatchEvent(new Event("niyya:show-community"));
+        window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+          const trigger = document.querySelector(".community-composer-trigger");
+          if (trigger) trigger.click();
+          else showToast("Connecte-toi pour publier dans la communauté.");
+        }));
+      })
+    );
+    backdrop.append(sheet);
+    backdrop.addEventListener("click", event => { if (event.target === backdrop) close(); });
+    document.body.append(backdrop);
+    sheet.querySelector(".niyya-create-choice")?.focus();
+  }
+
+  async function openCreator(existingCharacter = null) {
     setActiveNav("#create");
     window.location.hash = "create";
     document.querySelector(".niyya-modal")?.remove();
@@ -1582,26 +1625,33 @@ async function openCreator(existingCharacter = null) {
     if (!event.target.closest(".nav-item")) return;
     document.querySelectorAll(".niyya-modal.creator-fullscreen-modal, .niyya-modal.chat-fullscreen-modal").forEach(page => page.remove());
   }, true);
-  document.querySelectorAll(".bottom-nav .nav-item").forEach(item => {
-    item.addEventListener("click", event => {
-      const href = item.getAttribute("href") || "";
-      const target = href.slice(1);
-      if (!["create", "messages", "profile"].includes(target)) return;
-      event.preventDefault();
-      activeHistoryCleanup?.();
+  // Navigation centrale : une seule délégation pour les six destinations.
+  const bottomNavigation = document.querySelector(".bottom-nav");
+  bottomNavigation?.addEventListener("click", event => {
+    const item = event.target.closest(".nav-item");
+    if (!item || !bottomNavigation.contains(item)) return;
+    const href = item.getAttribute("href") || "";
+    const target = href.slice(1);
+    if (!["create", "messages", "profile"].includes(target)) {
       document.querySelector(".niyya-account-page")?.remove();
-      setActiveNav(href);
-      if (target === "create") {
-        window.location.hash = "create";
-        openCreator();
-      } else if (target === "messages") {
-        window.location.hash = "messages";
-        openConversationHistory();
-      } else if (target === "profile") {
-        window.location.hash = "profile";
-        openAccount();
-      }
-    });
+      document.querySelector(".niyya-create-menu-backdrop")?.remove();
+      return;
+    }
+    event.preventDefault();
+    activeHistoryCleanup?.();
+    document.querySelector(".niyya-account-page")?.remove();
+    document.querySelector(".niyya-create-menu-backdrop")?.remove();
+    setActiveNav(href);
+    if (target === "create") {
+      window.location.hash = "create";
+      openCreateMenu();
+    } else if (target === "messages") {
+      window.location.hash = "messages";
+      openConversationHistory();
+    } else if (target === "profile") {
+      window.location.hash = "profile";
+      openAccount();
+    }
   });
 
   document.addEventListener("niyya:language-changed", () => {

@@ -1,17 +1,17 @@
 /* NIYYA.ai comfort layer — calm contrast, compact navigation, spacious content */
 :root {
   color-scheme: dark;
-  --bg: #151b24;
-  --surface: #202a36;
-  --surface-light: #293646;
-  --text: #e8edf4;
-  --muted: #aab6c5;
-  --border: rgba(205,219,235,.12);
-  --purple: #78aee2;
-  --purple-light: #a9c9e9;
+  --bg: #111111;
+  --surface: #1c1c1e;
+  --surface-light: #292929;
+  --text: #f2f2f2;
+  --muted: #a6a6a6;
+  --border: rgba(255,255,255,.12);
+  --purple: #a8a8a8;
+  --purple-light: #d0d0d0;
 }
 html, body {
-  background: #151b24 !important;
+  background: #111111 !important;
   color: #e8edf4;
 }
 body {
@@ -20,12 +20,12 @@ body {
 }
 .app-shell { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
 .topbar {
-  background: rgba(21,27,36,.96);
+  background: rgba(17,17,17,.96);
   border-bottom: 1px solid rgba(205,219,235,.08);
   box-shadow: none;
 }
 .brand-icon, .profile-button {
-  background: #2c4055 !important;
+  background: #292929 !important;
   box-shadow: none !important;
 }
 .eyebrow, .chat-status { color: #aab6c5 !important; }
@@ -50,7 +50,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   border: 0 !important;
   border-top: 1px solid rgba(205,219,235,.12) !important;
   border-radius: 0 !important;
-  background: rgba(27,35,46,.98) !important;
+  background: rgba(17,17,17,.98) !important;
   box-shadow: 0 -5px 18px rgba(0,0,0,.12) !important;
   backdrop-filter: blur(16px);
 }
@@ -123,13 +123,13 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   padding: 8px 14px;
   border: 1px solid rgba(205,219,235,.14);
   border-radius: 999px;
-  background: #202a36;
+  background: #1c1c1e;
   color: #b8c4d2;
   font-size: 13px;
 }
 .community-tab.active {
   border-color: rgba(157,190,222,.36);
-  background: #34465a;
+  background: #333333;
   color: #f0f5fa;
 }
 .community-content { gap: 12px; padding-top: 4px; }
@@ -142,7 +142,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   padding: 12px;
   border: 1px solid rgba(205,219,235,.12);
   border-radius: 17px;
-  background: #202a36;
+  background: #1c1c1e;
   box-shadow: none;
 }
 .community-composer-trigger {
@@ -165,7 +165,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   height: 38px;
   place-items: center;
   border-radius: 50%;
-  background: #34465a;
+  background: #333333;
   color: #e6eff8;
   font-weight: 700;
 }
@@ -175,7 +175,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   padding: 11px 14px;
   border: 1px solid rgba(205,219,235,.12);
   border-radius: 999px;
-  background: #18212c;
+  background: #171717;
   color: #b4c0ce;
   font-size: 13px;
 }
@@ -211,7 +211,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .community-textarea, .community-comment-input, .community-select, .creator-control {
   border-color: rgba(205,219,235,.17) !important;
   border-radius: 13px !important;
-  background: #18212c !important;
+  background: #171717 !important;
   color: #e8edf4 !important;
 }
 .community-primary {
@@ -223,11 +223,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .community-secondary, .community-action {
   border-color: rgba(205,219,235,.12) !important;
   border-radius: 11px !important;
-  background: #293646 !important;
+  background: #292929 !important;
   color: #d0dbe7 !important;
 }
 .community-post, .community-profile-card, .community-composer {
-  background: #202a36 !important;
+  background: #1c1c1e !important;
   border-color: rgba(205,219,235,.12) !important;
   box-shadow: none !important;
 }
@@ -235,7 +235,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .community-post-body { color: #e0e7ef; line-height: 1.65; }
 .community-empty { border-color: rgba(205,219,235,.18); color: #b3bfcd; }
 .niyya-account-page, .niyya-messages-page, .creator-fullscreen-modal {
-  background: #151b24 !important;
+  background: #111111 !important;
 }
 .niyya-account-page .niyya-profile-panel,
 .niyya-messages-page .modal-panel,
@@ -245,12 +245,12 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .niyya-account-page .niyya-profile-header { border-color: rgba(205,219,235,.12); }
 .niyya-profile-menu-item {
   border-color: rgba(205,219,235,.12) !important;
-  background: #202a36 !important;
+  background: #1c1c1e !important;
   color: #e4ebf3 !important;
   box-shadow: none !important;
 }
 .niyya-profile-stat, .niyya-profile-stats > div {
-  background: #202a36 !important;
+  background: #1c1c1e !important;
   border-color: rgba(205,219,235,.1) !important;
 }
 @media (max-width: 600px) {
@@ -262,4 +262,78 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}
+
+/* Character.AI-inspired create sheet and true near-black surfaces */
+.niyya-create-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 18px 14px calc(78px + env(safe-area-inset-bottom,0px));
+  background: rgba(0,0,0,.62);
+  backdrop-filter: blur(3px);
+}
+.niyya-create-menu {
+  width: min(100%,520px);
+  display: grid;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 22px;
+  background: #171717;
+  box-shadow: 0 18px 55px rgba(0,0,0,.5);
+  color: #f2f2f2;
+}
+.niyya-create-menu-handle {
+  width: 38px;
+  height: 4px;
+  margin: 0 auto 4px;
+  border-radius: 99px;
+  background: #555;
+}
+.niyya-create-menu-heading { padding: 3px 7px 8px; }
+.niyya-create-menu-heading h2 { margin: 0; font-size: 19px; letter-spacing: -.3px; }
+.niyya-create-menu-heading p { margin: 5px 0 0; color: #a5a5a5; font-size: 13px; line-height: 1.45; }
+.niyya-create-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 66px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 15px;
+  background: #222;
+  color: #f1f1f1;
+  text-align: left;
+  box-shadow: none;
+}
+.niyya-create-choice:active { background: #2a2a2a; }
+.niyya-create-choice-icon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 12px;
+  background: #303030;
+  color: #ededed;
+  font-size: 20px;
+}
+.niyya-create-choice-copy { display: grid; flex: 1; gap: 4px; min-width: 0; }
+.niyya-create-choice-copy strong { font-size: 14px; font-weight: 650; }
+.niyya-create-choice-copy small { color: #a5a5a5; font-size: 12px; line-height: 1.4; }
+.niyya-create-choice-arrow { color: #8e8e8e; font-size: 24px; }
+.niyya-account-page, .niyya-messages-page, .creator-fullscreen-modal,
+.chat-fullscreen-modal { background: #111111 !important; }
+.niyya-account-page .niyya-profile-menu-item,
+.niyya-account-page .niyya-profile-stat,
+.niyya-account-page .niyya-profile-stats > div { background: #1c1c1e !important; }
+.community-post, .community-composer, .community-profile-card { background: #1c1c1e !important; }
+@media (prefers-reduced-motion: no-preference) {
+  .niyya-create-menu { animation: niyya-sheet-in .18s ease-out; }
+  @keyframes niyya-sheet-in { from { transform: translateY(14px); opacity: .75; } to { transform: translateY(0); opacity: 1; } }
 }

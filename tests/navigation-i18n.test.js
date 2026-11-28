@@ -58,3 +58,12 @@ test("Creator and chat remain navigable workspace pages without a close cross", 
   assert.doesNotMatch(app, /actions\.append\(profile, close\)/);
   assert.match(components, /\.bottom-nav \{ z-index: 400 !important; \}/);
 });
+
+test("Create opens a compact choice sheet instead of immediately opening the character form", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(app, /function openCreateMenu\(\)/);
+  assert.match(app, /Créer un personnage/);
+  assert.match(app, /Nouvelle publication/);
+  assert.match(app, /openCreateMenu\(\)/);
+  assert.match(app, /community-composer-trigger/);
+});
