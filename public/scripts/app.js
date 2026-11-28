@@ -386,8 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal messages-fullscreen-modal");
     const panel = element("section", "modal-panel history-panel messages-fullscreen-panel");
-    panel.setAttribute("role", "dialog");
-    panel.setAttribute("aria-modal", "true");
     panel.setAttribute("aria-label", "Mes conversations");
     const header = element("div", "history-heading");
     header.append(element("span", "eyebrow", "NIYYA.ai"),
@@ -847,16 +845,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("profile-button")?.addEventListener("click", openAccount);
 
   async function refreshNotificationBadge() {
-    const badge = document.querySelector('.bottom-nav [data-nav-badge="community"]');
+    const badge = document.querySelector('.bottom-nav [data-nav-dot="community"]');
     if (!badge) return;
     try {
       const response = await fetch("/api/community/notifications", { credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store" });
       if (!response.ok) throw new Error("notifications unavailable");
       const data = await response.json();
       const count = Math.max(0, Number(data.unread_count) || 0);
-      badge.textContent = count > 9 ? "9+" : String(count);
       badge.hidden = count === 0;
-      badge.setAttribute("aria-label", count > 9 ? "Plus de 9 notifications non lues" : count + " notification(s) non lue(s)");
+      badge.setAttribute("aria-label", count ? "Nouvelles notifications" : "Aucune nouvelle notification");
     } catch { badge.hidden = true; }
   }
   refreshNotificationBadge();
@@ -912,6 +909,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.append(modal);
 
     const dismiss = () => modal.remove();
+    const nav = document.querySelector(".bottom-nav");
+    const closeOnNavigation = () => dismiss();
+    nav?.addEventListener("click", closeOnNavigation, { once: true });
     close.addEventListener("click", dismiss);
     modal.addEventListener("click", event => {
       if (event.target === modal) dismiss();
@@ -932,10 +932,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = element("h2", "", "Mon profil");
     title.id = "niyya-profile-title";
     heading.append(title);
-    const close = element("button", "modal-close", "×");
-    close.type = "button";
-    close.setAttribute("aria-label", "Fermer");
-    header.append(heading, close);
+    header.append(heading);
     const content = element("div", "niyya-profile-content");
     content.append(element("p", "chat-status", "Chargement de ton profil…"));
     panel.append(header, content);

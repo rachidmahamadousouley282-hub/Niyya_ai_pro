@@ -29,12 +29,12 @@
       text.textContent = label;
       item.append(icon,text);
       if (href === "#community") {
-        const badge = document.createElement("span");
-        badge.className = "nav-notification-badge";
-        badge.dataset.navBadge = "community";
-        badge.hidden = true;
-        badge.setAttribute("aria-live", "polite");
-        item.append(badge);
+        const dot = document.createElement("span");
+        dot.className = "nav-notification-dot";
+        dot.dataset.navDot = "community";
+        dot.hidden = true;
+        dot.setAttribute("aria-hidden", "true");
+        item.append(dot);
       }
       item.setAttribute("aria-label",label);
       item.title = label;

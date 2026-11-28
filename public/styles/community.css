@@ -353,3 +353,26 @@
 .community-profile-view{position:fixed;inset:0;z-index:15;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:max(22px,env(safe-area-inset-top)) 18px calc(112px + env(safe-area-inset-bottom));background:#05080e}
 .community-profile-view .community-profile-hero,.community-profile-view .community-profile-stats,.community-profile-view .community-profile-controls,.community-profile-view .community-section-title,.community-profile-view .community-profile-posts{width:min(100%,760px);margin-left:auto;margin-right:auto}
 .community-profile-view .community-profile-hero{padding-top:22px}.community-profile-view .community-profile-posts{display:grid;gap:14px}
+
+/* Public member profiles occupy the screen; bottom navigation remains available. */
+.community-profile-view {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: max(22px, env(safe-area-inset-top)) 18px calc(112px + env(safe-area-inset-bottom));
+  background: #05080e;
+}
+.community-profile-view .community-profile-hero,
+.community-profile-view .community-profile-stats,
+.community-profile-view .community-profile-controls,
+.community-profile-view .community-section-title,
+.community-profile-view .community-profile-posts {
+  width: min(100%, 760px);
+  margin-left: auto;
+  margin-right: auto;
+}
+.community-profile-view .community-profile-hero { padding-top: 22px; }
+.community-profile-view .community-profile-posts { display: grid; gap: 14px; }

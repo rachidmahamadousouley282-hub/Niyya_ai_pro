@@ -511,7 +511,7 @@
         activeProfileId = userId;
         showingProfile = true;
         hideSubpageClose();
-        content.replaceChildren(el("p","community-muted",""));
+        content.replaceChildren(el("p","community-muted","Chargement du profil…"));
         try{
           const data=await api("/profiles/"+encodeURIComponent(userId));
           const p=data.profile;
@@ -548,8 +548,7 @@
             });
             controls.append(follow,block);
           }
-          const back=el("button","community-secondary","← Retour au fil");back.type="button";back.addEventListener("click",()=>setTab(currentMode));
-          controls.append(back);wrap.append(controls);
+          wrap.append(controls);
           const postsTitle=el("h4","community-section-title","Publications");
           wrap.append(postsTitle);
           const posts=el("div","community-profile-posts");posts.append(el("p","community-muted","Chargement…"));wrap.append(posts);

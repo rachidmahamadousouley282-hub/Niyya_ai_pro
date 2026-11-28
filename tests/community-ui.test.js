@@ -105,3 +105,28 @@ test("Community feed becomes the landing view after account initialization", () 
 
 test("Personal account opens as a full-screen page without a close button",()=>{const app=fs.readFileSync(path.join(__dirname,"../public/scripts/app.js"),"utf8");assert.match(app,/element\("div", "niyya-account-page"\)/);const start=app.indexOf("async function openAccount()"),end=app.indexOf("async function openAccountSettings");assert.doesNotMatch(app.slice(start,end),/modal-close/);assert.match(app,/document\.querySelector\("\.niyya-account-page"\)\?\.remove\(\)/);});
 test("Member profile is full-screen and notification badge displays 9 plus above nine",()=>{const community=fs.readFileSync(path.join(__dirname,"../public/scripts/community.js"),"utf8"),navigation=fs.readFileSync(path.join(__dirname,"../public/scripts/navigation.js"),"utf8"),app=fs.readFileSync(path.join(__dirname,"../public/scripts/app.js"),"utf8");assert.match(community,/el\("section","community-profile-view"\)/);assert.match(community,/hideSubpageClose\(\)/);assert.match(navigation,/data-nav-badge = "community"/);assert.match(app,/count > 9 \? "9\+"/);assert.match(app,/\/api\/community\/notifications/);});
+
+test("Personal profile has no close control and is styled as a full-screen page", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  const css = fs.readFileSync(path.join(__dirname, "../public/styles/main.css"), "utf8");
+  const start = app.indexOf("async function openAccount()");
+  const end = app.indexOf("async function openAccountSettings");
+  assert.doesNotMatch(app.slice(start, end), /modal-close/);
+  assert.match(css, /\.niyya-account-page\s*\{[\s\S]*position:\s*fixed/);
+});
+test("Navigation uses a discreet notification dot, not a numeric badge", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  const nav = fs.readFileSync(path.join(__dirname, "../public/scripts/navigation.js"), "utf8");
+  const css = fs.readFileSync(path.join(__dirname, "../public/styles/main.css"), "utf8");
+  assert.match(nav, /nav-notification-dot/);
+  assert.match(nav, /data-nav-dot = "community"/);
+  assert.match(app, /data-nav-dot="community"/);
+  assert.doesNotMatch(app, /9\+/);
+  assert.match(css, /\.nav-notification-dot/);
+});
+test("Public member profile has no return-to-feed button and remains full-screen", () => {
+  const community = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  const css = fs.readFileSync(path.join(__dirname, "../public/styles/community.css"), "utf8");
+  assert.doesNotMatch(community, /← Retour au fil/);
+  assert.match(css, /\.community-profile-view\s*\{[\s\S]*position:\s*fixed/);
+});

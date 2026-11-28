@@ -930,3 +930,50 @@ body { background-image: none !important; }
 .nav-notification-badge{position:absolute;top:-2px;right:calc(50% - 27px);min-width:17px;height:17px;padding:0 4px;display:inline-flex;align-items:center;justify-content:center;border:2px solid #080d16;border-radius:999px;background:#e33b4d;color:#fff;font-size:9px;line-height:1;font-weight:800;font-variant-numeric:tabular-nums;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .nav-notification-badge[hidden]{display:none!important}
 @media(max-width:600px){.niyya-account-page{padding-left:17px;padding-right:17px}.community-profile-view{padding-left:16px;padding-right:16px}}
+
+
+/* Personal profile is a full-page screen; bottom navigation stays on top. */
+.niyya-account-page {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: max(26px, env(safe-area-inset-top)) 18px calc(112px + env(safe-area-inset-bottom));
+  background: #05080e;
+}
+.niyya-account-page .niyya-profile-panel {
+  width: min(100%, 760px);
+  max-height: none;
+  overflow: visible;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.niyya-account-page .niyya-profile-header {
+  position: static;
+  padding: 10px 0 20px;
+  border-bottom: 1px solid var(--border);
+}
+.niyya-account-page .niyya-profile-content { overflow: visible; padding: 18px 0 30px; }
+.niyya-account-page .niyya-profile-section-title { margin-top: 24px; }
+.nav-item { position: relative; }
+.nav-notification-dot {
+  position: absolute;
+  top: 1px;
+  right: calc(50% - 20px);
+  width: 9px;
+  height: 9px;
+  border: 2px solid #080d16;
+  border-radius: 50%;
+  background: #e54855;
+  box-shadow: 0 1px 5px rgba(0,0,0,.35);
+}
+.nav-notification-dot[hidden] { display: none !important; }
+@media (max-width: 600px) {
+  .niyya-account-page { padding-left: 17px; padding-right: 17px; }
+}
