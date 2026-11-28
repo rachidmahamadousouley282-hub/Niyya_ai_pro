@@ -26,8 +26,8 @@ test("The landing page explains the product and labels the character search", ()
   assert.match(html, /Découvre\. Imagine\. Crée ton univers\./);
   assert.match(html, /aria-label="Rechercher un personnage"/);
   assert.match(html, /<span aria-hidden="true">⌕<\/span>/);
-  assert.ok(html.indexOf('id="character-grid"') < html.indexOf('id="vip-home-title"'),
-    "The discovery content should appear before the VIP promotion");
+  assert.ok(html.indexOf('id="character-grid"') > html.indexOf('id="discover"'));
+  assert.doesNotMatch(html, /vip-home-title|vip-offer-button|vip-home-promo/);
   assert.match(html, /viewport-fit=cover/);
 });
 
