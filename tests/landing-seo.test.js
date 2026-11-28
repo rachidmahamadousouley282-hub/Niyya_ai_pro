@@ -12,7 +12,7 @@ const sitemap = fs.readFileSync(path.join(root, "public/sitemap.xml"), "utf8");
 const responsive = fs.readFileSync(path.join(root, "public/styles/responsive.css"), "utf8");
 
 test("The public landing page has French SEO and social preview metadata", () => {
-  assert.match(html, /<html lang="fr">/);
+  assert.match(html, /<html\\s+lang="fr"(?:\\s|>)/);
   assert.match(html, /<title>NIYYA\.ai — Découvre, crée et imagine<\/title>/);
   assert.match(html, /name="description"/);
   assert.match(html, /rel="canonical"/);
