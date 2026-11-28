@@ -166,3 +166,13 @@ test("Opening a saved conversation preserves its ID and returns to the conversat
   assert.match(app, /function openChatShell\(character, returnToMessages = false\)/);
   assert.match(app, /if \(returnToMessages\) \{\s*openConversationHistory\(\)/);
 });
+
+
+test("Home, character discovery and trends are delegated to the community navigation controller", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  const community = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  assert.match(app, /if \(!\["create", "messages", "profile"\]\.includes\(target\)\) return/);
+  assert.match(community, /href === "#discover"\) showStandaloneView\("characters"\)/);
+  assert.match(community, /href === "#trending"\) showStandaloneView\("trending"\)/);
+  assert.match(community, /navLink\.addEventListener\("click"/);
+});

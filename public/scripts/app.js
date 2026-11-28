@@ -1587,33 +1587,17 @@ async function openCreator(existingCharacter = null) {
   document.getElementById("create-character").addEventListener("click", () => openCreator());
   document.getElementById("home-create-character")?.addEventListener("click", () => openCreator());
 
-  document.querySelectorAll(".nav-item").forEach(item => {
+  document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
+  document.querySelectorAll(".bottom-nav .nav-item").forEach(item => {
     item.addEventListener("click", event => {
+      const href = item.getAttribute("href") || "";
+      const target = href.slice(1);
+      if (!["create", "messages", "profile"].includes(target)) return;
       event.preventDefault();
       activeHistoryCleanup?.();
       document.querySelector(".niyya-account-page")?.remove();
-      const href = item.getAttribute("href") || "#community";
-      const target = href.slice(1);
       setActiveNav(href);
-      if (target !== "messages" && target !== "profile" && target !== "create") {
-        document.querySelector(".niyya-modal")?.remove();
-      }
-      if (target === "community" || target === "") {
-        activeView = "community";
-        window.location.hash = "community";
-        window.dispatchEvent(new Event("niyya:show-community"));
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      } else if (target === "discover") {
-        activeView = "discover";
-        window.location.hash = "discover";
-        renderCategories();
-        renderCharacters();
-        document.getElementById("discover")?.scrollIntoView({ behavior: "smooth" });
-      } else if (target === "trending") {
-        activeView = "trending";
-        window.location.hash = "trending";
-        document.getElementById("trending")?.scrollIntoView({ behavior: "smooth" });
-      } else if (target === "create") {
+      if (target === "create") {
         window.location.hash = "create";
         openCreator();
       } else if (target === "messages") {
