@@ -1632,7 +1632,7 @@ async function openCreator(existingCharacter = null) {
     }
     const quota = await window.NiyyaAPI.getQuota();
     if (!quota.onboarded && window.NiyyaOnboarding?.open) {
-      window.NiyyaOnboarding.open({ required: true, onComplete: () => refreshQuota() });
+      window.NiyyaOnboarding.open({ required: true, onComplete: () => window.location.reload() });
     }
     await refreshQuota();
   }

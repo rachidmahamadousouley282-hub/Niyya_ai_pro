@@ -30,3 +30,7 @@ test("Account creation does not mark an email as verified", () => {
   assert.match(auth, /SET email = \$2, password_hash = \$3, is_guest = FALSE/);
   assert.doesNotMatch(auth, /SET[^;]*email_verified_at\s*=/s);
 });
+
+test("Completing required profile setup reloads the app to hydrate the community identity", () => {
+  assert.match(app, /NiyyaOnboarding\.open\(\{ required: true, onComplete: \(\) => window\.location\.reload\(\) \}\)/);
+});
