@@ -293,6 +293,7 @@
 
     async function openCommunity() {
       if (communityPage) {
+        document.documentElement.classList.remove("niyya-booting");
         communityPage.scrollIntoView({ behavior: "smooth", block: "start" });
         window.dispatchEvent(new Event("niyya:community-ready"));
         return;
@@ -322,6 +323,7 @@
       const content = el("div", "community-content");
       page.append(header, tabs, content);
       main.append(page);
+      document.documentElement.classList.remove("niyya-booting");
       const showSubpageClose = () => { close.hidden = false; };
       const hideSubpageClose = () => { close.hidden = true; };
       close.addEventListener("click", () => {
@@ -925,6 +927,10 @@
     }
     // La communauté devient la page d'accueil principale de NIYYA.
     window.addEventListener("niyya:show-community", openCommunity);
-    Promise.resolve(window.NiyyaAccessReady).then(openCommunity);
+    Promise.resolve(window.NiyyaAccessReady).then(openCommunity).catch(error => {
+      console.warn("NIYYA community startup fallback:", error?.message || error);
+      document.documentElement.classList.remove("niyya-booting");
+      openCommunity();
+    });
   });
 })();

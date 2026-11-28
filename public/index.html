@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="niyya-booting">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -22,13 +22,19 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="NIYYA.ai">
   <title>NIYYA.ai — Découvre, crée et imagine</title>
+  <style>
+    html.niyya-booting .app-shell main > section:not(.community-page) { visibility: hidden; }
+    html.niyya-booting .app-shell main::before { content: "Chargement de ton espace…"; display: block; min-height: 46vh; padding-top: 18vh; box-sizing: border-box; color: #999; text-align: center; font-size: 14px; }
+    html.niyya-booting .bottom-nav { visibility: visible; }
+  </style>
   <link rel="stylesheet" href="/styles/main.css?v=niyya-workspace-nav-v1-20261128">
   <link rel="stylesheet" href="/styles/components.css?v=niyya-workspace-nav-v1-20261128">
   <link rel="stylesheet" href="/styles/responsive.css?v=responsive-safe-area-v1-20261127">
   <link rel="stylesheet" href="/styles/community.css?v=niyya-workspace-nav-v1-20261128">
   <link rel="stylesheet" href="/styles/home.css?v=black-minimal-v3-20261126">
   <link rel="stylesheet" href="/styles/experience.css?v=niyya-workspace-nav-v1-20261128">
-  <link rel="stylesheet" href="/styles/comfort.css?v=niyya-navigation-auth-flow-v1-20261128">
+  <link rel="stylesheet" href="/styles/comfort.css?v=niyya-stable-start-nav-v2-20261128">
+  <script>window.setTimeout(() => document.documentElement.classList.remove("niyya-booting"), 7000);</script>
 </head>
 <body>
   <div class="app-shell">
@@ -160,6 +166,6 @@
   <script src="/scripts/navigation.js?v=niyya-workspace-nav-v1-20261128"></script>
   <script src="/scripts/app.js?v=niyya-workspace-nav-v1-20261128"></script>
   <script src="/scripts/community.js?v=niyya-workspace-nav-v1-20261128"></script>
-  <script src="/scripts/pwa.js?v=pwa-cache-v63-20261128"></script>
+  <script src="/scripts/pwa.js?v=niyya-pwa-v69-20261128"></script>
 </body>
 </html>
