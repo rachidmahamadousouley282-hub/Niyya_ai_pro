@@ -490,7 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
     guestReady = true;
   }
 
-  function openChatShell(character, returnToMessages = false) {
+  function openChatShell(character) {
     setActiveNav("#messages");
     window.location.hash = "messages";
     document.querySelector(".niyya-modal")?.remove();
@@ -688,7 +688,7 @@ document.addEventListener("DOMContentLoaded", () => {
       throw new Error("Identifiant de personnage invalide. Recharge « Mes créations » puis réessaie.");
     }
     if (trigger) trigger.disabled = true;
-    const ui = openChatShell(character, Boolean(existingConversationId));
+    const ui = openChatShell(character);
     let conversationId = null;
     ui.profile.addEventListener("click", () => openProfile(character, ui.profile, conversationId));
     const status = element("p", "chat-status", t("connecting"));

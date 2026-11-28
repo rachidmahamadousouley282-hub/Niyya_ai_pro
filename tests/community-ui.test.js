@@ -160,11 +160,12 @@ test("Conversation history refreshes in place and cleans up its refresh timer", 
 });
 
 
-test("Opening a saved conversation preserves its ID and returns to the conversation list", () => {
+test("Opening a saved conversation preserves its ID and the bottom navigation replaces the chat view", () => {
   const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
   assert.match(app, /openChat\(result\.character, null, conversation\.id\)/);
-  assert.match(app, /function openChatShell\(character, returnToMessages = false\)/);
-  assert.match(app, /if \(returnToMessages\) \{\s*openConversationHistory\(\)/);
+  assert.match(app, /function openChatShell\(character\)/);
+  assert.match(app, /bottom-nav.*addEventListener\("click",[\s\S]*?chat-fullscreen-modal[\s\S]*?\}, true\)/);
+  assert.match(app, /if \(target === "messages"\) \{\s*window\.location\.hash = "messages";\s*openConversationHistory\(\)/);
 });
 
 
