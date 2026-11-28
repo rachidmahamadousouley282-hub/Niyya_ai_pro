@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "niyya-shell-v66";
+const CACHE_NAME = "niyya-shell-v67";
 const SHELL_URLS = [
   "/",
   "/index.html",

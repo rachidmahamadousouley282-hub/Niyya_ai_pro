@@ -77,14 +77,118 @@
       if (!response.ok) throw new Error(data.error || "Une erreur est survenue.");
       return data;
     };
+    const communityTranslations = {
+      en: {
+        "Ton fil d’actualité":"Your feed","Découvre les publications des membres, partage tes idées et retrouve les créateurs que tu suis.":"See community posts, share your ideas and find creators to follow.",
+        "Pour toi":"For you","Abonnements":"Following","Mes publications":"My posts","Notifications":"Notifications","Découvrir":"Discover",
+        "Quoi de neuf dans ton univers ?":"What's new in your world?","Publier":"Post","Photo":"Photo","Création":"Creation",
+        "Qu'as-tu envie de partager ?":"What would you like to share?","Ajouter une image":"Add an image","Qui peut voir ?":"Who can see this?",
+        "Tout le monde":"Everyone","Moi uniquement":"Only me","Tu peux modifier la visibilité à chaque publication.":"You can change visibility for each post.",
+        "Annuler":"Cancel","Chargement des publications…":"Loading posts…","Chargement du profil…":"Loading profile…",
+        "À découvrir":"Discover","Les membres que tu suis":"People you follow","Tes publications":"Your posts",
+        "Les nouvelles des profils auxquels tu es abonné.":"Updates from profiles you follow.",
+        "Retrouve et gère tes publications publiques et privées.":"View and manage your public and private posts.",
+        "Les dernières créations partagées publiquement.":"The latest posts shared publicly.",
+        "Aucune publication pour le moment. Tu peux lancer la communauté en partageant la première création.":"No posts yet. Start the community by sharing the first creation.",
+        "Tu n'as pas encore publié. Tes créations apparaîtront ici.":"You haven't posted yet. Your creations will appear here.",
+        "Tu ne suis encore personne. Découvre des membres et abonne-toi à leurs profils.":"You're not following anyone yet. Discover members and follow their profiles.",
+        "Suivre":"Follow","Abonné":"Following","Ne plus suivre":"Unfollow","J'aime":"Like","Commenter":"Comment","Partager":"Share",
+        "Supprimer":"Delete","Signaler":"Report","Signalé":"Reported","Lien copié":"Link copied",
+        "Écrire un commentaire…":"Write a comment…","Envoyer":"Send","Chargement…":"Loading…","Pas encore de commentaire.":"No comments yet.",
+        "Publications":"Posts","Aucune publication publique pour le moment.":"No public posts yet.",
+        "Découvrir les membres":"Discover members","Trouve des personnes sur NIYYA, consulte leurs profils et suis les comptes qui t'intéressent.":"Find people on NIYYA, view their profiles and follow accounts you're interested in.",
+        "Rechercher un pseudo…":"Search usernames…","Rechercher":"Search","Aucun compte trouvé. Vérifie le pseudo ou essaie un autre terme.":"No accounts found. Check the username or try another term.",
+        "Il n'y a pas encore de membres à découvrir.":"There are no members to discover yet.","Voir le profil →":"View profile →",
+        "Abonnés":"Followers","Abonnements":"Following","← Retour au profil":"← Back to profile","Bloquer":"Block","Débloquer":"Unblock",
+        "Profil du membre":"Member profile","Ce membre n'a pas encore ajouté de présentation.":"This member hasn't added a bio yet.",
+        "Aucune image jointe":"No image attached","Actualiser":"Refresh"
+      },
+      es: {
+        "Ton fil d’actualité":"Tu feed","Découvre les publications des membres, partage tes idées et retrouve les créateurs que tu suis.":"Descubre publicaciones, comparte tus ideas y encuentra creadores a los que seguir.",
+        "Pour toi":"Para ti","Abonnements":"Siguiendo","Mes publications":"Mis publicaciones","Notifications":"Notificaciones","Découvrir":"Descubrir",
+        "Quoi de neuf dans ton univers ?":"¿Qué hay de nuevo en tu mundo?","Publier":"Publicar","Photo":"Foto","Création":"Creación",
+        "Qu'as-tu envie de partager ?":"¿Qué quieres compartir?","Ajouter une image":"Añadir una imagen","Qui peut voir ?":"¿Quién puede verlo?",
+        "Tout le monde":"Todo el mundo","Moi uniquement":"Solo yo","Tu peux modifier la visibilité à chaque publication.":"Puedes cambiar la visibilidad en cada publicación.",
+        "Annuler":"Cancelar","Chargement des publications…":"Cargando publicaciones…","Chargement du profil…":"Cargando perfil…",
+        "À découvrir":"Por descubrir","Les membres que tu suis":"Personas que sigues","Tes publications":"Tus publicaciones",
+        "Les nouvelles des profils auxquels tu es abonné.":"Novedades de los perfiles que sigues.",
+        "Retrouve et gère tes publications publiques et privées.":"Consulta y administra tus publicaciones públicas y privadas.",
+        "Les dernières créations partagées publiquement.":"Las últimas publicaciones compartidas públicamente.",
+        "Aucune publication pour le moment. Tu peux lancer la communauté en partageant la première création.":"Todavía no hay publicaciones. Puedes iniciar la comunidad compartiendo la primera.",
+        "Tu n'as pas encore publié. Tes créations apparaîtront ici.":"Aún no has publicado. Tus creaciones aparecerán aquí.",
+        "Tu ne suis encore personne. Découvre des membres et abonne-toi à leurs profils.":"Aún no sigues a nadie. Descubre miembros y sigue sus perfiles.",
+        "Suivre":"Seguir","Abonné":"Siguiendo","Ne plus suivre":"Dejar de seguir","J'aime":"Me gusta","Commenter":"Comentar","Partager":"Compartir",
+        "Supprimer":"Eliminar","Signaler":"Denunciar","Signalé":"Denunciado","Lien copié":"Enlace copiado",
+        "Écrire un commentaire…":"Escribe un comentario…","Envoyer":"Enviar","Chargement…":"Cargando…","Pas encore de commentaire.":"Todavía no hay comentarios.",
+        "Publications":"Publicaciones","Aucune publication publique pour le moment.":"Todavía no hay publicaciones públicas.",
+        "Découvrir les membres":"Descubrir miembros","Trouve des personnes sur NIYYA, consulte leurs profils et suis les comptes qui t'intéressent.":"Encuentra personas en NIYYA, visita sus perfiles y sigue las cuentas que te interesan.",
+        "Rechercher un pseudo…":"Buscar nombre de usuario…","Rechercher":"Buscar","Aucun compte trouvé. Vérifie le pseudo ou essaie un autre terme.":"No se encontraron cuentas. Comprueba el nombre o prueba otro término.",
+        "Il n'y a pas encore de membres à découvrir.":"Todavía no hay miembros para descubrir.","Voir le profil →":"Ver perfil →",
+        "Abonnés":"Seguidores","← Retour au profil":"← Volver al perfil","Bloquer":"Bloquear","Débloquer":"Desbloquear",
+        "Profil du membre":"Perfil del miembro","Ce membre n'a pas encore ajouté de présentation.":"Este miembro aún no ha añadido una presentación.","Actualiser":"Actualizar"
+      },
+      ar: {
+        "Ton fil d’actualité":"آخر الأخبار","Découvre les publications des membres, partage tes idées et retrouve les créateurs que tu suis.":"اكتشف منشورات الأعضاء وشارك أفكارك وتابع المبدعين.",
+        "Pour toi":"لك","Abonnements":"المتابَعون","Mes publications":"منشوراتي","Notifications":"الإشعارات","Découvrir":"اكتشف",
+        "Quoi de neuf dans ton univers ?":"ما الجديد في عالمك؟","Publier":"نشر","Photo":"صورة","Création":"إبداع",
+        "Qu'as-tu envie de partager ?":"ماذا تريد أن تشارك؟","Ajouter une image":"إضافة صورة","Qui peut voir ?":"من يمكنه المشاهدة؟",
+        "Tout le monde":"الجميع","Moi uniquement":"أنا فقط","Tu peux modifier la visibilité à chaque publication.":"يمكنك تغيير مستوى ظهور كل منشور.",
+        "Annuler":"إلغاء","Chargement des publications…":"جارٍ تحميل المنشورات…","Chargement du profil…":"جارٍ تحميل الملف الشخصي…",
+        "À découvrir":"اكتشف","Les membres que tu suis":"الأعضاء الذين تتابعهم","Tes publications":"منشوراتك",
+        "Les nouvelles des profils auxquels tu es abonné.":"آخر أخبار الملفات التي تتابعها.",
+        "Retrouve et gère tes publications publiques et privées.":"اعرض منشوراتك العامة والخاصة وأدرها.",
+        "Les dernières créations partagées publiquement.":"أحدث المنشورات العامة.",
+        "Aucune publication pour le moment. Tu peux lancer la communauté en partageant la première création.":"لا توجد منشورات بعد. ابدأ المجتمع بمشاركة أول منشور.",
+        "Tu n'as pas encore publié. Tes créations apparaîtront ici.":"لم تنشر بعد. ستظهر منشوراتك هنا.",
+        "Tu ne suis encore personne. Découvre des membres et abonne-toi à leurs profils.":"لا تتابع أحدًا بعد. اكتشف الأعضاء وتابع ملفاتهم.",
+        "Suivre":"متابعة","Abonné":"تتابعه","Ne plus suivre":"إلغاء المتابعة","J'aime":"إعجاب","Commenter":"تعليق","Partager":"مشاركة",
+        "Supprimer":"حذف","Signaler":"إبلاغ","Signalé":"تم الإبلاغ","Lien copié":"تم نسخ الرابط",
+        "Écrire un commentaire…":"اكتب تعليقًا…","Envoyer":"إرسال","Chargement…":"جارٍ التحميل…","Pas encore de commentaire.":"لا توجد تعليقات بعد.",
+        "Publications":"المنشورات","Aucune publication publique pour le moment.":"لا توجد منشورات عامة بعد.",
+        "Découvrir les membres":"اكتشف الأعضاء","Trouve des personnes sur NIYYA, consulte leurs profils et suis les comptes qui t'intéressent.":"ابحث عن أشخاص على NIYYA، واستعرض ملفاتهم وتابع الحسابات التي تهمك.",
+        "Rechercher un pseudo…":"ابحث عن اسم مستخدم…","Rechercher":"بحث","Aucun compte trouvé. Vérifie le pseudo ou essaie un autre terme.":"لم يتم العثور على حسابات. تحقق من الاسم أو جرّب كلمة أخرى.",
+        "Il n'y a pas encore de membres à découvrir.":"لا يوجد أعضاء لاكتشافهم بعد.","Voir le profil →":"عرض الملف الشخصي ←",
+        "Abonnés":"المتابعون","← Retour au profil":"← العودة إلى الملف الشخصي","Bloquer":"حظر","Débloquer":"إلغاء الحظر",
+        "Profil du membre":"ملف العضو","Ce membre n'a pas encore ajouté de présentation.":"لم يضف هذا العضو نبذة بعد.","Actualiser":"تحديث"
+      }
+    };
+    const localizeCommunityText = value => {
+      if (typeof value !== "string" || value.startsWith("community-user:")) return value;
+      const language = window.NiyyaI18n?.getLanguage?.() || "fr";
+      const dictionary = communityTranslations[language];
+      if (!dictionary) return value;
+      if (dictionary[value]) return dictionary[value];
+      if (language === "en") {
+        if (value.startsWith("Commenter · ")) return "Comment · " + value.slice("Commenter · ".length);
+        if (value.endsWith(" abonnés")) return value.replace(" abonnés", " followers");
+        if (value.endsWith(" publications")) return value.replace(" publications", " posts");
+        if (value.endsWith(" abonnements")) return value.replace(" abonnements", " following");
+        if (value.startsWith("J'aime ")) return "Like " + value.slice(7);
+      }
+      if (language === "es") {
+        if (value.startsWith("Commenter · ")) return "Comentar · " + value.slice("Commenter · ".length);
+        if (value.endsWith(" abonnés")) return value.replace(" abonnés", " seguidores");
+        if (value.endsWith(" publications")) return value.replace(" publications", " publicaciones");
+        if (value.endsWith(" abonnements")) return value.replace(" abonnements", " siguiendo");
+        if (value.startsWith("J'aime ")) return "Me gusta " + value.slice(7);
+      }
+      if (language === "ar") {
+        if (value.startsWith("Commenter · ")) return "تعليق · " + value.slice("Commenter · ".length);
+        if (value.endsWith(" abonnés")) return value.replace(" abonnés", " متابعون");
+        if (value.endsWith(" publications")) return value.replace(" publications", " منشورات");
+        if (value.endsWith(" abonnements")) return value.replace(" abonnements", " يتابع");
+        if (value.startsWith("J'aime ")) return "إعجاب " + value.slice(7);
+      }
+      return value;
+    };
     const el = (tag, cls, value) => {
       const node = document.createElement(tag);
       if (cls) node.className = cls;
-      if (value !== undefined && value !== null) node.textContent = value;
+      if (value !== undefined && value !== null) node.textContent = cls === "community-post-body" ? value : localizeCommunityText(value);
       return node;
     };
     const dateLabel = value => {
-      try { return new Date(value).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }); }
+      try { const locale = ({en:"en-US",es:"es-ES",ar:"ar",fr:"fr-FR"})[window.NiyyaI18n?.getLanguage?.() || "fr"] || "fr-FR"; return new Date(value).toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" }); }
       catch { return ""; }
     };
     const initials = name => (name || "N").trim().slice(0,1).toUpperCase();
@@ -203,11 +307,15 @@
       const title = el("h2", "", "Ton fil d’actualité");
       title.id = "community-title";
       heading.append(title, el("p", "chat-subtitle", "Découvre les publications des membres, partage tes idées et retrouve les créateurs que tu suis."));
+      const refresh = el("button", "community-secondary community-refresh", "Actualiser");
+      refresh.type = "button";
+      refresh.setAttribute("aria-label", "Actualiser le fil communautaire");
+      refresh.addEventListener("click", () => setTab(currentMode));
       const close = el("button", "community-page-close", "×");
       close.type = "button";
       close.setAttribute("aria-label", "Retour à la communauté");
       close.hidden = true;
-      header.append(heading, close);
+      header.append(heading, refresh, close);
       // Official account posts appear naturally in the chronological feed; no separate promo card.
       const tabs = el("div", "community-tabs");
       const content = el("div", "community-content");
@@ -251,6 +359,10 @@
         else if (mode === "image-review") loadImageReviews();
         else renderFeed(mode);
       }
+
+      document.addEventListener("niyya:language-changed", () => {
+        if (communityPage === page) setTab(currentMode);
+      });
 
       function renderComposer() {
         const card = el("section", "community-composer");
@@ -420,7 +532,7 @@
         if(post.has_image){
           const image=el("img","community-post-image");
           image.src="/api/community/posts/"+encodeURIComponent(post.id)+"/media";
-          image.alt="Image publiée par "+(post.author_name||"un membre");
+          image.alt=localizeCommunityText("Image publiée par un membre");
           image.loading="lazy";
           card.append(image);
         }

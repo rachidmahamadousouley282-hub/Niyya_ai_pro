@@ -194,5 +194,18 @@ test("Comfort stylesheet is loaded and precached with the app shell", () => {
   const worker = fs.readFileSync(path.join(__dirname, "../public/service-worker.js"), "utf8");
   assert.match(html, /comfort\.css\?v=niyya-comfort-profile-activity-v1-20261128/);
   assert.match(worker, /comfort\.css\?v=niyya-comfort-profile-activity-v1-20261128/);
-  assert.match(worker, /niyya-shell-v66/);
+  assert.match(worker, /niyya-shell-v67/);
+});
+
+
+test("Community feed supports the selected interface language and can be refreshed manually", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  assert.match(source, /const communityTranslations = \{/);
+  assert.match(source, /en: \{/);
+  assert.match(source, /es: \{/);
+  assert.match(source, /ar: \{/);
+  assert.match(source, /localizeCommunityText\(value\)/);
+  assert.match(source, /toLocaleDateString\(locale/);
+  assert.match(source, /community-refresh/);
+  assert.match(source, /niyya:language-changed/);
 });
