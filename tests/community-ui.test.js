@@ -105,6 +105,19 @@ test("Community feed becomes the landing view after account initialization", () 
 test("Personal account opens as a full-screen page without a close button",()=>{const app=fs.readFileSync(path.join(__dirname,"../public/scripts/app.js"),"utf8");assert.match(app,/element\("div", "niyya-account-page"\)/);const start=app.indexOf("async function openAccount()"),end=app.indexOf("async function openAccountSettings");assert.doesNotMatch(app.slice(start,end),/modal-close/);assert.match(app,/document\.querySelector\("\.niyya-account-page"\)\?\.remove\(\)/);});
 test("Member profile is full-screen and notification state uses a discreet dot",()=>{const community=fs.readFileSync(path.join(__dirname,"../public/scripts/community.js"),"utf8"),navigation=fs.readFileSync(path.join(__dirname,"../public/scripts/navigation.js"),"utf8"),app=fs.readFileSync(path.join(__dirname,"../public/scripts/app.js"),"utf8");assert.match(community,/el\("section","community-profile-view"\)/);assert.match(community,/hideSubpageClose\(\)/);assert.match(navigation,/dot\.dataset\.navDot = "community"/);assert.match(app,/data-nav-dot="community"/);assert.match(app,/\/api\/community\/notifications/);assert.doesNotMatch(app,/9\+/);});
 
+test("Personal account profile displays the founder and NIYYA recognition badges beside the username", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  const start = app.indexOf("async function openAccount()");
+  const end = app.indexOf("async function openAccountSettings");
+  const profile = app.slice(start, end);
+  assert.match(profile, /accountNameWithBadges/);
+  assert.match(profile, /community-founder-badge/);
+  assert.match(profile, /community-admin-badge/);
+  assert.match(profile, /Créateur de NIYYA\.ai/);
+  assert.match(profile, /Compte reconnu par NIYYA/);
+  assert.match(profile, /identityName\.replaceWith\(accountNameWithBadges\(profile\)\)/);
+});
+
 test("Personal profile has no close control and is styled as a full-screen page", () => {
   const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
   const css = fs.readFileSync(path.join(__dirname, "../public/styles/main.css"), "utf8");

@@ -914,6 +914,44 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.append(modal);
     const dismiss = () => modal.remove();
 
+    const accountNameWithBadges = account => {
+      const line = element("span", "community-name-line");
+      line.append(element("strong", "", account?.pseudonym || user.pseudonym || "Membre NIYYA"));
+      const makeSvg = (className, label, shapePath, shapeFill, markPath, markFill) => {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("class", className);
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", label);
+        const shape = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        shape.setAttribute("d", shapePath);
+        shape.setAttribute("fill", shapeFill);
+        svg.append(shape);
+        if (markPath) {
+          const mark = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          mark.setAttribute("d", markPath);
+          mark.setAttribute("fill", "none");
+          mark.setAttribute("stroke", markFill || "#fff");
+          mark.setAttribute("stroke-width", "2");
+          mark.setAttribute("stroke-linecap", "round");
+          mark.setAttribute("stroke-linejoin", "round");
+          svg.append(mark);
+        }
+        return svg;
+      };
+      if (account?.is_founder) line.append(makeSvg("community-founder-badge", "Créateur de NIYYA.ai",
+        "M12 1.8 21 5v6.1c0 5.3-3.6 9.1-9 11.1-5.4-2-9-5.8-9-11.1V5Z", "#D9A441",
+        "m6.8 9 3.1 2.7L12 7.2l2.1 4.5L17.2 9l-1 7H7.8Z", "#172033"));
+      if (account?.is_admin) line.append(makeSvg("community-admin-badge", "Compte reconnu par NIYYA",
+        "M12 1.8 14.7 4l3.5-.1 1.1 3.3 2.8 2.1-1.1 3.3 1.1 3.3-2.8 2.1-1.1 3.3-3.5-.1L12 23l-2.7-2.2-3.5.1-1.1-3.3-2.8-2.1L3 12.2 1.9 8.9l2.8-2.1 1.1-3.3 3.5.1Z", "#2588F5",
+        "m7.5 12.2 3 3 6.2-6.4", "#fff"));
+      else if (account?.is_official || account?.is_verified) line.append(makeSvg("community-verified-badge",
+        account?.is_official ? "Compte officiel NIYYA" : "Identité vérifiée",
+        "M12 1.8 14.7 4l3.5-.1 1.1 3.3 2.8 2.1-1.1 3.3 1.1 3.3-2.8 2.1-1.1 3.3-3.5-.1L12 23l-2.7-2.2-3.5.1-1.1-3.3-2.8-2.1L3 12.2 1.9 8.9l2.8-2.1 1.1-3.3 3.5.1Z", "#2588F5",
+        "m7.5 12.2 3 3 6.2-6.4", "#fff"));
+      return line;
+    };
+
     const addMenu = (label, detail, symbol, action) => {
       const button = element("button", "niyya-profile-menu-item");
       button.type = "button";
@@ -941,8 +979,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const identity = element("section", "niyya-profile-identity");
       const avatar = element("div", "niyya-profile-avatar", (profile?.pseudonym || user.pseudonym || user.email || "N").slice(0,1).toUpperCase());
       const identityCopy = element("div", "niyya-profile-identity-copy");
+      const identityName = accountNameWithBadges(profile || user);
       identityCopy.append(
-        element("h3", "", profile?.pseudonym || user.pseudonym || (user.isGuest ? "Invité NIYYA" : "Membre NIYYA")),
+        identityName,
         element("p", "", user.isGuest ? "Compte invité" : (user.email || "Compte NIYYA"))
       );
       identity.append(avatar, identityCopy);
@@ -998,7 +1037,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || "Impossible d'enregistrer le profil.");
             profile = data.profile;
-            identityCopy.querySelector("h3").textContent = profile.pseudonym;
+            identityName.replaceWith(accountNameWithBadges(profile));
             avatar.textContent = profile.pseudonym.slice(0,1).toUpperCase();
             bio.textContent = profile.bio || "Aucune présentation pour le moment.";
             status.textContent = "Profil mis à jour.";
