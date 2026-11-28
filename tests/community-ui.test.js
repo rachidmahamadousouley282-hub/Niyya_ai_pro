@@ -145,7 +145,7 @@ test("Messages open as a full-screen page with no close control and keep the bot
   assert.match(app.slice(start, end), /niyya-messages-page/);
   assert.doesNotMatch(app.slice(start, end), /modal-close/);
   assert.match(css, /\.niyya-messages-page\s*\{[^}]*position:fixed/);
-  assert.match(app, /href === "#messages"[\s\S]*openConversationHistory\(\)/);
+  assert.match(app, /target === "messages"[\s\S]*openConversationHistory\(\)/);
 });
 
 test("Conversation history refreshes in place and cleans up its refresh timer", () => {
@@ -157,4 +157,12 @@ test("Conversation history refreshes in place and cleans up its refresh timer", 
   assert.match(history, /clearInterval\(refreshTimer\)/);
   assert.match(history, /visibilitychange/);
   assert.doesNotMatch(history, /location\.reload\(/);
+});
+
+
+test("Opening a saved conversation preserves its ID and returns to the conversation list", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(app, /openChat\(result\.character, null, conversation\.id\)/);
+  assert.match(app, /function openChatShell\(character, returnToMessages = false\)/);
+  assert.match(app, /if \(returnToMessages\) \{\s*openConversationHistory\(\)/);
 });
