@@ -172,7 +172,7 @@ test("Opening a saved conversation preserves its ID and the bottom navigation re
 test("Home, character discovery and trends are delegated to the community navigation controller", () => {
   const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
   const community = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
-  assert.match(app, /if \(!\["create", "messages", "profile"\]\.includes\(target\)\) return/);
+  assert.match(app, /if \(!\["create", "messages", "profile"\]\.includes\(target\)\) \{/);\n  assert.match(app, /bottomNavigation\?\.addEventListener\("click"/);
   assert.match(community, /href === "#discover"\) showStandaloneView\("characters"\)/);
   assert.match(community, /href === "#trending"\) showStandaloneView\("trending"\)/);
   assert.match(community, /navLink\.addEventListener\("click"/);
@@ -191,7 +191,7 @@ test("Community composer starts compact and expands only when the member chooses
 test("Comfort stylesheet is loaded and precached with the app shell", () => {
   const html = fs.readFileSync(path.join(__dirname, "../public/index.html"), "utf8");
   const worker = fs.readFileSync(path.join(__dirname, "../public/service-worker.js"), "utf8");
-  assert.match(html, /comfort\.css\?v=niyya-comfort-architecture-v1-20261128/);
-  assert.match(worker, /comfort\.css\?v=niyya-comfort-architecture-v1-20261128/);
-  assert.match(worker, /niyya-shell-v64/);
+  assert.match(html, /comfort\.css\?v=niyya-comfort-architecture-v2-20261128/);
+  assert.match(worker, /comfort\.css\?v=niyya-comfort-architecture-v2-20261128/);
+  assert.match(worker, /niyya-shell-v65/);
 });

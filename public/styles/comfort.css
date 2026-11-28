@@ -337,3 +337,83 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
   .niyya-create-menu { animation: niyya-sheet-in .18s ease-out; }
   @keyframes niyya-sheet-in { from { transform: translateY(14px); opacity: .75; } to { transform: translateY(0); opacity: 1; } }
 }
+
+/* Profile is a first-class full-screen destination, not a floating dialog. */
+.niyya-account-page {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 300 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  overflow: hidden !important;
+  padding: 0 0 calc(68px + env(safe-area-inset-bottom,0px)) !important;
+  background: #111111 !important;
+}
+.niyya-account-page .niyya-profile-panel {
+  width: min(100%,760px) !important;
+  max-width: 760px !important;
+  height: 100% !important;
+  max-height: none !important;
+  margin: 0 auto !important;
+  padding: max(18px,env(safe-area-inset-top,0px)) 16px 20px !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #111111 !important;
+  box-shadow: none !important;
+}
+.niyya-account-page .niyya-profile-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 10px 0 16px;
+  background: #111111;
+}
+.niyya-account-page .niyya-profile-header h2 {
+  margin: 4px 0 0;
+  font-size: 25px;
+  letter-spacing: -.45px;
+}
+.niyya-account-page .niyya-profile-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 0 14px;
+}
+.niyya-account-page .niyya-profile-avatar {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: #292929 !important;
+  color: #f4f4f4;
+  font-size: 24px;
+}
+.niyya-account-page .niyya-profile-stats { gap: 9px; margin: 12px 0 16px; }
+.niyya-account-page .niyya-profile-stat {
+  min-width: 0;
+  padding: 13px 8px;
+  border-radius: 13px;
+}
+.niyya-account-page .niyya-profile-bio {
+  margin: 12px 0 20px;
+  color: #c2c2c2;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.niyya-account-page .niyya-profile-section-title {
+  margin: 22px 0 10px;
+  color: #f1f1f1;
+  font-size: 16px;
+}
+.niyya-account-page .niyya-profile-menu-item {
+  min-height: 62px;
+  margin: 7px 0;
+  border-radius: 14px !important;
+  background: #1c1c1e !important;
+}
+@media (max-width:600px) {
+  .niyya-account-page .niyya-profile-panel { padding-left: 15px !important; padding-right: 15px !important; }
+}
