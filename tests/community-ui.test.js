@@ -119,7 +119,7 @@ test("Navigation uses a discreet notification dot, not a numeric badge", () => {
   const nav = fs.readFileSync(path.join(__dirname, "../public/scripts/navigation.js"), "utf8");
   const css = fs.readFileSync(path.join(__dirname, "../public/styles/main.css"), "utf8");
   assert.match(nav, /nav-notification-dot/);
-  assert.match(nav, /data-nav-dot = "community"/);
+  assert.match(nav, /dot\.dataset\.navDot = "community"/);
   assert.match(app, /data-nav-dot="community"/);
   assert.doesNotMatch(app, /9\+/);
   assert.match(css, /\.nav-notification-dot/);
