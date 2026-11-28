@@ -25,3 +25,11 @@ test("all supported languages map the six navigation labels without extra destin
   assert.equal((i18n.match(/messagesNav:/g) || []).length, 4);
   assert.doesNotMatch(i18n, /\[t\.home, t\.exploreNav, t\.createNav, t\.favorites, t\.history, t\.profile\]/);
 });
+
+test("character catalogue and trends are separate destinations", () => {
+  assert.match(html, /id="discover"[^>]*aria-label="Catalogue des personnages"/);
+  assert.match(html, /id="character-categories"/);
+  assert.match(html, /id="creator-studio"/);
+  assert.match(html, /id="character-search"/);
+  assert.doesNotMatch(html, /<h2>🔥 Tendances mondiales<\/h2>/);
+});

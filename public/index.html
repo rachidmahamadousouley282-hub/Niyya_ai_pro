@@ -27,7 +27,7 @@
   <link rel="stylesheet" href="/styles/responsive.css?v=responsive-safe-area-v1-20261127">
   <link rel="stylesheet" href="/styles/community.css?v=community-home-feed-v1-20261128">
   <link rel="stylesheet" href="/styles/home.css?v=black-minimal-v3-20261126">
-  <link rel="stylesheet" href="/styles/experience.css?v=trending-world-v1-20261127">
+  <link rel="stylesheet" href="/styles/experience.css?v=clean-character-views-v1-20261128">
 </head>
 <body>
   <div class="app-shell">
@@ -53,11 +53,6 @@
           <h1 id="home-greeting">Découvre. Imagine. Crée ton univers.</h1>
           <p>Explore des personnages, échange avec eux et donne vie à tes propres histoires.</p>
         </div>
-        <div class="search-box">
-          <span aria-hidden="true">⌕</span>
-          <input id="character-search" type="search" aria-label="Rechercher un personnage"
-            placeholder="Rechercher un personnage...">
-        </div>
         <div class="home-actions">
           <a class="home-action-primary" href="#discover">Explorer les personnages <span aria-hidden="true">→</span></a>
           <button class="home-action-secondary" id="home-create-character" type="button">＋ Créer mon personnage</button>
@@ -70,7 +65,7 @@
       </section>
 
       <section class="section trending-section" id="trending">
-        <div class="section-heading"><div><span class="eyebrow">ACTIVITÉ DES 7 DERNIERS JOURS</span><h2>🔥 Tendances mondiales</h2></div><span class="trending-updated" id="trending-updated">Classement actualisé</span></div>
+        <div class="section-heading"><div><span class="eyebrow">CE QUI EST POPULAIRE SUR NIYYA</span><h2>Les tendances</h2></div><span class="trending-updated" id="trending-updated">Classement actualisé</span></div>
         <div class="trending-tabs" role="group" aria-label="Classements">
           <button type="button" class="trending-tab active" data-trending-scope="all">Communauté</button>
           <button type="button" class="trending-tab" data-trending-scope="official">NIYYA Originals</button>
@@ -89,15 +84,18 @@
         <div class="companion-rail" id="companion-rail" aria-label="Personnages avec lesquels tu as déjà discuté"></div>
       </section>
 
-      <section class="section" id="discover">
+      <section class="section" id="discover" aria-label="Catalogue des personnages">
         <div class="section-heading">
           <div>
             <span class="eyebrow">À EXPLORER</span>
             <h2>À découvrir</h2>
           </div>
-          <a href="#discover">Explorer →</a>
         </div>
 
+        <div class="search-box character-search-box">
+          <span aria-hidden="true">⌕</span>
+          <input id="character-search" type="search" aria-label="Rechercher un personnage" placeholder="Rechercher un personnage...">
+        </div>
         <div class="character-grid" id="character-grid" aria-live="polite" aria-busy="true">
           <div class="character-skeleton" aria-hidden="true"><span></span><i></i><i></i><b></b></div>
           <div class="character-skeleton" aria-hidden="true"><span></span><i></i><i></i><b></b></div>
@@ -107,7 +105,7 @@
         </div>
       </section>
 
-      <section class="section">
+      <section class="section" id="character-categories">
         <div class="section-heading">
           <div>
             <span class="eyebrow">PARCOURIR</span>
@@ -120,7 +118,7 @@
         </div>
       </section>
 
-      <section class="creator-banner">
+      <section class="creator-banner" id="creator-studio">
         <span class="eyebrow">IMAGINE TON PERSONNAGE</span>
         <h2>Ton imagination<br>n'a pas de limites.</h2>
         <p>Donne vie à tes propres personnages et invente leurs histoires.</p>
@@ -166,9 +164,9 @@
   <script src="/scripts/api.js?v=trending-world-v1-20261127"></script>
   <script src="/scripts/analytics.js?v=site-traffic-v1-20261127"></script>
   <script src="/scripts/onboarding.js?v=signup-gate-v1-20261128"></script>
-  <script src="/scripts/navigation.js?v=community-home-feed-v1-20261128"></script>
+  <script src="/scripts/navigation.js?v=clean-character-views-v1-20261128"></script>
   <script src="/scripts/app.js?v=signup-gate-v2-20261128"></script>
-  <script src="/scripts/community.js?v=community-home-feed-v1-20261128"></script>
+  <script src="/scripts/community.js?v=clean-character-views-v1-20261128"></script>
   <script src="/scripts/pwa.js?v=pwa-cache-v57-20261128"></script>
 </body>
 </html>

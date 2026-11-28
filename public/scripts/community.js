@@ -41,8 +41,26 @@
       selectNav(navLink);
       openCommunity();
     });
+    const showStandaloneView = view => {
+      restoreHome();
+      const visibleIds = view === "characters"
+        ? new Set(["discover", "character-categories", "creator-studio"])
+        : new Set(["trending"]);
+      Array.from(main.children).forEach(section => {
+        section.hidden = !visibleIds.has(section.id);
+      });
+      const target = view === "characters"
+        ? document.getElementById("discover")
+        : document.getElementById("trending");
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
     nav.querySelectorAll('.nav-item:not([href="#community"])').forEach(item => {
-      item.addEventListener("click", () => restoreHome());
+      item.addEventListener("click", () => {
+        const href = item.getAttribute("href");
+        if (href === "#discover") showStandaloneView("characters");
+        else if (href === "#trending") showStandaloneView("trending");
+        else restoreHome();
+      });
     });
 
     const api = async (path, options = {}) => {
