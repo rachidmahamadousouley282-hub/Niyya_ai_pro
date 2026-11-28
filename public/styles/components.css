@@ -859,3 +859,9 @@ html[data-theme="light"] .settings-policy-links a { color: #6943b5; }
 .creator-avatar-preview { display:block; width:112px; height:112px; object-fit:cover; border-radius:18px; border:1px solid rgba(182,154,255,.3); background:#17121f; }
 .creator-avatar-preview[hidden], .creator-avatar-remove[hidden] { display:none; }
 .creator-avatar-hint { color:#aaa0b8; font-size:12px; line-height:1.5; }
+
+
+/* Workspace pages keep navigation available. */
+.bottom-nav { z-index: 400 !important; }
+.niyya-modal.creator-fullscreen-modal { padding-bottom: calc(112px + env(safe-area-inset-bottom)) !important; }
+.niyya-modal.chat-fullscreen-modal .chat-fullscreen-panel { padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important; }

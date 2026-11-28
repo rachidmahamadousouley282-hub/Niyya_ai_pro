@@ -80,7 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const modalObserver = new MutationObserver(() => {
-    if (document.querySelector(".niyya-modal")) lockPageBehindModal();
+    const blockingModal = document.querySelector(".niyya-modal:not(.creator-fullscreen-modal):not(.chat-fullscreen-modal)");
+    if (blockingModal) lockPageBehindModal();
     else unlockPageAfterModal();
   });
   modalObserver.observe(document.body, { childList: true });
@@ -385,6 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function openConversationHistory() {
     activeHistoryCleanup?.();
     setActiveNav("#messages");
+    window.location.hash = "messages";
     document.querySelector(".niyya-modal")?.remove();
     document.querySelector(".niyya-account-page")?.remove();
     const page = element("div", "niyya-messages-page");
@@ -488,8 +490,9 @@ document.addEventListener("DOMContentLoaded", () => {
     guestReady = true;
   }
 
-  function openChatShell(character, returnToMessages = false) {
+  function openChatShell(character) {
     setActiveNav("#messages");
+    window.location.hash = "messages";
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal chat-fullscreen-modal");
     const panel = element("section", "modal-panel chat-panel chat-fullscreen-panel");
@@ -525,10 +528,7 @@ document.addEventListener("DOMContentLoaded", () => {
     profile.type = "button";
     profile.disabled = false;
     profile.addEventListener("click", () => openProfile(character, profile));
-    const close = element("button", "modal-close", "×");
-    close.type = "button";
-    close.setAttribute("aria-label", t("close"));
-    actions.append(profile, close);
+    actions.append(profile);
     header.append(titleWrap, actions);
 
     const messages = element("div", "chat-messages");
@@ -548,16 +548,6 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.append(header, messages, form);
     modal.append(panel);
     document.body.append(modal);
-
-    const closeModal = () => {
-      modal.remove();
-      if (returnToMessages) {
-        openConversationHistory();
-      } else {
-        setActiveNav("#");
-      }
-    };
-    close.addEventListener("click", closeModal);
 
     return { modal, messages, form, input, send, profile };
   }
@@ -1270,9 +1260,7 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.append(header, content);
     modal.append(panel);
     document.body.append(modal);
-    const dismiss = () => modal.remove();
-    close.addEventListener("click", dismiss);
-    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
+    // La navigation du bas est le seul moyen de quitter l'atelier.
 
     try {
       await ensureGuest();
@@ -1325,6 +1313,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 async function openCreator(existingCharacter = null) {
+    setActiveNav("#create");
+    window.location.hash = "create";
     document.querySelector(".niyya-modal")?.remove();
     const modal = element("div", "niyya-modal creator-fullscreen-modal");
     const panel = element("section", "modal-panel creator-panel");
@@ -1336,13 +1326,10 @@ async function openCreator(existingCharacter = null) {
     titleWrap.append(element("span", "eyebrow", "NIYYA.ai · ATELIER"),
       element("h2", "", existingCharacter ? "Modifier ton personnage" : "Donne vie à ton personnage"),
       element("p", "chat-subtitle", "Crée un personnage fictif. Il restera privé jusqu'à sa validation."));
-    const close = element("button", "modal-close", "×");
-    close.type = "button";
-    close.setAttribute("aria-label", t("close"));
     const myCharacters = element("button", "profile-link-button", "Mes créations");
     myCharacters.type = "button";
     myCharacters.addEventListener("click", openMyCharacters);
-    header.append(titleWrap, myCharacters, close);
+    header.append(titleWrap, myCharacters);
     const form = element("form", "creator-form");
     const fields = [
       ["name", "Nom du personnage", "Ex. : Mira", 40, true, "input", 2],
@@ -1590,6 +1577,11 @@ async function openCreator(existingCharacter = null) {
   document.getElementById("home-create-character")?.addEventListener("click", () => openCreator());
 
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
+  // Nettoyer les vues de travail avant tout changement d'onglet.
+  document.querySelector(".bottom-nav")?.addEventListener("click", event => {
+    if (!event.target.closest(".nav-item")) return;
+    document.querySelectorAll(".niyya-modal.creator-fullscreen-modal, .niyya-modal.chat-fullscreen-modal").forEach(page => page.remove());
+  }, true);
   document.querySelectorAll(".bottom-nav .nav-item").forEach(item => {
     item.addEventListener("click", event => {
       const href = item.getAttribute("href") || "";

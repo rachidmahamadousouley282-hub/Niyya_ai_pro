@@ -15,14 +15,14 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
     .map(match => match[1]);
   assert.ok(assets.length > 0);
   assert.ok(assets.includes("/scripts/analytics.js?v=site-traffic-v1-20261127"));
-  assert.ok(assets.includes("/styles/experience.css?v=niyya-live-pages-v2-20261128"));
+  assert.ok(assets.includes("/styles/experience.css?v=niyya-workspace-nav-v1-20261128"));
   for (const asset of assets) {
     assert.ok(serviceWorker.includes(JSON.stringify(asset)), "Missing from shell cache: " + asset);
   }
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v62"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v63"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -123,7 +123,7 @@ test("Typing a discovery search filters the category row without moving the disc
   assert.match(app, /document\.querySelector\("\.category-list"\)\?\.closest\("\.section"\)/);
   assert.match(app, /categorySection\.hidden = searching/);
   assert.match(app, /homeHero\?\.classList\.toggle\("is-searching", searching\)/);
-  assert.match(html, /app\.js\?v=niyya-live-pages-v2-20261128/);
+  assert.match(html, /app\.js\?v=niyya-workspace-nav-v1-20261128/);
 });
 
 

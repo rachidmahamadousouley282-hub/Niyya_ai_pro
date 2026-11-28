@@ -46,3 +46,15 @@ test("Navigation has one destination handler, avoiding duplicate opens", () => {
   const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
   assert.equal((app.match(/document\.querySelectorAll\("\.bottom-nav \.nav-item"\)\.forEach\(item =>/g) || []).length, 1);
 });
+
+
+test("Creator and chat remain navigable workspace pages without a close cross", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  const components = fs.readFileSync(path.join(__dirname, "../public/styles/components.css"), "utf8");
+  assert.match(app, /creator-fullscreen-modal/);
+  assert.match(app, /chat-fullscreen-modal/);
+  assert.match(app, /blockingModal/);
+  assert.match(app, /\.bottom-nav[\s\S]*?\}, true\)/);
+  assert.doesNotMatch(app, /actions\.append\(profile, close\)/);
+  assert.match(components, /\.bottom-nav \{ z-index: 400 !important; \}/);
+});
