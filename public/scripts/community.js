@@ -34,6 +34,8 @@
       communityPage?.remove();
       communityPage = null;
       hiddenHomeSections.forEach(section => { section.hidden = false; });
+      // Also restore sections hidden by the standalone Characters/Trends views.
+      Array.from(main.children).forEach(section => { section.hidden = false; });
       hiddenHomeSections = [];
     };
     navLink.addEventListener("click", event => {
