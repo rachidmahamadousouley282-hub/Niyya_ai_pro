@@ -122,7 +122,7 @@ test("Typing a discovery search filters the category row without moving the disc
   assert.match(app, /document\.querySelector\("\.category-list"\)\?\.closest\("\.section"\)/);
   assert.match(app, /categorySection\.hidden = searching/);
   assert.match(app, /homeHero\?\.classList\.toggle\("is-searching", searching\)/);
-  assert.match(html, /app\.js\?v=signup-gate-v1-20261128/);
+  assert.match(html, /app\.js\?v=signup-gate-v2-20261128/);
 });
 
 
