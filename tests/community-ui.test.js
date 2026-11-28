@@ -177,3 +177,21 @@ test("Home, character discovery and trends are delegated to the community naviga
   assert.match(community, /href === "#trending"\) showStandaloneView\("trending"\)/);
   assert.match(community, /navLink\.addEventListener\("click"/);
 });
+
+
+test("Community composer starts compact and expands only when the member chooses to write", () => {
+  const source = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  assert.match(source, /community-composer-trigger/);
+  assert.match(source, /form\.hidden = true/);
+  assert.match(source, /trigger\.setAttribute\("aria-expanded","false"\)/);
+  assert.match(source, /card\.classList\.add\("is-composing"\)/);
+  assert.match(source, /community-cancel/);
+});
+
+test("Comfort stylesheet is loaded and precached with the app shell", () => {
+  const html = fs.readFileSync(path.join(__dirname, "../public/index.html"), "utf8");
+  const worker = fs.readFileSync(path.join(__dirname, "../public/service-worker.js"), "utf8");
+  assert.match(html, /comfort\.css\?v=niyya-comfort-architecture-v1-20261128/);
+  assert.match(worker, /comfort\.css\?v=niyya-comfort-architecture-v1-20261128/);
+  assert.match(worker, /niyya-shell-v64/);
+});

@@ -1,0 +1,265 @@
+/* NIYYA.ai comfort layer — calm contrast, compact navigation, spacious content */
+:root {
+  color-scheme: dark;
+  --bg: #151b24;
+  --surface: #202a36;
+  --surface-light: #293646;
+  --text: #e8edf4;
+  --muted: #aab6c5;
+  --border: rgba(205,219,235,.12);
+  --purple: #78aee2;
+  --purple-light: #a9c9e9;
+}
+html, body {
+  background: #151b24 !important;
+  color: #e8edf4;
+}
+body {
+  background-image: none !important;
+  -webkit-font-smoothing: antialiased;
+}
+.app-shell { padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
+.topbar {
+  background: rgba(21,27,36,.96);
+  border-bottom: 1px solid rgba(205,219,235,.08);
+  box-shadow: none;
+}
+.brand-icon, .profile-button {
+  background: #2c4055 !important;
+  box-shadow: none !important;
+}
+.eyebrow, .chat-status { color: #aab6c5 !important; }
+button, input, textarea, select { font-family: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid #a9c9e9;
+  outline-offset: 3px;
+}
+.bottom-nav {
+  position: fixed !important;
+  z-index: 400 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 62px;
+  display: grid !important;
+  grid-template-columns: repeat(6,minmax(0,1fr)) !important;
+  gap: 0 !important;
+  padding: 7px 7px calc(7px + env(safe-area-inset-bottom,0px)) !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(205,219,235,.12) !important;
+  border-radius: 0 !important;
+  background: rgba(27,35,46,.98) !important;
+  box-shadow: 0 -5px 18px rgba(0,0,0,.12) !important;
+  backdrop-filter: blur(16px);
+}
+.bottom-nav .nav-item,
+.bottom-nav .nav-item.selected {
+  display: flex !important;
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  min-height: 42px;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 2px !important;
+  color: #aab6c5 !important;
+  background: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.bottom-nav .nav-item > .nav-label { display: none !important; }
+.bottom-nav .nav-item > .nav-icon {
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: #b6c1ce !important;
+  box-shadow: none !important;
+}
+.bottom-nav .nav-item > .nav-icon svg { width: 23px !important; height: 23px !important; }
+.bottom-nav .nav-item.selected > .nav-icon {
+  color: #d5e7f8 !important;
+  background: rgba(125,169,211,.16) !important;
+}
+.bottom-nav .nav-item.nav-create > .nav-icon {
+  flex: 0 0 38px !important;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  border: 1.5px solid rgba(184,207,231,.62) !important;
+  background: transparent !important;
+  color: #dce9f6 !important;
+}
+.bottom-nav .nav-item.nav-create > .nav-icon svg { width: 22px !important; height: 22px !important; }
+.bottom-nav .nav-item.nav-create > .nav-label { display: none !important; }
+.community-page {
+  width: min(100%,760px);
+  margin: 0 auto;
+  padding: 12px 0 24px;
+}
+.community-heading { gap: 10px; }
+.community-heading h2 { font-size: 23px; letter-spacing: -.35px; }
+.community-heading .chat-subtitle { max-width: 52ch; line-height: 1.55; }
+.community-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 0 12px;
+  scrollbar-width: none;
+}
+.community-tabs::-webkit-scrollbar { display: none; }
+.community-tab {
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid rgba(205,219,235,.14);
+  border-radius: 999px;
+  background: #202a36;
+  color: #b8c4d2;
+  font-size: 13px;
+}
+.community-tab.active {
+  border-color: rgba(157,190,222,.36);
+  background: #34465a;
+  color: #f0f5fa;
+}
+.community-content { gap: 12px; padding-top: 4px; }
+.community-feed-intro { margin: 2px 0 0; }
+.community-feed-intro .community-section-title { margin-bottom: 3px; color: #e4ebf3; }
+.community-muted { color: #aab6c5 !important; line-height: 1.55; }
+.community-composer {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(205,219,235,.12);
+  border-radius: 17px;
+  background: #202a36;
+  box-shadow: none;
+}
+.community-composer-trigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+  border: 0;
+  background: transparent;
+  color: #dfe7f0;
+  text-align: left;
+}
+.community-composer-avatar {
+  display: grid;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #34465a;
+  color: #e6eff8;
+  font-weight: 700;
+}
+.community-composer-prompt {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 14px;
+  border: 1px solid rgba(205,219,235,.12);
+  border-radius: 999px;
+  background: #18212c;
+  color: #b4c0ce;
+  font-size: 13px;
+}
+.community-composer-action {
+  flex: 0 0 auto;
+  color: #b9d3ec;
+  font-size: 12px;
+  font-weight: 700;
+}
+.community-composer-quick-actions {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(205,219,235,.09);
+}
+.community-composer-quick-item { color: #b2bfce; font-size: 12px; }
+.community-post-form[hidden] { display: none !important; }
+.community-post-form {
+  display: grid;
+  gap: 11px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(205,219,235,.09);
+}
+.community-composer.is-composing .community-composer-trigger { display: none; }
+.community-composer-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.community-composer-form-actions .community-publish { flex: 1; }
+.community-cancel { margin: 0; }
+.community-textarea, .community-comment-input, .community-select, .creator-control {
+  border-color: rgba(205,219,235,.17) !important;
+  border-radius: 13px !important;
+  background: #18212c !important;
+  color: #e8edf4 !important;
+}
+.community-primary {
+  border-radius: 12px !important;
+  background: #587fa8 !important;
+  color: #fff !important;
+  box-shadow: none !important;
+}
+.community-secondary, .community-action {
+  border-color: rgba(205,219,235,.12) !important;
+  border-radius: 11px !important;
+  background: #293646 !important;
+  color: #d0dbe7 !important;
+}
+.community-post, .community-profile-card, .community-composer {
+  background: #202a36 !important;
+  border-color: rgba(205,219,235,.12) !important;
+  box-shadow: none !important;
+}
+.community-post { padding: 15px; }
+.community-post-body { color: #e0e7ef; line-height: 1.65; }
+.community-empty { border-color: rgba(205,219,235,.18); color: #b3bfcd; }
+.niyya-account-page, .niyya-messages-page, .creator-fullscreen-modal {
+  background: #151b24 !important;
+}
+.niyya-account-page .niyya-profile-panel,
+.niyya-messages-page .modal-panel,
+.creator-fullscreen-modal .creator-panel {
+  color: #e8edf4;
+}
+.niyya-account-page .niyya-profile-header { border-color: rgba(205,219,235,.12); }
+.niyya-profile-menu-item {
+  border-color: rgba(205,219,235,.12) !important;
+  background: #202a36 !important;
+  color: #e4ebf3 !important;
+  box-shadow: none !important;
+}
+.niyya-profile-stat, .niyya-profile-stats > div {
+  background: #202a36 !important;
+  border-color: rgba(205,219,235,.1) !important;
+}
+@media (max-width: 600px) {
+  .app-shell { padding-left: 14px; padding-right: 14px; padding-bottom: calc(76px + env(safe-area-inset-bottom,0px)); }
+  .community-page { padding-top: 8px; }
+  .community-post { padding: 13px; }
+  .community-composer { padding: 10px; }
+  .bottom-nav .nav-item > .nav-icon { flex-basis: 36px !important; width: 36px !important; height: 36px !important; min-width: 36px !important; min-height: 36px !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

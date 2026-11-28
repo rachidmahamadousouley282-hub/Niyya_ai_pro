@@ -259,9 +259,20 @@
           card.append(el("p","community-muted","Pour publier, suivre des membres et créer ton profil public, termine d'abord ton inscription ou connecte-toi."));
           return card;
         }
-        card.append(el("div","community-composer-heading", "Partage quelque chose"));
-        card.append(el("p","community-muted","Une création, une idée ou simplement une image avec une description."));
+        const trigger = el("button","community-composer-trigger");
+        trigger.type = "button";
+        trigger.setAttribute("aria-expanded","false");
+        const avatar = el("span","community-composer-avatar", (window.NiyyaSession?.user?.pseudonym || "N").slice(0,1).toUpperCase());
+        const prompt = el("span","community-composer-prompt","Quoi de neuf dans ton univers ?");
+        const triggerAction = el("span","community-composer-action","Publier");
+        trigger.append(avatar,prompt,triggerAction);
+        const helper = el("div","community-composer-quick-actions");
+        helper.append(
+          el("span","community-composer-quick-item","▧  Photo"),
+          el("span","community-composer-quick-item","✦  Création")
+        );
         const form = el("form","community-post-form");
+        form.hidden = true;
         const textarea = el("textarea","community-textarea");
         textarea.maxLength=600; textarea.rows=3; textarea.placeholder="Qu'as-tu envie de partager ?";
         const fileLabel = el("label","community-upload-label");
@@ -281,12 +292,32 @@
         priv.value="private";
         visibility.append(pub,priv); visibilityLabel.append(visibility);
         const hint=el("p","community-muted","Tu peux modifier la visibilité à chaque publication.");
+        const formActions=el("div","community-composer-form-actions");
+        const cancel=el("button","community-secondary community-cancel","Annuler");
+        cancel.type="button";
         const submit=el("button","community-primary community-publish","Publier");
         submit.type="submit";
         const status=el("p","community-muted community-form-status");
         status.setAttribute("role","status");
-        privacyRow.append(visibilityLabel,submit);
+        formActions.append(cancel,submit);
+        privacyRow.append(visibilityLabel,formActions);
         form.append(textarea,fileLabel,preview,privacyRow,hint,status);
+        trigger.addEventListener("click",()=>{
+          form.hidden=false;
+          trigger.setAttribute("aria-expanded","true");
+          card.classList.add("is-composing");
+          textarea.focus();
+        });
+        cancel.addEventListener("click",()=>{
+          form.reset();
+          imageData=null;
+          preview.hidden=true;
+          preview.replaceChildren();
+          status.textContent="";
+          form.hidden=true;
+          trigger.setAttribute("aria-expanded","false");
+          card.classList.remove("is-composing");
+        });
         file.addEventListener("change",async()=>{
           const selected=file.files && file.files[0];
           if(!selected){imageData=null;preview.hidden=true;preview.replaceChildren();return;}
@@ -314,7 +345,7 @@
           }catch(error){status.textContent=error.message;}
           finally{submit.disabled=false;}
         });
-        card.append(form);
+        card.append(trigger,helper,form);
         return card;
       }
 
