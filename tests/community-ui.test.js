@@ -192,8 +192,8 @@ test("Community composer starts compact and expands only when the member chooses
 test("Comfort stylesheet is loaded and precached with the app shell", () => {
   const html = fs.readFileSync(path.join(__dirname, "../public/index.html"), "utf8");
   const worker = fs.readFileSync(path.join(__dirname, "../public/service-worker.js"), "utf8");
-  assert.match(html, /comfort\.css\?v=niyya-navigation-auth-flow-v1-20261128/);
-  assert.match(worker, /comfort\.css\?v=niyya-navigation-auth-flow-v1-20261128/);
+  assert.match(html, /comfort\.css\?v=niyya-stable-start-nav-v2-20261128/);
+  assert.match(worker, /comfort\.css\?v=niyya-stable-start-nav-v2-20261128/);
   assert.match(worker, /niyya-shell-v69/);
 });
 
