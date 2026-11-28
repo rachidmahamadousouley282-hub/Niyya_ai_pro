@@ -15,14 +15,14 @@ test("The service worker precaches the exact CSS and JS URLs used by the app", (
     .map(match => match[1]);
   assert.ok(assets.length > 0);
   assert.ok(assets.includes("/scripts/analytics.js?v=site-traffic-v1-20261127"));
-  assert.ok(assets.includes("/styles/experience.css?v=trending-world-v1-20261127"));
+  assert.ok(assets.includes("/styles/experience.css?v=clean-character-views-v1-20261128"));
   for (const asset of assets) {
     assert.ok(serviceWorker.includes(JSON.stringify(asset)), "Missing from shell cache: " + asset);
   }
 });
 
 test("The app cache version is advanced when shell assets change", () => {
-  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v57"/);
+  assert.match(serviceWorker, /CACHE_NAME = "niyya-shell-v58"/);
 });
 
 test("Admin assets use versioned URLs so cached dashboards receive updates", () => {
@@ -65,9 +65,9 @@ test("The new home, character discovery and trends have distinct navigation dest
   assert.match(app, /addMenu\("Centre d’assistance", "Contacter l’équipe NIYYA et suivre tes demandes"/);
   assert.match(app, /window.location.href = "\/support.html"/);
   const navigation = fs.readFileSync(path.join(root, "public/scripts/navigation.js"), "utf8");
-  assert.match(navigation, /\{ href: "#community", label: "Accueil" \}/);
-  assert.match(navigation, /\{ href: "#discover", label: "Personnages" \}/);
-  assert.match(navigation, /\{ href: "#trending", label: "Tendances" \}/);
+  assert.match(navigation, /\["#community","Accueil"\]/);
+  assert.match(navigation, /\["#discover","Personnages"\]/);
+  assert.match(navigation, /\["#trending","Tendances"\]/);
 });
 
 
@@ -185,4 +185,12 @@ test("World trend rankings use recent database activity and separate official ch
  assert.match(app, /loadTrending/);
  assert.match(html, /id="trending"/);
  assert.match(html, /data-trending-scope="official"/);
+});
+
+test("Character and trends navigation use separate standalone views", () => {
+  const community = fs.readFileSync(path.join(root, "public/scripts/community.js"), "utf8");
+  assert.match(community, /showStandaloneView\("characters"\)/);
+  assert.match(community, /showStandaloneView\("trending"\)/);
+  assert.match(community, /new Set\(\["discover", "character-categories", "creator-studio"\]\)/);
+  assert.match(community, /Array\.from\(main\.children\)\.forEach\(section => \{ section\.hidden = false; \}\)/);
 });
