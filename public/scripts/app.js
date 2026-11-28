@@ -846,6 +846,24 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("conversations-button")?.addEventListener("click", openConversationHistory);
   document.getElementById("profile-button")?.addEventListener("click", openAccount);
 
+  async function refreshNotificationBadge() {
+    const badge = document.querySelector('.bottom-nav [data-nav-badge="community"]');
+    if (!badge) return;
+    try {
+      const response = await fetch("/api/community/notifications", { credentials: "same-origin", headers: { Accept: "application/json" }, cache: "no-store" });
+      if (!response.ok) throw new Error("notifications unavailable");
+      const data = await response.json();
+      const count = Math.max(0, Number(data.unread_count) || 0);
+      badge.textContent = count > 9 ? "9+" : String(count);
+      badge.hidden = count === 0;
+      badge.setAttribute("aria-label", count > 9 ? "Plus de 9 notifications non lues" : count + " notification(s) non lue(s)");
+    } catch { badge.hidden = true; }
+  }
+  refreshNotificationBadge();
+  window.addEventListener("focus", refreshNotificationBadge);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshNotificationBadge(); });
+  window.addEventListener("niyya:notifications-updated", refreshNotificationBadge);
+
   const homeHero = document.querySelector(".home-hero");
   const categorySection = document.querySelector(".category-list")?.closest(".section");
   searchInput.addEventListener("input", () => {
@@ -870,10 +888,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const title = element("h2", "", "Offre VIP");
     title.id = "niyya-vip-title";
     heading.append(title);
-    const close = element("button", "modal-close", "×");
-    close.type = "button";
-    close.setAttribute("aria-label", "Fermer");
-    header.append(heading, close);
+    header.append(heading);
 
     const body = element("div", "niyya-profile-content");
     const plan = element("section", "niyya-vip-plan niyya-vip-featured");
@@ -905,7 +920,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function openAccount() {
     document.querySelector(".niyya-modal")?.remove();
-    const modal = element("div", "niyya-modal niyya-profile-modal");
+    document.querySelector(".niyya-account-page")?.remove();
+    const modal = element("div", "niyya-account-page");
     const panel = element("section", "modal-panel niyya-profile-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-modal", "true");
@@ -926,8 +942,6 @@ document.addEventListener("DOMContentLoaded", () => {
     modal.append(panel);
     document.body.append(modal);
     const dismiss = () => modal.remove();
-    close.addEventListener("click", dismiss);
-    modal.addEventListener("click", event => { if (event.target === modal) dismiss(); });
 
     const addMenu = (label, detail, symbol, action) => {
       const button = element("button", "niyya-profile-menu-item");
@@ -1597,6 +1611,7 @@ async function openCreator(existingCharacter = null) {
   document.querySelectorAll(".nav-item").forEach(item => {
     item.addEventListener("click", async event => {
       event.preventDefault();
+      document.querySelector(".niyya-account-page")?.remove();
       setActiveNav(item.getAttribute("href") || "#");
       const target = (item.getAttribute("href") || "").replace("#", "");
       if (target === "discover" || target === "") {

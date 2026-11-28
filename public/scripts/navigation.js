@@ -28,6 +28,14 @@
       text.className = "nav-label";
       text.textContent = label;
       item.append(icon,text);
+      if (href === "#community") {
+        const badge = document.createElement("span");
+        badge.className = "nav-notification-badge";
+        badge.dataset.navBadge = "community";
+        badge.hidden = true;
+        badge.setAttribute("aria-live", "polite");
+        item.append(badge);
+      }
       item.setAttribute("aria-label",label);
       item.title = label;
       if (href === "#community") {

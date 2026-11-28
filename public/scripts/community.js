@@ -510,12 +510,13 @@
       async function showProfile(userId) {
         activeProfileId = userId;
         showingProfile = true;
-        showSubpageClose();
-        content.replaceChildren(el("p","community-muted","Chargement du profil…"));
+        hideSubpageClose();
+        content.replaceChildren(el("p","community-muted",""));
         try{
           const data=await api("/profiles/"+encodeURIComponent(userId));
           const p=data.profile;
           const wrap=el("section","community-profile-view");
+          wrap.setAttribute("aria-label", "Profil du membre");
           const top=el("div","community-profile-hero");
           const avatar=el("div","community-profile-avatar",initials(p.pseudonym));
           const info=el("div","community-profile-info");
@@ -590,7 +591,7 @@
         try{
           await ensureSession();
           const data=await api("/notifications");
-          if (markRead) await api("/notifications/read",{method:"POST",body:{}});
+          if (markRead) { await api("/notifications/read",{method:"POST",body:{}}); window.dispatchEvent(new Event("niyya:notifications-updated")); }
           content.replaceChildren(el("h3","community-section-title","Ton activité"));
           if(!data.notifications.length){content.append(el("div","community-empty","Tu n'as pas encore de notification. Les nouveaux abonnés et les interactions apparaîtront ici."));return;}
           data.notifications.forEach(item=>{
