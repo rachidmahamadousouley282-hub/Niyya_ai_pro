@@ -12,6 +12,10 @@ const i18n = fs.readFileSync(path.join(root, "public/scripts/i18n.js"), "utf8");
 test("bottom navigation contains the six agreed destinations", () => {
   const links = html.match(/<a class="nav-item(?: [^"]*)?" href=/g) || [];
   assert.equal(links.length, 6, "The bottom navigation must contain six links");
+  const navigation = fs.readFileSync(path.join(root, "public/scripts/navigation.js"), "utf8");
+  assert.equal((navigation.match(/\["#(?:community|discover|trending|create|messages|profile)","/g) || []).length, 6);
+  assert.match(fs.readFileSync(path.join(root, "public/styles/comfort.css"), "utf8"), /grid-template-columns: repeat\(6, minmax\(0, 1fr\)\) !important/);
+  assert.doesNotMatch(fs.readFileSync(path.join(root, "public/styles/main.css"), "utf8"), /grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/);
   for (const label of ["Accueil", "Personnages", "Tendances", "Créer", "Messages", "Profil"]) {
     assert.match(html, new RegExp(`<span class="nav-label">${label}</span>`));
   }

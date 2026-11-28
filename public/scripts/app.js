@@ -1431,12 +1431,12 @@ function openCreateMenu() {
       makeChoice("▤", "Nouvelle publication", "Partager un texte ou une image avec la communauté", () => {
         setActiveNav("#community");
         window.location.hash = "community";
-        window.dispatchEvent(new Event("niyya:show-community"));
-        window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+        window.addEventListener("niyya:community-ready", () => {
           const trigger = document.querySelector(".community-composer-trigger");
           if (trigger) trigger.click();
-          else showToast("Connecte-toi pour publier dans la communauté.");
-        }));
+          else window.dispatchEvent(new Event("niyya:request-account"));
+        }, { once: true });
+        window.dispatchEvent(new Event("niyya:show-community"));
       })
     );
     backdrop.append(sheet);
@@ -1747,6 +1747,25 @@ function openCreateMenu() {
   document.addEventListener("niyya:language-changed", () => {
     renderCategories();
     renderCharacters();
+  });
+
+  document.addEventListener("niyya:request-account", async () => {
+    try {
+      await ensureGuest();
+      const session = await window.NiyyaAPI.getSession();
+      if (session.user?.isGuest) {
+        await openAccountSettings({ required: true });
+        return;
+      }
+      const quota = await window.NiyyaAPI.getQuota();
+      if (!quota.onboarded && window.NiyyaOnboarding?.open) {
+        window.NiyyaOnboarding.open({ required: true, onComplete: () => window.location.reload() });
+        return;
+      }
+      await openAccountSettings();
+    } catch {
+      await openAccountSettings();
+    }
   });
 
   // Les nouveaux visiteurs doivent créer un compte avant d'utiliser NIYYA.

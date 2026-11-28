@@ -192,9 +192,9 @@ test("Community composer starts compact and expands only when the member chooses
 test("Comfort stylesheet is loaded and precached with the app shell", () => {
   const html = fs.readFileSync(path.join(__dirname, "../public/index.html"), "utf8");
   const worker = fs.readFileSync(path.join(__dirname, "../public/service-worker.js"), "utf8");
-  assert.match(html, /comfort\.css\?v=niyya-comfort-profile-activity-v1-20261128/);
-  assert.match(worker, /comfort\.css\?v=niyya-comfort-profile-activity-v1-20261128/);
-  assert.match(worker, /niyya-shell-v67/);
+  assert.match(html, /comfort\.css\?v=niyya-navigation-auth-flow-v1-20261128/);
+  assert.match(worker, /comfort\.css\?v=niyya-navigation-auth-flow-v1-20261128/);
+  assert.match(worker, /niyya-shell-v68/);
 });
 
 
@@ -208,4 +208,16 @@ test("Community feed supports the selected interface language and can be refresh
   assert.match(source, /toLocaleDateString\(locale/);
   assert.match(source, /community-refresh/);
   assert.match(source, /niyya:language-changed/);
+});
+
+
+test("Guest publication actions open the account or onboarding flow instead of showing a dead-end toast", () => {
+  const community = fs.readFileSync(path.join(__dirname, "../public/scripts/community.js"), "utf8");
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(community, /community-auth-action/);
+  assert.match(community, /niyya:request-account/);
+  assert.match(app, /niyya:request-account/);
+  assert.match(app, /niyya:community-ready/);
+  assert.match(app, /window\\.addEventListener\\("niyya:community-ready"/);
+  assert.doesNotMatch(app, /showToast\\("Connecte-toi pour publier dans la communauté\\."\\)/);
 });

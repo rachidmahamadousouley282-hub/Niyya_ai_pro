@@ -294,6 +294,7 @@
     async function openCommunity() {
       if (communityPage) {
         communityPage.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.dispatchEvent(new Event("niyya:community-ready"));
         return;
       }
       hiddenHomeSections = Array.from(main.children).filter(node => !node.classList.contains("community-page"));
@@ -369,6 +370,10 @@
         if (!myId) {
           card.append(el("div","community-composer-heading","Partage quelque chose"));
           card.append(el("p","community-muted","Pour publier, suivre des membres et créer ton profil public, termine d'abord ton inscription ou connecte-toi."));
+          const accountAction = el("button","community-primary community-auth-action","Créer un compte ou se connecter");
+          accountAction.type = "button";
+          accountAction.addEventListener("click", () => window.dispatchEvent(new Event("niyya:request-account")));
+          card.append(accountAction);
           return card;
         }
         const trigger = el("button","community-composer-trigger");
@@ -916,6 +921,7 @@
       hideSubpageClose();
       setTab("all");
       startCommunitySync();
+      window.dispatchEvent(new Event("niyya:community-ready"));
     }
     // La communauté devient la page d'accueil principale de NIYYA.
     window.addEventListener("niyya:show-community", openCommunity);
