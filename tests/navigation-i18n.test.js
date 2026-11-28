@@ -44,7 +44,9 @@ test("Top VIP shortcut remains available while the home VIP promotion stays remo
 
 test("Navigation has one destination handler, avoiding duplicate opens", () => {
   const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
-  assert.match(app, /const bottomNavigation = document\.querySelector\("\.bottom-nav"\)/);\n  assert.match(app, /bottomNavigation\?\.addEventListener\("click"/);\n  assert.doesNotMatch(app, /document\.querySelectorAll\("\.bottom-nav \.nav-item"\)\.forEach\(item =>/);
+  assert.match(app, /const bottomNavigation = document\.querySelector\("\.bottom-nav"\)/);
+  assert.match(app, /bottomNavigation\?\.addEventListener\("click"/);
+  assert.doesNotMatch(app, /document\.querySelectorAll\("\.bottom-nav \.nav-item"\)\.forEach\(item =>/);
 });
 
 
