@@ -775,6 +775,7 @@
       startCommunitySync();
     }
     // La communauté devient la page d'accueil principale de NIYYA.
+    window.addEventListener("niyya:show-community", openCommunity);
     Promise.resolve(window.NiyyaAccessReady).then(openCommunity);
   });
 })();
