@@ -1009,6 +1009,96 @@ document.addEventListener("DOMContentLoaded", () => {
         content.append(edit);
       }
 
+      if (!user.isGuest && user.id) {
+        const activityTitle = element("h3", "niyya-profile-section-title", "Mon activité");
+        content.append(activityTitle);
+        const activityGrid = element("div", "niyya-profile-activity");
+        const postsSection = element("section", "niyya-profile-activity-section");
+        postsSection.append(element("h4", "", "Mes publications"));
+        const postsList = element("div", "niyya-profile-activity-list");
+        postsList.append(element("p", "chat-status", "Chargement de tes publications…"));
+        postsSection.append(postsList);
+        const charactersSection = element("section", "niyya-profile-activity-section");
+        charactersSection.append(element("h4", "", "Mes personnages"));
+        const charactersList = element("div", "niyya-profile-activity-list");
+        charactersList.append(element("p", "chat-status", "Chargement de tes personnages…"));
+        charactersSection.append(charactersList);
+        activityGrid.append(postsSection, charactersSection);
+        content.append(activityGrid);
+
+        const [postsResult, charactersResult] = await Promise.allSettled([
+          fetch("/api/community/profiles/" + encodeURIComponent(user.id) + "/posts?limit=6", {
+            credentials: "same-origin", headers: { Accept: "application/json" }
+          }).then(async response => {
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Publications indisponibles.");
+            return Array.isArray(data.posts) ? data.posts : [];
+          }),
+          window.NiyyaAPI.getMyCharacters().then(data => Array.isArray(data.characters) ? data.characters : [])
+        ]);
+
+        postsList.replaceChildren();
+        if (postsResult.status === "fulfilled" && postsResult.value.length) {
+          postsResult.value.forEach(post => {
+            const card = element("article", "niyya-profile-activity-card");
+            const meta = element("div", "niyya-profile-activity-meta");
+            const date = post.created_at ? new Date(post.created_at) : null;
+            meta.append(
+              element("span", "", post.visibility === "private" ? "Privée" : "Publique"),
+              element("time", "", date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" }) : "")
+            );
+            card.append(meta, element("p", "niyya-profile-post-body", post.body || ""));
+            if (post.has_image) card.append(element("span", "niyya-profile-activity-note", "📷 Image jointe"));
+            const metrics = element("span", "niyya-profile-activity-note", String(post.like_count || 0) + " J’aime · " + String(post.comment_count || 0) + " commentaires");
+            card.append(metrics);
+            postsList.append(card);
+          });
+        } else {
+          const message = postsResult.status === "rejected"
+            ? "Tes publications ne sont pas disponibles pour le moment."
+            : "Tu n'as pas encore publié dans la communauté.";
+          postsList.append(element("p", "niyya-profile-activity-empty", message));
+        }
+
+        charactersList.replaceChildren();
+        if (charactersResult.status === "fulfilled" && charactersResult.value.length) {
+          charactersResult.value.slice(0, 6).forEach(character => {
+            const card = element("article", "niyya-profile-character-card");
+            const copy = element("div", "niyya-profile-character-copy");
+            copy.append(
+              element("strong", "", character.name || "Personnage sans nom"),
+              element("small", "", character.tagline || "Ton personnage")
+            );
+            const statusLabels = { none: "Brouillon privé", pending: "En vérification", approved: "Approuvé", rejected: "À revoir" };
+            card.append(copy, element("span", "niyya-profile-activity-note", statusLabels[character.publication_status] || "Personnage"));
+            const actions = element("div", "niyya-profile-character-actions");
+            const chat = element("button", "profile-link-button", "Discuter");
+            chat.type = "button";
+            chat.addEventListener("click", () => openChat(character, null));
+            actions.append(chat);
+            if (["none", "rejected"].includes(character.publication_status)) {
+              const editCharacter = element("button", "profile-link-button", "Modifier");
+              editCharacter.type = "button";
+              editCharacter.addEventListener("click", () => openCreator(character));
+              actions.append(editCharacter);
+            }
+            card.append(actions);
+            charactersList.append(card);
+          });
+          if (charactersResult.value.length > 6) {
+            const more = element("button", "profile-link-button", "Voir toutes mes créations");
+            more.type = "button";
+            more.addEventListener("click", openMyCharacters);
+            charactersList.append(more);
+          }
+        } else {
+          const message = charactersResult.status === "rejected"
+            ? "Tes personnages ne sont pas disponibles pour le moment."
+            : "Tu n'as pas encore créé de personnage.";
+          charactersList.append(element("p", "niyya-profile-activity-empty", message));
+        }
+      }
+
       const menuTitle = element("h3", "niyya-profile-section-title", "Mon espace");
       content.append(menuTitle);
       addMenu("Offre VIP", "Découvrir les avantages premium", "✦", openVipOffers);

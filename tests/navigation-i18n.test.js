@@ -69,3 +69,13 @@ test("Create opens a compact choice sheet instead of immediately opening the cha
   assert.match(app, /openCreateMenu\(\)/);
   assert.match(app, /community-composer-trigger/);
 });
+
+
+test("Own profile shows recent publications and created characters", () => {
+  const app = fs.readFileSync(path.join(__dirname, "../public/scripts/app.js"), "utf8");
+  assert.match(app, /Mes publications/);
+  assert.match(app, /Mes personnages/);
+  assert.match(app, /profiles\/" \+ encodeURIComponent\(user\.id\) \+ "\/posts/);
+  assert.match(app, /getMyCharacters\(\)/);
+  assert.match(app, /Voir toutes mes créations/);
+});
