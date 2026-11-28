@@ -490,7 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
     guestReady = true;
   }
 
-  function openChatShell(character) {
+  function openChatShell(character, returnToMessages = false) {
     setActiveNav("#messages");
     window.location.hash = "messages";
     document.querySelector(".niyya-modal")?.remove();
