@@ -218,6 +218,6 @@ test("Guest publication actions open the account or onboarding flow instead of s
   assert.match(community, /niyya:request-account/);
   assert.match(app, /niyya:request-account/);
   assert.match(app, /niyya:community-ready/);
-  assert.match(app, /window\\.addEventListener\\("niyya:community-ready"/);
-  assert.doesNotMatch(app, /showToast\\("Connecte-toi pour publier dans la communauté\\."\\)/);
+  assert.ok(app.includes('window.addEventListener("niyya:community-ready"'));
+  assert.ok(!app.includes('showToast("Connecte-toi pour publier dans la communauté.")'));
 });
